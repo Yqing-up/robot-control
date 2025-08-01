@@ -1,0 +1,1609 @@
+<template>
+  <div class="container">
+    <!-- 顶部导航 -->
+    <header class="header">
+      <div class="nav-section">
+        <button class="btn btn-back" @click="goBack">← 返回主页</button>
+        <h1 class="title">上肢系统控制中心</h1>
+      </div>
+      <div class="header-controls">
+        <div class="header-buttons">
+          <button class="btn btn-small header-action-btn" @click="emergencyStop">紧急停止</button>
+          <button class="btn btn-small header-action-btn" @click="resetArms">重置上肢</button>
+          <button class="btn btn-small header-action-btn" @click="exportActionData">导出数据</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="arm-main">
+      <!-- 执行状态通知 -->
+      <div v-if="executionNotification.show" class="execution-notification" :class="executionNotification.type">
+        <div class="notification-icon">
+          {{ executionNotification.type === 'success' ? '✅' : executionNotification.type === 'error' ? '❌' : '⏳' }}
+        </div>
+        <div class="notification-content">
+          <div class="notification-title">{{ executionNotification.title }}</div>
+          <div class="notification-message">{{ executionNotification.message }}</div>
+        </div>
+        <button class="notification-close" @click="hideExecutionNotification">×</button>
+      </div>
+      
+      <!-- 使用左右布局容器 -->
+      <div class="arm-layout-container">
+        <!-- 左侧动作库管理区 -->
+        <div class="arm-left-section">
+          <!-- 动作库管理 -->
+          <section class="action-library-section">
+            <div class="section-header">
+              <h3>动作库管理</h3>
+              <div class="library-stats">
+                <div class="stats-info">
+                  <span>共 {{ actionStats.total }} 个动作</span>
+                  <span v-if="actionStats.fromAPI > 0" class="api-stats">({{ actionStats.fromAPI }} 个来自API)</span>
+                  <span v-if="actionStats.fromDefault > 0" class="default-stats">({{ actionStats.fromDefault }} 个默认)</span>
+                </div>
+                <div class="library-actions">
+                  <button 
+                    class="btn btn-small btn-secondary" 
+                    @click="loadActionLibrary"
+                    :disabled="isLoadingActions"
+                  >
+                    {{ isLoadingActions ? '刷新中...' : '刷新' }}
+                  </button>
+                <button class="btn btn-small btn-primary" @click="showAddActionDialog">+ 添加动作</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 搜索和筛选 -->
+            <div class="action-controls">
+              <div class="search-box">
+                <input 
+                  type="text" 
+                  v-model="searchText" 
+                  placeholder="搜索动作名称或描述..."
+                  class="search-input"
+                >
+              </div>
+              <div class="filter-controls">
+                <select v-model="selectedCategory" class="filter-select">
+                  <option value="">所有分类</option>
+                  <option value="basic">基础动作</option>
+                  <option value="gesture">手势动作</option>
+                  <option value="manipulation">操作动作</option>
+                  <option value="expression">表达动作</option>
+                  <option value="complex">复合动作</option>
+                </select>
+                <select v-model="selectedDifficulty" class="filter-select">
+                  <option value="">所有难度</option>
+                  <option value="easy">简单</option>
+                  <option value="medium">中等</option>
+                  <option value="hard">困难</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 动作列表 -->
+            <div class="action-list">
+              <!-- 加载状态 -->
+              <div v-if="isLoadingActions" class="loading-state">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">正在加载动作列表...</div>
+              </div>
+              
+              <!-- 错误状态 -->
+              <div v-else-if="actionLoadError" class="error-state">
+                <div class="error-icon">⚠️</div>
+                <div class="error-text">{{ actionLoadError }}</div>
+                <button class="btn btn-small btn-primary" @click="loadActionLibrary">重试</button>
+              </div>
+              
+              <!-- 动作列表 -->
+              <template v-else>
+                <!-- 空状态 -->
+                <div v-if="filteredActionLibrary.length === 0" class="empty-state">
+                  <div class="empty-icon">🤖</div>
+                  <div class="empty-text">暂无动作</div>
+                  <div class="empty-hint">点击刷新按钮重新加载动作列表</div>
+                </div>
+                
+                <!-- 动作列表 -->
+                <div 
+                  v-else
+                class="action-item" 
+                v-for="action in filteredActionLibrary" 
+                :key="action.id"
+                :class="{ executing: executingActionId === action.id }"
+              >
+                <div class="action-header">
+                  <div class="action-info">
+                    <span class="action-name">{{ action.name }}</span>
+                    <div class="action-meta">
+                      <span class="action-category">{{ getCategoryName(action.category) }}</span>
+                      <span class="action-difficulty" :class="action.difficulty">{{ getDifficultyName(action.difficulty) }}</span>
+                      <span class="action-duration">{{ action.duration }}s</span>
+                    </div>
+                  </div>
+                  <div class="action-actions">
+                    <button 
+                      class="btn btn-mini btn-execute" 
+                      @click="executeAction(action)"
+                      :disabled="executingActionId === action.id || systemStatus !== 'ready'"
+                    >
+                        <span v-if="executingActionId === action.id" class="executing-indicator">⏳</span>
+                      {{ executingActionId === action.id ? '执行中' : '执行' }}
+                    </button>
+                    <button class="btn btn-mini btn-edit" @click="editAction(action)">编辑</button>
+                    <button class="btn btn-mini btn-danger" @click="deleteAction(action.id)">删除</button>
+                  </div>
+                </div>
+                <div class="action-description">
+                  {{ action.description }}
+                    <div class="action-file-info" v-if="action.fileName">
+                      <span class="file-info-item">文件: {{ action.fileName }}</span>
+                      <span class="file-info-item" v-if="action.fileSize">大小: {{ formatFileSize(action.fileSize) }}</span>
+                      <span class="file-info-item" v-if="action.modifiedTimeStr">修改: {{ action.modifiedTimeStr }}</span>
+                    </div>
+                </div>
+                <div class="action-steps" v-if="action.showSteps">
+                  <h5>动作步骤:</h5>
+                  <div class="step-list">
+                    <div class="step-item" v-for="(step, index) in action.steps" :key="index">
+                      <span class="step-number">{{ index + 1 }}</span>
+                      <span class="step-description">{{ step.description }}</span>
+                      <span class="step-duration">{{ step.duration }}s</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="action-controls">
+                  <button class="btn btn-mini" @click="toggleSteps(action.id)">
+                    {{ action.showSteps ? '隐藏步骤' : '显示步骤' }}
+                  </button>
+                  <button class="btn btn-mini" @click="previewAction(action)">预览</button>
+                </div>
+              </div>
+              </template>
+            </div>
+          </section>
+        </div>
+
+        <!-- 右侧控制面板区 -->
+        <div class="arm-right-section">
+          <!-- 机器人第三方视觉视频流 -->
+          <section class="vision-stream-section">
+            <div class="section-header">
+              <h3>机器人视觉</h3>
+            </div>
+            <div class="vision-stream-container">
+              <div class="vision-stream-box">
+                <video
+                  ref="visionVideo"
+                  autoplay
+                  muted
+                  controls
+                  style="width:100%;max-width:800px"
+                >您的浏览器不支持视频播放</video>
+              </div>
+            </div>
+          </section>
+
+          <!-- 执行控制面板 -->
+          <section class="execution-section">
+            <div class="section-header">
+              <h3>执行控制</h3>
+              <div class="system-status" :class="systemStatus">
+                <div class="status-dot"></div>
+                <span>{{ systemStatusText }}</span>
+              </div>
+            </div>
+
+            <div class="execution-controls">
+              <!-- 当前执行信息 -->
+              <div class="current-execution" v-if="currentAction">
+                <h4>正在执行</h4>
+                <div class="execution-info">
+                  <div class="execution-name">{{ currentAction.name }}</div>
+                  <div class="execution-description">{{ currentAction.description }}</div>
+                  <div class="execution-progress">
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: executionProgress + '%' }"></div>
+                    </div>
+                    <div class="progress-text">
+                      {{ Math.round(executionProgress) }}% - {{ currentStepDescription }}
+                    </div>
+                  </div>
+                </div>
+                <div class="execution-buttons">
+                  <button class="btn btn-secondary" @click="pauseExecution">暂停</button>
+                  <button class="btn btn-danger" @click="stopExecution">停止</button>
+                </div>
+              </div>
+
+              <!-- 快速动作按钮 -->
+              <div class="quick-actions">
+                <h4>快速动作</h4>
+                <div class="quick-buttons">
+                  <button 
+                    class="btn btn-quick" 
+                    v-for="action in quickActions" 
+                    :key="action.id"
+                    @click="executeAction(action)"
+                    :disabled="systemStatus !== 'ready'"
+                  >
+                    {{ action.name }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 上肢状态监控 -->
+              <div class="arm-status">
+                <h4>上肢状态</h4>
+                <div class="status-grid">
+                  <div class="status-item">
+                    <div class="status-label">左臂位置</div>
+                    <div class="status-value">{{ armStatus.leftArm.position }}</div>
+                    <div class="arm-signal-status online"></div>
+                  </div>
+                  <div class="status-item">
+                    <div class="status-label">右臂位置</div>
+                    <div class="status-value">{{ armStatus.rightArm.position }}</div>
+                    <div class="arm-signal-status online"></div>
+                  </div>
+                  <div class="status-item">
+                    <div class="status-label">电机温度</div>
+                    <div class="status-value">{{ armStatus.temperature }}°C</div>
+                    <div class="arm-signal-status" :class="getTemperatureStatus(armStatus.temperature)"></div>
+                  </div>
+                  <div class="status-item">
+                    <div class="status-label">电池电量</div>
+                    <div class="status-value">{{ armStatus.battery }}%</div>
+                    <div class="arm-signal-status" :class="getBatteryStatus(armStatus.battery)"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 动作序列管理 -->
+          <section class="sequence-section">
+            <div class="section-header">
+              <h3>动作序列</h3>
+              <button class="btn btn-small" @click="showSequenceDialog = true">创建序列</button>
+            </div>
+
+            <div class="sequence-controls">
+              <!-- 当前序列 -->
+              <div class="current-sequence" v-if="currentSequence.actions.length > 0">
+                <h4>当前序列</h4>
+                <div class="sequence-list">
+                  <div 
+                    class="sequence-item" 
+                    v-for="(action, index) in currentSequence.actions" 
+                    :key="index"
+                    :class="{ active: currentSequence.currentIndex === index }"
+                  >
+                    <span class="sequence-number">{{ index + 1 }}</span>
+                    <span class="sequence-name">{{ action.name }}</span>
+                    <button class="btn btn-mini btn-danger" @click="removeFromSequence(index)">移除</button>
+                  </div>
+                </div>
+                <div class="sequence-buttons">
+                  <button class="btn btn-primary" @click="executeSequence" :disabled="systemStatus !== 'ready'">
+                    执行序列
+                  </button>
+                  <button class="btn btn-secondary" @click="clearSequence">清空序列</button>
+                  <button class="btn btn-secondary" @click="saveSequence">保存序列</button>
+                </div>
+              </div>
+
+              <!-- 保存的序列 -->
+              <div class="saved-sequences">
+                <h4>保存的序列</h4>
+                <div class="saved-list">
+                  <div class="saved-item" v-for="sequence in savedSequences" :key="sequence.id">
+                    <div class="saved-header">
+                      <span class="saved-name">{{ sequence.name }}</span>
+                      <span class="saved-count">{{ sequence.actions.length }} 个动作</span>
+                    </div>
+                    <div class="saved-actions">
+                      <button class="btn btn-mini" @click="loadSequence(sequence)">加载</button>
+                      <button class="btn btn-mini" @click="executeSequence(sequence)">执行</button>
+                      <button class="btn btn-mini btn-danger" @click="deleteSavedSequence(sequence.id)">删除</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 执行历史 -->
+          <section class="history-section">
+            <div class="section-header">
+              <h3>执行历史</h3>
+              <button class="btn btn-small" @click="clearHistory">清空历史</button>
+            </div>
+
+            <div class="history-list">
+              <div class="history-item" v-for="item in executionHistory" :key="item.id">
+                <div class="history-header">
+                  <span class="history-name">{{ item.name }}</span>
+                  <span class="history-time">{{ formatTime(item.timestamp) }}</span>
+                </div>
+                <div class="history-status" :class="item.status">
+                  {{ getStatusText(item.status) }}
+                </div>
+                <div class="history-duration">
+                  执行时长: {{ item.duration }}s
+                </div>
+                <button class="btn btn-mini" @click="repeatAction(item)">重复执行</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- 添加/编辑动作对话框 -->
+    <div class="modal" v-if="showActionDialog" @click="closeActionDialog">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>{{ editingAction ? '编辑动作' : '上传动作文件' }}</h3>
+          <button class="modal-close" @click="closeActionDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <!-- 文件上传区域 -->
+          <div class="file-upload-section">
+            <div class="upload-area" 
+                 :class="{ 'drag-over': isDragOver, 'has-file': selectedFile }"
+                 @drop="handleFileDrop"
+                 @dragover="handleDragOver"
+                 @dragleave="handleDragLeave"
+                 @click="triggerFileInput">
+              <div class="upload-content">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">
+                  <span v-if="!selectedFile">拖拽 .tact 文件到此处或点击选择文件</span>
+                  <span v-else class="file-name">{{ selectedFile.name }}</span>
+                </div>
+                <div class="upload-hint">支持 .tact 格式的动作文件</div>
+                <input 
+                  ref="fileInput"
+                  type="file" 
+                  accept=".tact"
+                  @change="handleFileSelect"
+                  style="display: none"
+                >
+              </div>
+            </div>
+            
+            <!-- 文件信息显示 -->
+            <div class="file-info" v-if="selectedFile">
+              <div class="file-details">
+                <div class="file-detail-item">
+                  <span class="detail-label">文件名:</span>
+                  <span class="detail-value">{{ selectedFile.name }}</span>
+                </div>
+                <div class="file-detail-item">
+                  <span class="detail-label">文件大小:</span>
+                  <span class="detail-value">{{ formatFileSize(selectedFile.size) }}</span>
+                </div>
+                <div class="file-detail-item" v-if="parsedAction">
+                  <span class="detail-label">动作名称:</span>
+                  <span class="detail-value">{{ parsedAction.name }}</span>
+                </div>
+                <div class="file-detail-item" v-if="parsedAction">
+                  <span class="detail-label">动作时长:</span>
+                  <span class="detail-value">{{ parsedAction.duration }}s</span>
+                </div>
+              </div>
+              
+              <!-- 解析预览 -->
+              <div class="action-preview" v-if="parsedAction">
+                <h4>动作预览</h4>
+                <div class="preview-content">
+                  <div class="preview-item">
+                    <span class="preview-label">描述:</span>
+                    <span class="preview-value">{{ parsedAction.description }}</span>
+                  </div>
+                  <div class="preview-item">
+                    <span class="preview-label">分类:</span>
+                    <span class="preview-value">{{ getCategoryName(parsedAction.category) }}</span>
+                  </div>
+                  <div class="preview-item">
+                    <span class="preview-label">难度:</span>
+                    <span class="preview-value">{{ getDifficultyName(parsedAction.difficulty) }}</span>
+                  </div>
+                  <div class="preview-item" v-if="parsedAction.steps && parsedAction.steps.length > 0">
+                    <span class="preview-label">步骤数:</span>
+                    <span class="preview-value">{{ parsedAction.steps.length }} 步</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 错误信息显示 -->
+            <div class="error-message" v-if="uploadError">
+              <div class="error-icon">⚠️</div>
+              <div class="error-text">{{ uploadError }}</div>
+            </div>
+          </div>
+          
+          <!-- 手动输入选项 -->
+          <div class="manual-input-section">
+            <div class="section-divider">
+              <span>或手动输入动作信息</span>
+            </div>
+            
+          <div class="form-group">
+            <label>动作名称:</label>
+            <input type="text" v-model="actionForm.name" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>描述:</label>
+            <textarea v-model="actionForm.description" class="form-textarea"></textarea>
+          </div>
+          <div class="form-group">
+            <label>分类:</label>
+            <select v-model="actionForm.category" class="form-select">
+              <option value="basic">基础动作</option>
+              <option value="gesture">手势动作</option>
+              <option value="manipulation">操作动作</option>
+              <option value="expression">表达动作</option>
+              <option value="complex">复合动作</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>难度:</label>
+            <select v-model="actionForm.difficulty" class="form-select">
+              <option value="easy">简单</option>
+              <option value="medium">中等</option>
+              <option value="hard">困难</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>持续时间 (秒):</label>
+            <input type="number" v-model="actionForm.duration" min="0.1" step="0.1" class="form-input">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="closeActionDialog">取消</button>
+          <button class="btn btn-primary" @click="saveAction" :disabled="!canSaveAction">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 视觉配置对话框 -->
+    <div class="modal" v-if="showVisionConfigDialog" @click="closeVisionConfigDialog">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>视觉流配置</h3>
+          <button class="modal-close" @click="closeVisionConfigDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>视觉流地址:</label>
+            <input 
+              type="text" 
+              v-model="visionStreamUrl" 
+              class="form-input"
+              placeholder="http://192.168.0.103:8080/live/demo"
+            >
+          </div>
+          <div class="form-group">
+            <label>说明:</label>
+            <p class="config-hint">
+              请输入有效的HLS流地址，支持 .m3u8 格式的视频流
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="closeVisionConfigDialog">取消</button>
+          <button class="btn btn-primary" @click="saveVisionConfig">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建序列对话框 -->
+    <div class="modal" v-if="showSequenceDialog" @click="closeSequenceDialog">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>创建动作序列</h3>
+          <button class="modal-close" @click="closeSequenceDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>序列名称:</label>
+            <input type="text" v-model="sequenceForm.name" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>选择动作:</label>
+            <div class="action-selector">
+              <div 
+                class="selector-item" 
+                v-for="action in actionLibrary" 
+                :key="action.id"
+                @click="addToSequence(action)"
+              >
+                <span class="selector-name">{{ action.name }}</span>
+                <span class="selector-duration">{{ action.duration }}s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="closeSequenceDialog">取消</button>
+          <button class="btn btn-primary" @click="saveSequenceDialog">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
+import { movementApi } from '../api/movementApi.js'
+// 如需用到动作相关API请用movementApi.getRobotActions等
+
+const router = useRouter()
+
+// 响应式数据
+const searchText = ref('')
+const selectedCategory = ref('')
+const selectedDifficulty = ref('')
+const executingActionId = ref(null)
+const systemStatus = ref('ready')
+const systemStatusText = ref('系统就绪')
+const currentAction = ref(null)
+const executionProgress = ref(0)
+const currentStepDescription = ref('')
+
+// 对话框相关
+const showActionDialog = ref(false)
+const showSequenceDialog = ref(false)
+const showVisionConfigDialog = ref(false)
+const editingAction = ref(null)
+const actionForm = reactive({
+  name: '',
+  description: '',
+  category: 'basic',
+  difficulty: 'easy',
+  duration: 2.0
+})
+const sequenceForm = reactive({
+  name: ''
+})
+
+// 文件上传相关
+const selectedFile = ref(null)
+const isDragOver = ref(false)
+const uploadError = ref('')
+const parsedAction = ref(null)
+const fileInput = ref(null)
+
+// 执行通知相关
+const executionNotification = ref({
+  show: false,
+  type: 'info', // success, error, info
+  title: '',
+  message: ''
+})
+
+// 视觉流相关（最简实现）
+const isVisionConnected = ref(false)
+const visionStreamUrl = ref('http://192.168.0.103:8080/live/demo.m3u8')
+const visionVideo = ref(null)
+let hls = null
+// 移除自动追帧定时器
+// let visionSyncTimer = null
+
+// 移除startVisionSync和stopVisionSync函数
+
+const connectVision = async () => {
+  if (isVisionConnected.value) return
+  await loadHlsLibrary()
+  await nextTick()
+  if (!visionVideo.value) return
+
+  if (Hls.isSupported()) {
+    hls = new Hls({
+      lowLatencyMode: true,
+      liveSyncDuration: 0.1, // 极限低延迟
+      maxBufferLength: 2,
+      maxMaxBufferLength: 4,
+      liveBackBufferLength: 0,
+      liveDurationInfinity: true,
+      maxLiveSyncPlaybackRate: 1.5, // 自动加速追帧
+    })
+    hls.loadSource(visionStreamUrl.value)
+    hls.attachMedia(visionVideo.value)
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      visionVideo.value.play()
+      isVisionConnected.value = true
+      // 移除startVisionSync()
+    })
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      console.error('HLS error', data)
+      isVisionConnected.value = false
+      // 移除stopVisionSync()
+    })
+  } else if (visionVideo.value.canPlayType('application/vnd.apple.mpegurl')) {
+    visionVideo.value.src = visionStreamUrl.value
+    visionVideo.value.play()
+    isVisionConnected.value = true
+    // 移除startVisionSync()
+  } else {
+    alert('HLS.js 不支持，且浏览器不支持原生播放')
+  }
+}
+
+const disconnectVision = () => {
+  isVisionConnected.value = false
+  if (hls) {
+    hls.destroy()
+    hls = null
+  }
+  if (visionVideo.value) {
+    visionVideo.value.src = ''
+  }
+  // 移除stopVisionSync()
+}
+
+const loadHlsLibrary = () => {
+  return new Promise((resolve, reject) => {
+    if (typeof Hls !== 'undefined') return resolve()
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest'
+    script.onload = resolve
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
+
+// 动作库数据
+const actionLibrary = ref([])
+const isLoadingActions = ref(false)
+const actionLoadError = ref('')
+
+// 默认动作数据（作为备用）
+const defaultActions = [
+  {
+    id: 1,
+    name: '挥手问候',
+    description: '友好的挥手问候动作',
+    category: 'gesture',
+    difficulty: 'easy',
+    duration: 2.5,
+    showSteps: false,
+    steps: [
+      { description: '抬起右臂', duration: 0.8 },
+      { description: '左右摆动手掌', duration: 1.2 },
+      { description: '放下右臂', duration: 0.5 }
+    ]
+  },
+  {
+    id: 2,
+    name: '握手动作',
+    description: '标准的握手礼仪动作',
+    category: 'gesture',
+    difficulty: 'medium',
+    duration: 3.0,
+    showSteps: false,
+    steps: [
+      { description: '伸出右臂', duration: 1.0 },
+      { description: '握拳姿态', duration: 1.0 },
+      { description: '收回右臂', duration: 1.0 }
+    ]
+  },
+  {
+    id: 3,
+    name: '拿取物品',
+    description: '精确拿取桌面物品的动作',
+    category: 'manipulation',
+    difficulty: 'hard',
+    duration: 4.5,
+    showSteps: false,
+    steps: [
+      { description: '定位目标物品', duration: 1.0 },
+      { description: '伸出上肢接近', duration: 1.5 },
+      { description: '张开手指抓取', duration: 1.0 },
+      { description: '提起物品', duration: 1.0 }
+    ]
+  },
+  {
+    id: 4,
+    name: '指向动作',
+    description: '用手指指向特定方向',
+    category: 'expression',
+    difficulty: 'easy',
+    duration: 1.8,
+    showSteps: false,
+    steps: [
+      { description: '抬起上肢', duration: 0.6 },
+      { description: '伸出食指', duration: 0.6 },
+      { description: '保持指向', duration: 0.6 }
+    ]
+  },
+  {
+    id: 5,
+    name: '双臂展开',
+    description: '张开双臂表示欢迎',
+    category: 'expression',
+    difficulty: 'medium',
+    duration: 3.2,
+    showSteps: false,
+    steps: [
+      { description: '同时抬起双臂', duration: 1.2 },
+      { description: '向两侧展开', duration: 1.0 },
+      { description: '放下双臂', duration: 1.0 }
+    ]
+  }
+]
+
+// 上肢状态
+const armStatus = reactive({
+  leftArm: { position: '待机位置', status: 'normal' },
+  rightArm: { position: '待机位置', status: 'normal' },
+  temperature: 35,
+  battery: 88
+})
+
+// 当前序列
+const currentSequence = reactive({
+  actions: [],
+  currentIndex: -1
+})
+
+// 保存的序列
+const savedSequences = ref([
+  {
+    id: 1,
+    name: '欢迎客人',
+    actions: [
+      { id: 1, name: '挥手问候' },
+      { id: 5, name: '双臂展开' }
+    ]
+  },
+  {
+    id: 2,
+    name: '服务流程',
+    actions: [
+      { id: 4, name: '指向动作' },
+      { id: 3, name: '拿取物品' },
+      { id: 2, name: '握手动作' }
+    ]
+  }
+])
+
+// 执行历史
+const executionHistory = ref([
+  { id: 1, name: '挥手问候', timestamp: Date.now() - 300000, status: 'completed', duration: 2.5 },
+  { id: 2, name: '握手动作', timestamp: Date.now() - 600000, status: 'completed', duration: 3.0 },
+  { id: 3, name: '拿取物品', timestamp: Date.now() - 900000, status: 'failed', duration: 2.1 }
+])
+
+// 快速动作
+const quickActions = computed(() => {
+  return actionLibrary.value.filter(action => 
+    action.difficulty === 'easy' || action.category === 'gesture'
+  ).slice(0, 6)
+})
+
+// 过滤后的动作库
+const filteredActionLibrary = computed(() => {
+  return actionLibrary.value.filter(action => {
+    const matchesSearch = !searchText.value || 
+      action.name.toLowerCase().includes(searchText.value.toLowerCase()) ||
+      action.description.toLowerCase().includes(searchText.value.toLowerCase())
+    
+    const matchesCategory = !selectedCategory.value || action.category === selectedCategory.value
+    const matchesDifficulty = !selectedDifficulty.value || action.difficulty === selectedDifficulty.value
+    
+    return matchesSearch && matchesCategory && matchesDifficulty
+  })
+})
+
+// 检查是否可以保存动作
+const canSaveAction = computed(() => {
+  return actionForm.name.trim() && actionForm.description.trim()
+})
+
+// 动作统计信息
+const actionStats = computed(() => {
+  const total = actionLibrary.value.length
+  const filtered = filteredActionLibrary.value.length
+  const fromAPI = actionLibrary.value.filter(action => action.fileName).length
+  
+  return {
+    total,
+    filtered,
+    fromAPI,
+    fromDefault: total - fromAPI
+  }
+})
+
+// 方法
+const goBack = () => {
+  router.push('/')
+}
+
+const getCategoryName = (category) => {
+  const categoryMap = {
+    basic: '基础动作',
+    gesture: '手势动作',
+    manipulation: '操作动作',
+    expression: '表达动作',
+    complex: '复合动作'
+  }
+  return categoryMap[category] || category
+}
+
+const getDifficultyName = (difficulty) => {
+  const difficultyMap = {
+    easy: '简单',
+    medium: '中等',
+    hard: '困难'
+  }
+  return difficultyMap[difficulty] || difficulty
+}
+
+const getTemperatureStatus = (temp) => {
+  if (temp > 50) return 'error'
+  if (temp > 40) return 'warning'
+  return '' // 正常状态使用默认绿色
+}
+
+const getBatteryStatus = (battery) => {
+  if (battery < 20) return 'error'
+  if (battery < 50) return 'warning'
+  return '' // 正常状态使用默认绿色
+}
+
+const getStatusText = (status) => {
+  const statusMap = {
+    completed: '执行完成',
+    failed: '执行失败',
+    cancelled: '已取消',
+    executing: '执行中'
+  }
+  return statusMap[status] || status
+}
+
+const executeAction = async (action) => {
+  if (systemStatus.value !== 'ready') return
+  
+  executingActionId.value = action.id
+  currentAction.value = action
+  systemStatus.value = 'executing'
+  systemStatusText.value = '正在执行动作'
+  executionProgress.value = 0
+  
+  // 添加到执行历史
+  const historyItem = {
+    id: Date.now(),
+    name: action.name,
+    timestamp: Date.now(),
+    status: 'executing',
+    duration: 0
+  }
+  executionHistory.value.unshift(historyItem)
+  
+  try {
+    // 准备API调用参数
+    let actionName = action.name
+    let apiParams = {
+      duration: action.duration || 3.0
+    }
+    
+    // 如果有文件名，使用文件名作为动作名称
+    if (action.fileName) {
+      actionName = action.fileName.replace('.tact', '')
+      apiParams.filePath = action.filePath || action.fileName
+    }
+    
+    console.log('调用API执行动作:', {
+      actionName,
+      apiParams,
+      originalAction: action
+    })
+    
+    const response = await movementApi.executeRobotAction(actionName, apiParams)
+    console.log('执行动作API响应:', response)
+    const result = response.data || response
+    console.log('提取的执行动作数据:', result)
+    
+    if (result.success) {
+      // API执行成功，更新历史记录
+      console.log('动作执行成功:', result.message)
+      completeExecution(historyItem, action.duration, 'completed')
+      
+      // 显示成功通知
+      showExecutionNotification(
+        'success',
+        '执行成功',
+        `${action.name} 动作执行完成`,
+        4000
+      )
+    } else {
+      // API执行失败
+      console.error('API执行动作失败:', {
+        message: result.message,
+        errorCode: result.error_code,
+        details: result.details
+      })
+      completeExecution(historyItem, action.duration, 'failed')
+      
+      // 显示错误通知
+      showExecutionNotification(
+        'error',
+        '执行失败',
+        `${action.name} 动作执行失败: ${result.message}`,
+        6000
+      )
+    }
+  } catch (error) {
+    console.error('执行动作时发生错误:', error)
+    completeExecution(historyItem, action.duration, 'failed')
+    
+    // 显示错误通知
+    showExecutionNotification(
+      'error',
+      '执行错误',
+      `${action.name} 动作执行出错: ${error.message || '网络错误'}`,
+      6000
+    )
+  }
+}
+
+
+
+const completeExecution = (historyItem, duration, status = 'completed') => {
+  executingActionId.value = null
+  currentAction.value = null
+  systemStatus.value = 'ready'
+  systemStatusText.value = '系统就绪'
+  executionProgress.value = 0
+  currentStepDescription.value = ''
+  
+  // 更新历史记录
+  historyItem.status = status
+  historyItem.duration = duration
+}
+
+const pauseExecution = () => {
+  // 暂停执行逻辑
+  systemStatus.value = 'paused'
+  systemStatusText.value = '执行已暂停'
+}
+
+const stopExecution = () => {
+  executingActionId.value = null
+  currentAction.value = null
+  systemStatus.value = 'ready'
+  systemStatusText.value = '系统就绪'
+  executionProgress.value = 0
+  currentStepDescription.value = ''
+}
+
+const emergencyStop = () => {
+  stopExecution()
+  systemStatusText.value = '紧急停止'
+}
+
+const resetArms = () => {
+  stopExecution()
+  armStatus.leftArm.position = '待机位置'
+  armStatus.rightArm.position = '待机位置'
+  systemStatusText.value = '上肢已重置'
+}
+
+const toggleSteps = (actionId) => {
+  const action = actionLibrary.value.find(a => a.id === actionId)
+  if (action) {
+    action.showSteps = !action.showSteps
+  }
+}
+
+const previewAction = (action) => {
+  alert(`预览动作: ${action.name}\n${action.description}\n持续时间: ${action.duration}秒`)
+}
+
+const showAddActionDialog = () => {
+  editingAction.value = null
+  actionForm.name = ''
+  actionForm.description = ''
+  actionForm.category = 'basic'
+  actionForm.difficulty = 'easy'
+  actionForm.duration = 2.0
+  selectedFile.value = null
+  parsedAction.value = null
+  uploadError.value = ''
+  isDragOver.value = false
+  showActionDialog.value = true
+}
+
+const editAction = (action) => {
+  editingAction.value = action
+  actionForm.name = action.name
+  actionForm.description = action.description
+  actionForm.category = action.category
+  actionForm.difficulty = action.difficulty
+  actionForm.duration = action.duration
+  showActionDialog.value = true
+}
+
+const closeActionDialog = () => {
+  showActionDialog.value = false
+  editingAction.value = null
+  selectedFile.value = null
+  parsedAction.value = null
+  uploadError.value = ''
+  isDragOver.value = false
+}
+
+const saveAction = () => {
+  // 优先使用解析的文件数据
+  const actionData = parsedAction.value || actionForm
+  
+  if (!actionData.name?.trim() || !actionData.description?.trim()) {
+    alert('请填写完整信息或上传有效的动作文件')
+    return
+  }
+  
+  if (editingAction.value) {
+    // 编辑现有动作
+    const index = actionLibrary.value.findIndex(a => a.id === editingAction.value.id)
+    if (index !== -1) {
+      actionLibrary.value[index] = {
+        ...actionLibrary.value[index],
+        name: actionData.name,
+        description: actionData.description,
+        category: actionData.category,
+        difficulty: actionData.difficulty,
+        duration: actionData.duration
+      }
+    }
+  } else {
+    // 添加新动作
+    const newAction = {
+      id: Date.now(),
+      name: actionData.name,
+      description: actionData.description,
+      category: actionData.category,
+      difficulty: actionData.difficulty,
+      duration: actionData.duration,
+      showSteps: false,
+      steps: actionData.steps || [
+        { description: '准备动作', duration: actionData.duration * 0.3 },
+        { description: '执行动作', duration: actionData.duration * 0.4 },
+        { description: '完成动作', duration: actionData.duration * 0.3 }
+      ]
+    }
+    actionLibrary.value.unshift(newAction)
+  }
+  
+  closeActionDialog()
+}
+
+const deleteAction = (actionId) => {
+  if (confirm('确定要删除这个动作吗？')) {
+    const index = actionLibrary.value.findIndex(a => a.id === actionId)
+    if (index !== -1) {
+      actionLibrary.value.splice(index, 1)
+    }
+  }
+}
+
+const addToSequence = (action) => {
+  currentSequence.actions.push(action)
+}
+
+const removeFromSequence = (index) => {
+  currentSequence.actions.splice(index, 1)
+}
+
+const executeSequence = (sequence) => {
+  const targetSequence = sequence || currentSequence
+  if (targetSequence.actions.length === 0) return
+  
+  // 执行序列中的每个动作
+  let currentIndex = 0
+  const executeNext = () => {
+    if (currentIndex < targetSequence.actions.length) {
+      const action = targetSequence.actions[currentIndex]
+      executeAction(action)
+      currentIndex++
+      setTimeout(executeNext, action.duration * 1000 + 500)
+    }
+  }
+  executeNext()
+}
+
+const clearSequence = () => {
+  currentSequence.actions = []
+  currentSequence.currentIndex = -1
+}
+
+const saveSequence = () => {
+  if (currentSequence.actions.length === 0) {
+    alert('序列为空，无法保存')
+    return
+  }
+  
+  const name = prompt('请输入序列名称:')
+  if (name) {
+    const newSequence = {
+      id: Date.now(),
+      name: name,
+      actions: [...currentSequence.actions]
+    }
+    savedSequences.value.unshift(newSequence)
+  }
+}
+
+const loadSequence = (sequence) => {
+  currentSequence.actions = [...sequence.actions]
+  currentSequence.currentIndex = -1
+}
+
+const deleteSavedSequence = (sequenceId) => {
+  if (confirm('确定要删除这个序列吗？')) {
+    const index = savedSequences.value.findIndex(s => s.id === sequenceId)
+    if (index !== -1) {
+      savedSequences.value.splice(index, 1)
+    }
+  }
+}
+
+const repeatAction = (historyItem) => {
+  const action = actionLibrary.value.find(a => a.name === historyItem.name)
+  if (action) {
+    executeAction(action)
+  }
+}
+
+const clearHistory = () => {
+  if (confirm('确定要清空执行历史吗？')) {
+    executionHistory.value = []
+  }
+}
+
+const exportActionData = () => {
+  const data = {
+    actionLibrary: actionLibrary.value,
+    savedSequences: savedSequences.value,
+    executionHistory: executionHistory.value,
+    armStatus: armStatus,
+    timestamp: new Date().toISOString()
+  }
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `arm-system-data-${Date.now()}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const formatTime = (timestamp) => {
+  return new Date(timestamp).toLocaleTimeString()
+}
+
+// 加载动作列表
+const loadActionLibrary = async () => {
+  isLoadingActions.value = true
+  actionLoadError.value = ''
+  
+  try {
+    console.log('开始加载动作列表...')
+    const response = await movementApi.getRobotActions()
+    console.log('动作列表API响应:', response)
+    
+    // 从Axios响应对象中提取数据
+    const result = response.data || response
+    console.log('提取的动作列表数据:', result)
+    
+    if (result.success && result.data && result.data.success) {
+      // 解析API返回的动作数据
+      const apiActions = parseApiActions(result.data.actions)
+      actionLibrary.value = apiActions
+      console.log('动作列表加载成功:', apiActions.length, '个动作')
+    } else {
+      // API调用失败，使用默认动作
+      const errorMessage = result.data?.message || result.message || '未知错误'
+      console.warn('API获取动作列表失败，使用默认动作:', errorMessage)
+      actionLibrary.value = [...defaultActions]
+      actionLoadError.value = `API获取失败: ${errorMessage}`
+    }
+  } catch (error) {
+    console.error('加载动作列表时发生错误:', error)
+    actionLibrary.value = [...defaultActions]
+    actionLoadError.value = '网络连接失败，使用默认动作'
+  } finally {
+    isLoadingActions.value = false
+  }
+}
+
+// 解析API返回的动作数据
+const parseApiActions = (apiData) => {
+  if (!apiData || !Array.isArray(apiData)) {
+    console.warn('API返回的动作数据格式不正确:', apiData)
+    return defaultActions
+  }
+  
+  return apiData.map((action, index) => {
+    // 处理API返回的动作对象格式
+    if (typeof action === 'object' && action.name) {
+      return {
+        id: Date.now() + index,
+        name: action.name,
+        description: `动作文件: ${action.file_name}`,
+        category: 'basic', // 默认分类，可以根据需要调整
+        difficulty: 'medium', // 默认难度
+        duration: 3.0, // 默认持续时间
+        showSteps: false,
+        steps: [
+          { description: '准备动作', duration: 1.0 },
+          { description: '执行动作', duration: 1.5 },
+          { description: '完成动作', duration: 0.5 }
+        ],
+        fileName: action.file_name, // 保存文件名用于API调用
+        filePath: action.file_path,
+        fileSize: action.file_size,
+        modifiedTime: action.modified_time,
+        modifiedTimeStr: action.modified_time_str
+      }
+    }
+    
+    // 如果API返回的是字符串（文件名）
+    if (typeof action === 'string' && action.endsWith('.tact')) {
+      return {
+        id: Date.now() + index,
+        name: action.replace('.tact', ''),
+        description: `从文件 ${action} 加载的动作`,
+        category: 'basic',
+        difficulty: 'easy',
+        duration: 2.0,
+        showSteps: false,
+        steps: [
+          { description: '准备动作', duration: 0.6 },
+          { description: '执行动作', duration: 0.8 },
+          { description: '完成动作', duration: 0.6 }
+        ],
+        fileName: action
+      }
+    }
+    
+    // 其他情况，创建默认动作
+    return {
+      id: Date.now() + index,
+      name: `动作${index + 1}`,
+      description: '未知动作',
+      category: 'basic',
+      difficulty: 'easy',
+      duration: 2.0,
+      showSteps: false,
+      steps: [
+        { description: '准备动作', duration: 0.6 },
+        { description: '执行动作', duration: 0.8 },
+        { description: '完成动作', duration: 0.6 }
+      ]
+    }
+  })
+}
+
+// 文件上传相关方法
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    processFile(file)
+  }
+}
+
+const handleFileDrop = (event) => {
+  event.preventDefault()
+  isDragOver.value = false
+  
+  const files = event.dataTransfer.files
+  if (files.length > 0) {
+    const file = files[0]
+    if (file.name.endsWith('.tact')) {
+      processFile(file)
+    } else {
+      uploadError.value = '请选择 .tact 格式的文件'
+    }
+  }
+}
+
+const handleDragOver = (event) => {
+  event.preventDefault()
+  isDragOver.value = true
+}
+
+const handleDragLeave = (event) => {
+  event.preventDefault()
+  isDragOver.value = false
+}
+
+const processFile = (file) => {
+  selectedFile.value = file
+  uploadError.value = ''
+  parsedAction.value = null
+  
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    try {
+      const content = e.target.result
+      const action = parseTactFile(content, file.name)
+      parsedAction.value = action
+      
+      // 自动填充表单
+      actionForm.name = action.name
+      actionForm.description = action.description
+      actionForm.category = action.category
+      actionForm.difficulty = action.difficulty
+      actionForm.duration = action.duration
+    } catch (error) {
+      uploadError.value = `文件解析失败: ${error.message}`
+      console.error('文件解析错误:', error)
+    }
+  }
+  
+  reader.onerror = () => {
+    uploadError.value = '文件读取失败'
+  }
+  
+  reader.readAsText(file)
+}
+
+const parseTactFile = (content, filename) => {
+  try {
+    // 尝试解析JSON格式
+    const data = JSON.parse(content)
+    
+    // 验证必需字段
+    if (!data.name || !data.description) {
+      throw new Error('缺少必需的字段: name 或 description')
+    }
+    
+    return {
+      name: data.name,
+      description: data.description,
+      category: data.category || 'basic',
+      difficulty: data.difficulty || 'easy',
+      duration: data.duration || 2.0,
+      steps: data.steps || []
+    }
+  } catch (jsonError) {
+    // 如果不是JSON格式，尝试解析自定义格式
+    return parseCustomTactFormat(content, filename)
+  }
+}
+
+const parseCustomTactFormat = (content, filename) => {
+  const lines = content.split('\n').filter(line => line.trim())
+  
+  if (lines.length < 2) {
+    throw new Error('文件格式不正确，至少需要动作名称和描述')
+  }
+  
+  const name = lines[0].trim()
+  const description = lines[1].trim()
+  
+  // 解析其他可选信息
+  let category = 'basic'
+  let difficulty = 'easy'
+  let duration = 2.0
+  let steps = []
+  
+  for (let i = 2; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (line.startsWith('category:')) {
+      category = line.substring(9).trim()
+    } else if (line.startsWith('difficulty:')) {
+      difficulty = line.substring(10).trim()
+    } else if (line.startsWith('duration:')) {
+      duration = parseFloat(line.substring(9).trim()) || 2.0
+    } else if (line.startsWith('step:')) {
+      const stepDesc = line.substring(5).trim()
+      const stepDuration = duration / (lines.length - 2) // 平均分配时间
+      steps.push({
+        description: stepDesc,
+        duration: stepDuration
+      })
+    }
+  }
+  
+  // 如果没有步骤，创建默认步骤
+  if (steps.length === 0) {
+    steps = [
+      { description: '准备动作', duration: duration * 0.3 },
+      { description: '执行动作', duration: duration * 0.4 },
+      { description: '完成动作', duration: duration * 0.3 }
+    ]
+  }
+  
+  return {
+    name,
+    description,
+    category,
+    difficulty,
+    duration,
+    steps
+  }
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// 通知相关方法
+const showExecutionNotification = (type, title, message, duration = 5000) => {
+  executionNotification.value = {
+    show: true,
+    type,
+    title,
+    message
+  }
+  
+  // 自动隐藏通知
+  setTimeout(() => {
+    hideExecutionNotification()
+  }, duration)
+}
+
+const hideExecutionNotification = () => {
+  executionNotification.value.show = false
+}
+
+// 视觉配置相关方法
+const showVisionConfig = () => {
+  showVisionConfigDialog.value = true
+}
+
+const closeVisionConfigDialog = () => {
+  showVisionConfigDialog.value = false
+}
+
+const saveVisionConfig = () => {
+  // 验证URL格式
+  if (!visionStreamUrl.value.trim()) {
+    showExecutionNotification(
+      'error',
+      '配置错误',
+      '请输入有效的视觉流地址',
+      3000
+    )
+    return
+  }
+  
+  try {
+    new URL(visionStreamUrl.value)
+  } catch (error) {
+    showExecutionNotification(
+      'error',
+      '配置错误',
+      '请输入有效的URL地址',
+      3000
+    )
+    return
+  }
+  
+  // 如果当前已连接，先断开
+  if (isVisionConnected.value) {
+    disconnectVision()
+  }
+  
+  closeVisionConfigDialog()
+  
+  // 显示配置成功通知
+  showExecutionNotification(
+    'success',
+    '配置成功',
+    '视觉流地址已更新',
+    2000
+  )
+}
+
+const closeSequenceDialog = () => {
+  showSequenceDialog.value = false
+}
+
+const saveSequenceDialog = () => {
+  if (!sequenceForm.name.trim()) {
+    alert('请输入序列名称')
+    return
+  }
+  
+  if (currentSequence.actions.length === 0) {
+    alert('请至少添加一个动作')
+    return
+  }
+  
+  const newSequence = {
+    id: Date.now(),
+    name: sequenceForm.name,
+    actions: [...currentSequence.actions]
+  }
+  savedSequences.value.unshift(newSequence)
+  
+  closeSequenceDialog()
+  clearSequence()
+}
+
+// 手动同步到最新片段
+const manualSyncToLive = () => {
+  if (isVisionConnected.value && hls && visionVideo.value) {
+    if (hls.liveSyncPosition) {
+      console.log('手动同步到最新片段:', hls.liveSyncPosition)
+      visionVideo.value.currentTime = hls.liveSyncPosition
+      
+      // 临时加快播放速度，帮助追帧
+      visionVideo.value.playbackRate = 1.5
+      setTimeout(() => {
+        visionVideo.value.playbackRate = 1.05
+      }, 1000)
+      
+      showExecutionNotification(
+        'info',
+        '同步成功',
+        '已同步到最新画面',
+        1000
+      )
+    }
+  }
+}
+
+// 生命周期
+onMounted(async () => {
+  console.log('上肢系统组件已挂载')
+  await loadActionLibrary()
+
+  // 自动连接视觉流
+  console.log('自动连接视觉流...')
+  setTimeout(() => {
+    connectVision()
+  }, 1000) // 延迟1秒连接，确保组件完全加载
+
+  // 保留进度条，但自动追到直播点前0.2秒
+  nextTick(() => {
+    if (visionVideo.value) {
+      visionVideo.value.addEventListener('timeupdate', () => {
+        if (hls && hls.liveSyncPosition) {
+          const target = hls.liveSyncPosition - 0.2
+          const lag = target - visionVideo.value.currentTime
+          // 只要落后0.5秒以上就自动追到直播点前0.2秒
+          if (lag > 0.5) {
+            visionVideo.value.currentTime = target
+          }
+        }
+      })
+    }
+  })
+})
+
+onUnmounted(() => {
+  console.log('上肢系统组件已卸载')
+  stopExecution()
+  
+  // 停止自动刷新
+  // stopAutoRefresh() // 移除旧的自动刷新逻辑
+  
+  // 清理HLS实例
+  if (hls) {
+    hls.destroy()
+    hls = null
+  }
+  // 移除stopVisionSync()
+})
+</script>

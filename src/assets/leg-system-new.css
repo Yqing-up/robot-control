@@ -1,0 +1,827 @@
+/* 下肢系统控制中心 - 全新响应式设计 */
+
+/* 基础容器样式 - 强制覆盖全局样式 */
+.container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 20, 40, 0.98) 100%) !important;
+    box-sizing: border-box !important;
+}
+
+/* 头部样式 */
+.header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 2% !important;
+    background: rgba(26, 26, 26, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    box-sizing: border-box !important;
+    border-bottom: 2px solid rgba(0, 102, 255, 0.3) !important;
+}
+
+.title {
+    color: #0099ff !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+}
+
+.nav-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+/* 主要内容区域 */
+.leg-main {
+    width: 100% !important;
+    margin-top: 70px !important;
+    height: calc(100vh - 70px) !important;
+    padding: 15px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* 布局容器 */
+.leg-layout-container {
+    display: flex !important;
+    gap: 20px !important;
+    width: 100% !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.leg-left-section, .leg-right-section {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    border: 1px solid rgba(0, 102, 255, 0.3) !important;
+    backdrop-filter: blur(15px) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+.leg-left-section {
+    flex: 1.4 !important;
+    min-width: 300px !important;
+}
+
+.leg-right-section {
+    flex: 1 !important;
+    min-width: 320px !important;
+    min-height: 600px !important;
+}
+
+/* 按钮基础样式 */
+.btn {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 102, 255, 0.1) 100%) !important;
+    border: 1px solid rgba(0, 102, 255, 0.4) !important;
+    color: #4da6ff !important;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    box-sizing: border-box !important;
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 102, 255, 0.2) 100%) !important;
+    border-color: rgba(0, 102, 255, 0.6) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-small {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+}
+
+.btn-back {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #fff !important;
+}
+
+/* 头部按钮 */
+.header-buttons {
+    display: flex !important;
+    gap: 10px !important;
+}
+
+.header-buttons .btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+}
+
+/* 控制区域 */
+.control-section {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+.robot-control-center {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    border: 1px solid rgba(0, 102, 255, 0.2) !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+.control-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+/* 摄像头区域 */
+.camera-section {
+    flex: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    min-height: 0 !important;
+}
+
+.video-display {
+    position: relative !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(0, 102, 255, 0.3) !important;
+    aspect-ratio: 16/9 !important;
+    flex: 1 !important;
+    min-height: 200px !important;
+}
+
+.camera-stream {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.camera-controls {
+    display: flex !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+}
+
+.camera-btn {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 20, 40, 0.4) 100%) !important;
+    border: 1px solid rgba(0, 102, 255, 0.3) !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+.camera-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 20, 40, 0.6) 100%) !important;
+    border-color: rgba(0, 102, 255, 0.6) !important;
+}
+
+/* 方向控制区域 */
+.direction-section {
+    flex: 0 0 auto !important;
+}
+
+.direction-pad-extended {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    max-width: 500px !important;
+    margin: 0 auto !important;
+    justify-content: center !important;
+}
+
+.center-controls {
+    display: grid !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 10px !important;
+}
+
+.middle-row {
+    display: flex !important;
+    gap: 10px !important;
+    justify-content: center !important;
+}
+
+/* 方向按钮 */
+.direction-btn {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
+    border: 2px solid rgba(0, 102, 255, 0.4) !important;
+    border-radius: 12px !important;
+    color: #4da6ff !important;
+    padding: 12px 16px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 5px !important;
+    min-height: 60px !important;
+    min-width: 80px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.direction-btn:hover {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 102, 255, 0.15) 100%) !important;
+    border-color: rgba(0, 102, 255, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+
+.direction-btn.active {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.35) 0%, rgba(0, 102, 255, 0.25) 100%) !important;
+    border-color: rgba(0, 102, 255, 0.8) !important;
+}
+
+.direction-btn.emergency {
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.25) 0%, rgba(255, 0, 0, 0.15) 100%) !important;
+    border-color: rgba(255, 0, 0, 0.6) !important;
+    color: #ff6666 !important;
+}
+
+/* 侧边按钮 */
+.side-btn {
+    min-width: 70px !important;
+    max-width: 70px !important;
+    height: 200px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* 图标和标签 */
+.arrow {
+    font-size: 24px !important;
+    font-weight: bold !important;
+}
+
+.stop-icon {
+    font-size: 20px !important;
+    color: #ff6666 !important;
+}
+
+.label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+}
+
+/* 监控区域 */
+.monitoring-section {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+    min-height: 500px !important;
+    height: auto !important;
+}
+
+.monitor-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+    flex: 1 !important;
+    overflow-y: visible !important;
+    min-height: 500px !important;
+    height: auto !important;
+}
+
+.monitor-panel {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    border: 1px solid rgba(0, 102, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    flex: 1 !important;
+    min-height: 220px !important;
+    max-height: none !important;
+}
+
+.panel-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 15px !important;
+}
+
+.panel-header h3 {
+    color: #4da6ff !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+}
+
+.leg-status-indicator {
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 50% !important;
+    background: #00ff00 !important;
+}
+
+/* 平衡系统 */
+.balance-display {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 25px !important;
+    padding: 20px 0 !important;
+    min-height: 160px !important;
+}
+
+.balance-meter {
+    position: relative !important;
+    width: 240px !important;
+    height: 24px !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-radius: 12px !important;
+    margin: 0 auto !important;
+}
+
+.balance-indicator {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 6px !important;
+    height: 36px !important;
+    background: #4da6ff !important;
+    border-radius: 3px !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.balance-values {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    min-height: 50px !important;
+    align-items: center !important;
+}
+
+.balance-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+.balance-item .label {
+    font-size: 11px !important;
+    color: #bdc3c7 !important;
+    text-transform: none !important;
+}
+
+.balance-item .value {
+    font-size: 14px !important;
+    color: #4da6ff !important;
+    font-weight: bold !important;
+}
+
+/* 移动状态 */
+.movement-display {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 22px !important;
+    padding: 20px 0 !important;
+    min-height: 160px !important;
+}
+
+.position-info {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+}
+
+.position-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(0, 102, 255, 0.2) !important;
+}
+
+.position-item .label {
+    font-size: 11px !important;
+    color: #bdc3c7 !important;
+    text-transform: none !important;
+}
+
+.position-item .value {
+    font-size: 13px !important;
+    color: #4da6ff !important;
+    font-weight: bold !important;
+}
+
+/* 步态选择面板 */
+.gait-panel {
+    min-height: 310px !important;
+    height: auto !important;
+}
+
+/* 步态选择 */
+.gait-selector {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+    padding: 30px 0 !important;
+    min-height: 310px !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+}
+
+.gait-btn {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%) !important;
+    border: 1px solid rgba(0, 102, 255, 0.3) !important;
+    border-radius: 8px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    padding: 12px 16px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    min-height: 50px !important;
+}
+
+.gait-btn:hover {
+    border-color: rgba(0, 102, 255, 0.6) !important;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
+    transform: translateY(-1px) !important;
+}
+
+.gait-btn.active {
+    border-color: rgba(0, 102, 255, 0.8) !important;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 102, 255, 0.15) 100%) !important;
+    color: #4da6ff !important;
+}
+
+.gait-icon {
+    font-size: 16px !important;
+}
+
+.gait-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    flex: 1 !important;
+}
+
+.gait-desc {
+    font-size: 10px !important;
+    opacity: 0.8 !important;
+}
+
+/* 响应式设计 */
+
+/* 大屏幕 1200px+ */
+@media (min-width: 1200px) {
+    .leg-main {
+        padding: 20px !important;
+    }
+
+    .leg-layout-container {
+        gap: 25px !important;
+    }
+
+    .leg-left-section, .leg-right-section {
+        padding: 25px !important;
+    }
+
+    .title {
+        font-size: 1.8rem !important;
+    }
+
+    .btn {
+        padding: 12px 20px !important;
+        font-size: 15px !important;
+    }
+
+    .direction-btn {
+        min-height: 70px !important;
+        min-width: 90px !important;
+        padding: 15px 20px !important;
+    }
+
+    .side-btn {
+        min-width: 80px !important;
+        max-width: 80px !important;
+        height: 220px !important;
+    }
+}
+
+/* 中等屏幕 768px-1199px */
+@media (max-width: 1199px) {
+    .header {
+        padding: 10px 1.5% !important;
+    }
+
+    .title {
+        font-size: 1.4rem !important;
+    }
+
+    .leg-main {
+        padding: 12px !important;
+        margin-top: 65px !important;
+        height: calc(100vh - 65px) !important;
+    }
+
+    .leg-layout-container {
+        gap: 15px !important;
+    }
+
+    .leg-left-section, .leg-right-section {
+        padding: 15px !important;
+    }
+
+    .btn {
+        padding: 9px 15px !important;
+        font-size: 13px !important;
+    }
+
+    .direction-btn {
+        min-height: 55px !important;
+        min-width: 75px !important;
+        padding: 10px 14px !important;
+    }
+
+    .side-btn {
+        min-width: 60px !important;
+        max-width: 60px !important;
+        height: 180px !important;
+    }
+
+    .arrow {
+        font-size: 20px !important;
+    }
+
+    .stop-icon {
+        font-size: 18px !important;
+    }
+
+    .label {
+        font-size: 11px !important;
+    }
+}
+
+/* 平板 481px-767px */
+@media (max-width: 767px) {
+    .header {
+        padding: 8px 1% !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .title {
+        font-size: 1.2rem !important;
+    }
+
+    .nav-section {
+        gap: 10px !important;
+    }
+
+    .leg-main {
+        padding: 10px !important;
+        margin-top: 90px !important;
+        height: calc(100vh - 90px) !important;
+    }
+
+    .leg-layout-container {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    .leg-left-section, .leg-right-section {
+        min-width: auto !important;
+        padding: 12px !important;
+    }
+
+    .btn {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .btn-small {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+    }
+
+    .header-buttons .btn {
+        padding: 5px 8px !important;
+        font-size: 10px !important;
+    }
+
+    .direction-pad-extended {
+        max-width: 350px !important;
+        gap: 10px !important;
+    }
+
+    .direction-btn {
+        min-height: 50px !important;
+        min-width: 65px !important;
+        padding: 8px 12px !important;
+    }
+
+    .side-btn {
+        min-width: 50px !important;
+        max-width: 50px !important;
+        height: 150px !important;
+    }
+
+    .arrow {
+        font-size: 18px !important;
+    }
+
+    .stop-icon {
+        font-size: 16px !important;
+    }
+
+    .label {
+        font-size: 10px !important;
+    }
+
+    .video-display {
+        min-height: 180px !important;
+    }
+
+    .camera-btn {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+    }
+
+    .monitor-panel {
+        padding: 12px !important;
+    }
+
+    .panel-header h3 {
+        font-size: 14px !important;
+    }
+
+    .balance-meter {
+        width: 150px !important;
+        height: 16px !important;
+    }
+
+    .gait-btn {
+        padding: 10px 12px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* 手机 480px及以下 */
+@media (max-width: 480px) {
+    .header {
+        padding: 6px 0.5% !important;
+    }
+
+    .title {
+        font-size: 1rem !important;
+    }
+
+    .leg-main {
+        padding: 8px !important;
+        margin-top: 100px !important;
+        height: calc(100vh - 100px) !important;
+    }
+
+    .leg-layout-container {
+        gap: 10px !important;
+    }
+
+    .leg-left-section, .leg-right-section {
+        padding: 10px !important;
+        border-radius: 8px !important;
+    }
+
+    .btn {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+    }
+
+    .btn-small {
+        padding: 4px 8px !important;
+        font-size: 10px !important;
+    }
+
+    .header-buttons .btn {
+        padding: 4px 6px !important;
+        font-size: 9px !important;
+    }
+
+    .direction-pad-extended {
+        max-width: 280px !important;
+        gap: 8px !important;
+    }
+
+    .direction-btn {
+        min-height: 45px !important;
+        min-width: 55px !important;
+        padding: 6px 10px !important;
+        border-radius: 8px !important;
+    }
+
+    .side-btn {
+        min-width: 40px !important;
+        max-width: 40px !important;
+        height: 120px !important;
+    }
+
+    .arrow {
+        font-size: 16px !important;
+    }
+
+    .stop-icon {
+        font-size: 14px !important;
+    }
+
+    .label {
+        font-size: 9px !important;
+    }
+
+    .video-display {
+        min-height: 150px !important;
+    }
+
+    .camera-btn {
+        padding: 5px 8px !important;
+        font-size: 10px !important;
+    }
+
+    .monitor-panel {
+        padding: 10px !important;
+        border-radius: 8px !important;
+    }
+
+    .panel-header h3 {
+        font-size: 12px !important;
+    }
+
+    .balance-meter {
+        width: 120px !important;
+        height: 14px !important;
+    }
+
+    .balance-item .value, .position-item .value {
+        font-size: 12px !important;
+    }
+
+    .gait-btn {
+        padding: 8px 10px !important;
+        font-size: 11px !important;
+        gap: 8px !important;
+    }
+
+    .gait-icon {
+        font-size: 14px !important;
+    }
+
+    .gait-name {
+        font-size: 11px !important;
+    }
+
+    .gait-desc {
+        font-size: 9px !important;
+    }
+}

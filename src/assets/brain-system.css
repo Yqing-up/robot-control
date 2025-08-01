@@ -1,0 +1,664 @@
+/* 大脑系统专用样式 */
+
+/* 统一的顶部栏按钮样式 */
+.header-action-btn {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #00ccff;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
+  border: 2px solid rgba(0, 153, 255, 0.4);
+  border-radius: 6px;
+  padding: 10px 18px;
+  margin: 0 8px;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(0, 153, 255, 0.2);
+  cursor: pointer;
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.header-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 153, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.header-action-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 153, 255, 0.1), rgba(77, 166, 255, 0.15));
+  border-color: rgba(0, 153, 255, 0.6);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 1px rgba(0, 153, 255, 0.4),
+    0 0 20px rgba(0, 153, 255, 0.2);
+  transform: translateY(-2px);
+  color: #00ccff;
+}
+
+.header-action-btn:hover::before {
+  left: 100%;
+}
+
+.header-action-btn:active {
+  transform: translateY(0px);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(0, 153, 255, 0.2);
+}
+
+.brain-main {
+    padding: 8px 1%;
+    width: 98%;
+    max-width: none;
+    margin: 0 auto;
+    margin-top: 80px;
+    height: calc(100vh - 80px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* 左右分栏布局 - 优化宽度利用率 */
+.brain-layout-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.brain-left-section {
+    flex: 1;
+    min-width: 350px;
+    max-width: 50%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.brain-right-section {
+    flex: 1;
+    min-width: 350px;
+    max-width: 50%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 通用区块样式 - 优化空间利用率 */
+.control-section,
+.communication-section,
+.decision-section,
+.monitoring-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(0, 100, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+}
+
+.control-section {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.communication-section {
+    flex: 0 0 auto;
+    max-height: 280px;
+}
+
+.decision-section {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.monitoring-section {
+    flex: 0 0 auto;
+    max-height: 200px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 100, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.section-header h3 {
+    color: #0066ff;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* 处理状态指示器 */
+.processing-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.processing-status.idle {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+.processing-status.processing {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.processing-status.resetting {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff0000;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+}
+
+/* 信息处理模块 */
+.info-processing {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.input-panel,
+.processing-panel {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-panel h4,
+.processing-panel h4 {
+    color: #4da6ff;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.input-sources,
+.processing-results {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.source-item,
+.result-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px;
+    border-left: 3px solid #0066ff;
+    flex-shrink: 0;
+}
+
+.source-header,
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.source-name,
+.result-type {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.source-status,
+.result-confidence {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.source-status.online {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+}
+
+.source-status.offline {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff0000;
+}
+
+.source-data,
+.result-content {
+    color: #cccccc;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.result-timestamp {
+    color: #888888;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+/* 系统通信协调 */
+.system-connections {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.connection-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid rgba(0, 100, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.connection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.system-name {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.connection-status.connected {
+    color: #00ff00;
+}
+
+.connection-status.disconnected {
+    color: #ff0000;
+}
+
+.connection-status.connecting {
+    color: #ffa500;
+}
+
+.status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+.connection-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #cccccc;
+}
+
+.connection-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* 决策逻辑界面 */
+.decision-mode select {
+    background: rgba(0, 40, 80, 0.8);
+    border: 1px solid #0066ff;
+    border-radius: 5px;
+    color: #ffffff;
+    padding: 6px 12px;
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+}
+
+.decision-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.current-decision {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    flex-shrink: 0;
+}
+
+.current-decision h4 {
+    color: #4da6ff;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+}
+
+.decision-display {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.decision-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.decision-text {
+    color: #ffffff;
+    font-size: 14px;
+    flex: 1;
+}
+
+.decision-priority {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.decision-priority.low {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+}
+
+.decision-priority.normal {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+}
+
+.decision-priority.high {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff0000;
+}
+
+.decision-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* 决策历史 */
+.decision-history {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.decision-history h4 {
+    color: #4da6ff;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.history-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px;
+    border-left: 3px solid #0066ff;
+    flex-shrink: 0;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.history-time {
+    color: #888888;
+    font-size: 12px;
+}
+
+.history-status {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.history-status.completed {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+}
+
+.history-status.executing {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+}
+
+.history-content {
+    color: #cccccc;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.history-result {
+    color: #4da6ff;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* 系统监控 */
+.monitoring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.monitor-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.monitor-label {
+    color: #4da6ff;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.monitor-value {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.monitor-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0066ff, #4da6ff);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* 按钮样式 */
+.btn-success {
+    background: linear-gradient(135deg, rgba(0, 255, 0, 0.2), rgba(0, 200, 0, 0.3));
+    color: #00ff00;
+    border: 1px solid rgba(0, 255, 0, 0.4);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(0, 200, 0, 0.4));
+    border-color: rgba(0, 255, 0, 0.8);
+    transform: translateY(-2px);
+}
+
+.btn-mini {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .brain-main {
+        padding: 8px;
+        height: calc(100vh - 70px);
+    }
+
+    .brain-layout-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .brain-left-section,
+    .brain-right-section {
+        min-width: auto;
+        flex: none;
+    }
+
+    .control-section,
+    .communication-section,
+    .decision-section,
+    .monitoring-section {
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+
+    .communication-section {
+        max-height: 200px;
+    }
+
+    .monitoring-section {
+        max-height: 150px;
+    }
+
+    .monitoring-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+    }
+}
+
+/* 响应式设计 - 大屏幕优化 */
+@media (min-width: 1440px) {
+    .brain-main {
+        width: 99%;
+    }
+
+    .brain-layout-container {
+        gap: 16px;
+    }
+
+    .brain-left-section,
+    .brain-right-section {
+        min-width: 380px;
+    }
+
+    .monitoring-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+}
+
+/* 超大屏幕优化 */
+@media (min-width: 1920px) {
+    .brain-main {
+        width: 99.5%;
+    }
+
+    .brain-layout-container {
+        gap: 20px;
+    }
+
+    .brain-left-section,
+    .brain-right-section {
+        min-width: 420px;
+    }
+}
+
+.status-dot, .status-indicator {
+    border-radius: 50% !important;
+}
+
+.processing-status, .status-dot, .status-indicator {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}

@@ -1,0 +1,2371 @@
+/* 下肢系统专用样式 - 全面美化优化 */
+
+/* 下肢系统页面特定的容器样式 - 覆盖全局样式 */
+.container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 20, 40, 0.98) 100%) !important;
+}
+
+.header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: clamp(10px, 2vw, 15px) clamp(1%, 2vw, 2%) !important;
+    border-bottom: 2px solid transparent !important;
+    background: rgba(26, 26, 26, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    box-sizing: border-box !important;
+}
+
+.header::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -2px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, #0099ff, #4da6ff, #0099ff, transparent) !important;
+    animation: pulse 3s infinite !important;
+}
+
+.title {
+    color: #0099ff !important;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem) !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #00ccff, #0099ff, #ffffff) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    letter-spacing: clamp(0.5px, 0.2vw, 2px) !important;
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif !important;
+    text-shadow: 0 0 15px rgba(0, 153, 255, 0.4) !important;
+    user-select: none !important;
+    margin: 0 !important;
+}
+
+.nav-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: clamp(10px, 2vw, 20px) !important;
+}
+
+/* 全局动画和过渡效果 */
+* {
+    box-sizing: border-box;
+}
+
+/* 页面加载动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 数据更新动画 */
+@keyframes dataUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* 连接状态动画 - 优化为正圆 */
+@keyframes connectionPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 2px rgba(0, 255, 0, 0.2),
+            0 0 20px rgba(0, 255, 0, 0.7),
+            0 0 40px rgba(0, 255, 0, 0.3),
+            0 0 0 0 rgba(0, 255, 0, 0.4);
+    }
+    50% {
+        box-shadow:
+            0 0 0 2px rgba(0, 255, 0, 0.2),
+            0 0 25px rgba(0, 255, 0, 0.9),
+            0 0 50px rgba(0, 255, 0, 0.5),
+            0 0 0 8px rgba(0, 255, 0, 0);
+    }
+}
+
+.leg-main {
+    padding: clamp(8px, 1.5vw, 15px) clamp(1%, 1.5vw, 2%) !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    margin-top: clamp(60px, 8vh, 80px) !important;
+    height: calc(100vh - clamp(60px, 8vh, 80px)) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    /* 增强背景效果 */
+    background:
+        radial-gradient(circle at 20% 20%, rgba(0, 102, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 102, 255, 0.06) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 20, 40, 0.95) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    border-radius: clamp(6px, 1vw, 12px) !important;
+}
+
+/* 左右分栏布局 - 响应式优化 */
+.leg-layout-container {
+    display: flex;
+    gap: clamp(10px, 1.5vw, 18px);
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: clamp(3px, 0.6vw, 8px);
+}
+
+.leg-left-section {
+    flex: 1;
+    min-width: min(280px, 38vw);
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* 增强左侧区域视觉效果 */
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: clamp(10px, 1.5vw, 16px);
+    padding: clamp(12px, 2vw, 20px);
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.2),
+        0 8px 32px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    /* 添加加载动画 */
+    animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.leg-right-section {
+    flex: 1.2;
+    min-width: min(320px, 45vw);
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* 增强右侧区域视觉效果 */
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: clamp(12px, 2vw, 16px);
+    padding: clamp(15px, 2.5vw, 20px);
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.2),
+        0 8px 32px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    /* 添加加载动画 */
+    animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+/* 头部控件样式 - 美化优化 */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.header-buttons .btn {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 102, 255, 0.1) 100%) !important;
+    border: 1px solid rgba(0, 102, 255, 0.4) !important;
+    color: #4da6ff !important;
+    padding: clamp(6px, 1vw, 10px) clamp(12px, 1.5vw, 16px) !important;
+    border-radius: clamp(6px, 0.8vw, 10px) !important;
+    font-size: clamp(11px, 1.2vw, 14px) !important;
+    font-weight: 500 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.header-buttons .btn:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 102, 255, 0.2) 100%);
+    border-color: rgba(0, 102, 255, 0.6);
+    box-shadow: 0 4px 16px rgba(0, 102, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.header-buttons .btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.15);
+}
+
+/* 通用按钮样式 - 响应式设计 */
+.btn {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 102, 255, 0.1) 100%);
+    border: 1px solid rgba(0, 102, 255, 0.4);
+    color: #4da6ff;
+    padding: clamp(10px, 1.2vw, 14px) clamp(16px, 2vw, 20px);
+    border-radius: clamp(6px, 0.8vw, 10px);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: clamp(13px, 1.2vw, 16px);
+    font-weight: 500;
+    box-shadow:
+        0 2px 8px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 102, 255, 0.2) 100%);
+    border-color: rgba(0, 102, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(0, 102, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    color: #66b3ff;
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.15);
+}
+
+.btn-small {
+    padding: clamp(8px, 1vw, 12px) clamp(14px, 1.5vw, 18px);
+    font-size: clamp(12px, 1vw, 15px);
+    min-width: clamp(70px, 8vw, 90px);
+}
+
+.btn-back {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    padding: clamp(8px, 1vw, 12px) clamp(14px, 1.5vw, 18px) !important;
+    border-radius: clamp(6px, 0.8vw, 10px) !important;
+    font-size: clamp(12px, 1.2vw, 15px) !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #fff !important;
+    transform: translateY(-1px) !important;
+}
+
+/* 控制区样式 - 完全移除边框和视觉效果 */
+.control-section {
+    margin-bottom: 20px;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 主控制区样式，改为垂直排列 - 完全无边框 */
+.main-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 15px;
+    flex: 1;
+    overflow-y: auto;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    /* 自定义滚动条 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 102, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.main-controls::-webkit-scrollbar {
+    width: 6px;
+}
+
+.main-controls::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.main-controls::-webkit-scrollbar-thumb {
+    background: rgba(0, 102, 255, 0.3);
+    border-radius: 3px;
+}
+
+.main-controls::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 102, 255, 0.5);
+}
+
+/* 机器人控制中心样式 - 调整为垂直布局 */
+.robot-control-center {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 20, 40, 0.3) 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(0, 102, 255, 0.4);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.2),
+        0 4px 16px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    min-height: 600px;
+    height: 100%;
+}
+
+/* 移除机器人控制中心标题样式 */
+
+.control-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    height: 100%;
+}
+
+.camera-section {
+    width: 100%;
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.direction-section {
+    width: 100%;
+    flex: 0 0 auto;
+    margin-top: auto;
+}
+
+.direction-section h4 {
+    color: #4da6ff;
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+    letter-spacing: 0.3px;
+}
+
+/* 方向控制面板布局 - 扩展布局支持左移右移按钮 */
+.direction-pad {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: 15px;
+    max-width: 350px; /* 增加最大宽度 */
+    margin: 0 auto;
+}
+
+/* 扩展的方向控制面板 - 响应式支持左移右移按钮 */
+.direction-pad-extended {
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1vw, 12px);
+    max-width: min(450px, 85vw);
+    margin: 0 auto;
+    justify-content: center;
+}
+
+/* 中央控制区域 - 响应式网格 */
+.center-controls {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: clamp(8px, 1.2vw, 15px);
+    flex: 0 0 auto;
+}
+
+.middle-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: clamp(12px, 2vw, 15px);
+}
+
+/* 侧边按钮样式 - 响应式设计 */
+.side-btn {
+    flex: 0 0 auto;
+    min-width: clamp(60px, 8vw, 85px) !important;
+    max-width: clamp(60px, 8vw, 85px);
+    height: clamp(180px, 25vh, 250px) !important;
+    writing-mode: initial !important;
+    text-orientation: initial !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: clamp(6px, 1vw, 10px) !important;
+}
+
+.side-btn .arrow {
+    font-size: clamp(24px, 3.5vw, 32px) !important;
+    display: block;
+    line-height: 1;
+}
+
+.side-btn .label {
+    font-size: clamp(12px, 1.8vw, 16px) !important;
+    writing-mode: initial !important;
+    text-orientation: initial !important;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-align: center;
+}
+
+/* 方向控制按钮 - 响应式设计 */
+.direction-btn {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%);
+    border: 2px solid rgba(0, 102, 255, 0.4);
+    border-radius: clamp(10px, 1.2vw, 16px);
+    color: #4da6ff;
+    padding: clamp(8px, 1.2vw, 12px) clamp(16px, 2vw, 20px);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(3px, 0.6vw, 6px);
+    min-height: clamp(55px, 8vh, 70px);
+    min-width: clamp(70px, 10vw, 90px);
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    box-shadow:
+        0 4px 16px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.direction-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.direction-btn:hover::before {
+    transform: translateX(100%);
+}
+
+/* 禁用状态的按钮样式 */
+.direction-btn:disabled,
+.direction-btn.disabled {
+    background: linear-gradient(145deg, rgba(107, 114, 128, 0.15) 0%, rgba(107, 114, 128, 0.08) 100%) !important;
+    border: 2px solid rgba(156, 163, 175, 0.4) !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.1) !important;
+}
+
+.direction-btn:disabled:hover,
+.direction-btn.disabled:hover {
+    transform: none !important;
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.1) !important;
+    background: linear-gradient(145deg, rgba(107, 114, 128, 0.15) 0%, rgba(107, 114, 128, 0.08) 100%) !important;
+}
+
+.direction-btn:disabled::before,
+.direction-btn.disabled::before {
+    display: none !important;
+}
+
+.direction-btn:disabled .arrow,
+.direction-btn.disabled .arrow,
+.direction-btn:disabled .label,
+.direction-btn.disabled .label,
+.direction-btn:disabled .stop-icon,
+.direction-btn.disabled .stop-icon {
+    color: #9ca3af !important;
+}
+
+.direction-btn:hover {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 102, 255, 0.15) 100%);
+    border-color: rgba(0, 102, 255, 0.6);
+    box-shadow:
+        0 8px 32px rgba(0, 102, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
+    color: #66b3ff;
+}
+
+.direction-btn:active {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 16px rgba(0, 102, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.direction-btn.active {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.35) 0%, rgba(0, 102, 255, 0.25) 100%);
+    border-color: rgba(0, 102, 255, 0.8);
+    box-shadow:
+        0 0 0 2px rgba(0, 102, 255, 0.3),
+        0 8px 32px rgba(0, 102, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: #80ccff;
+}
+
+.direction-btn.emergency {
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.25) 0%, rgba(255, 0, 0, 0.15) 100%);
+    border-color: rgba(255, 0, 0, 0.6);
+    color: #ff6666;
+}
+
+.direction-btn.emergency:hover {
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.35) 0%, rgba(255, 0, 0, 0.25) 100%);
+    border-color: rgba(255, 0, 0, 0.8);
+    box-shadow:
+        0 8px 32px rgba(255, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: #ff8888;
+}
+
+.direction-btn.emergency:active {
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.4) 0%, rgba(255, 0, 0, 0.3) 100%);
+    box-shadow:
+        0 0 0 2px rgba(255, 0, 0, 0.4),
+        0 4px 16px rgba(255, 0, 0, 0.4);
+}
+
+/* 方向按钮图标和文字样式 - 响应式 */
+.arrow {
+    font-size: clamp(20px, 2.5vw, 26px);
+    font-weight: bold;
+    text-shadow: 0 0 10px currentColor;
+    transition: all 0.3s ease;
+}
+
+.stop-icon {
+    font-size: clamp(18px, 2.2vw, 22px);
+    color: #ff6666;
+    text-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.direction-btn:hover .stop-icon {
+    color: #ff8888;
+    text-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+}
+
+.label {
+    font-size: clamp(12px, 1.5vw, 16px);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.direction-btn:hover .label {
+    opacity: 1;
+}
+
+/* 摄像头区域样式 - 优化为更大显示空间，移除标题后向上移动 */
+.camera-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 2;
+    min-height: 0;
+}
+
+.video-display {
+    position: relative;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: clamp(6px, 0.8vw, 12px);
+    overflow: hidden;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    aspect-ratio: 16/9;
+    flex: 1;
+    min-height: clamp(240px, 40vh, 320px);
+    width: 100%;
+    max-height: none;
+}
+
+.camera-stream {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: clamp(8px, 1.5vw, 12px);
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.overlay-content {
+    text-align: center;
+    color: #ffffff;
+}
+
+.overlay-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.7;
+}
+
+.overlay-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #4da6ff;
+}
+
+.overlay-status {
+    font-size: 14px;
+    color: #cccccc;
+}
+
+.camera-controls {
+    display: flex;
+    gap: clamp(6px, 1vw, 8px);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: clamp(6px, 1vw, 8px);
+    flex-shrink: 0;
+}
+
+.camera-btn {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 20, 40, 0.4) 100%);
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    border-radius: clamp(5px, 0.6vw, 8px);
+    padding: clamp(8px, 1vw, 12px) clamp(12px, 1.5vw, 16px);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: clamp(12px, 1.2vw, 15px);
+    backdrop-filter: blur(8px);
+    box-shadow:
+        0 2px 8px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    font-weight: 500;
+}
+
+.camera-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 20, 40, 0.6) 100%);
+    border-color: rgba(0, 102, 255, 0.6);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 12px rgba(0, 102, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.camera-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 方向控制样式 */
+.direction-control {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    padding: 15px;
+    border: 2px solid rgba(0, 102, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.direction-control h3 {
+    color: #0066ff;
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 16px;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.direction-pad {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.middle-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.direction-btn {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.05));
+    border: 2px solid rgba(0, 102, 255, 0.3);
+    border-radius: 12px;
+    color: #0066ff;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-height: 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.direction-btn:hover {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.2), rgba(0, 102, 255, 0.1));
+    border-color: #0066ff;
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.direction-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 0 30px rgba(0, 102, 255, 0.6);
+}
+
+.direction-btn.active {
+    background: linear-gradient(145deg, rgba(0, 102, 255, 0.3), rgba(0, 102, 255, 0.2));
+    border-color: #0066ff;
+    box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
+}
+
+.direction-btn.emergency {
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 0, 0.1));
+    border-color: rgba(255, 0, 0, 0.5);
+    color: #ff4444;
+}
+
+.direction-btn.emergency:hover {
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.3), rgba(255, 0, 0, 0.2));
+    border-color: #ff4444;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
+.arrow {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.stop-icon {
+    font-size: 20px;
+    color: #ff4444;
+}
+
+.label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 速度控制样式 */
+.speed-control {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    padding: 15px;
+    border: 2px solid rgba(0, 102, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.speed-control h3 {
+    color: #0066ff;
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 16px;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.speed-selector {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.speed-btn {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(0, 102, 255, 0.2);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 15px 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.speed-btn:hover {
+    border-color: rgba(0, 102, 255, 0.5);
+    background: rgba(0, 102, 255, 0.1);
+}
+
+.speed-btn.active {
+    border-color: #0066ff;
+    background: rgba(0, 102, 255, 0.2);
+    color: #0066ff;
+    box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+}
+
+.speed-icon {
+    font-size: 20px;
+}
+
+.speed-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.speed-value {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.speed-display {
+    text-align: center;
+}
+
+.current-speed {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+}
+
+.speed-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.speed-number {
+    color: #0066ff;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.speed-unit {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+/* 监控区域样式 */
+.monitoring-section {
+    margin-bottom: 30px;
+    /* 确保子元素边框正常显示 */
+    overflow: visible;
+    /* 强制移除所有边框和背景 */
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 25px;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    outline: none !important;
+}
+
+/* 右侧状态监控区垂直排列 */
+.monitor-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 调整间距以适应外围框 */
+    /* 确保子元素边框正常显示 */
+    overflow: visible;
+}
+
+/* 监控面板样式 - 全面美化优化 */
+.monitor-panel {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 20, 40, 0.3) 100%);
+    border-radius: 14px;
+    padding: 22px;
+    border: 1px solid rgba(0, 102, 255, 0.5);
+    /* 添加硬件加速，防止回流影响整个页面 */
+    transform: translateZ(0);
+    will-change: transform;
+    /* 确保容器大小固定 */
+    box-sizing: border-box;
+    overflow: visible;
+    /* 增强视觉效果 */
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.2),
+        0 4px 16px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 添加加载动画 */
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.monitor-panel:hover {
+    border-color: rgba(0, 102, 255, 0.6);
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.3),
+        0 6px 24px rgba(0, 102, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: translateZ(0) translateY(-2px);
+}
+
+/* 平衡面板特定样式 */
+.balance-panel {
+    border: 1px solid rgba(0, 102, 255, 0.6) !important;
+    box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.2), 0 2px 8px rgba(0, 102, 255, 0.15) !important;
+    /* 确保边框完整显示 */
+    position: relative;
+    z-index: 1;
+}
+
+/* 面板标题样式 - 美化优化 */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 102, 255, 0.2);
+    position: relative;
+}
+
+.panel-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 30%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0, 102, 255, 0.6) 0%, transparent 100%);
+}
+
+.panel-header h3 {
+    color: #4da6ff;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+    letter-spacing: 0.3px;
+}
+
+/* 下肢系统状态指示器样式 - 纯色正圆 */
+.leg-status-indicator {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important;
+    background: #00ff00 !important;
+    box-shadow:
+        0 0 0 2px rgba(0, 255, 0, 0.2),
+        0 0 20px rgba(0, 255, 0, 0.7),
+        0 0 40px rgba(0, 255, 0, 0.3) !important;
+    position: relative;
+    animation: pulse 2s infinite;
+    flex-shrink: 0; /* 防止被压缩 */
+    margin-left: auto; /* 推到最右边 */
+    border: 1px solid rgba(0, 255, 0, 0.5) !important;
+    /* 确保不被其他样式覆盖 */
+    display: block !important;
+    padding: 0 !important;
+}
+
+.leg-status-indicator::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    animation: ripple 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes ripple {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.leg-status-indicator.online {
+    background: #00ff00 !important;
+    border: 1px solid rgba(0, 255, 0, 0.5) !important;
+    box-shadow:
+        0 0 0 2px rgba(0, 255, 0, 0.2),
+        0 0 20px rgba(0, 255, 0, 0.7),
+        0 0 40px rgba(0, 255, 0, 0.3) !important;
+    animation: connectionPulse 3s infinite;
+}
+
+.leg-status-indicator.online::before {
+    border-color: rgba(0, 255, 0, 0.3);
+}
+
+.leg-status-indicator.warning {
+    background: #ffaa00;
+    border: 1px solid rgba(255, 170, 0, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(255, 170, 0, 0.2),
+        0 0 20px rgba(255, 170, 0, 0.7),
+        0 0 40px rgba(255, 170, 0, 0.3);
+}
+
+.leg-status-indicator.warning::before {
+    border-color: rgba(255, 170, 0, 0.3);
+}
+
+.leg-status-indicator.error {
+    background: #ff0000;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(255, 0, 0, 0.2),
+        0 0 20px rgba(255, 0, 0, 0.7),
+        0 0 40px rgba(255, 0, 0, 0.3);
+}
+
+.leg-status-indicator.error::before {
+    border-color: rgba(255, 0, 0, 0.3);
+}
+
+.leg-status-indicator.offline {
+    background: #666666;
+    border: 1px solid rgba(102, 102, 102, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(102, 102, 102, 0.2),
+        0 0 20px rgba(102, 102, 102, 0.4),
+        0 0 40px rgba(102, 102, 102, 0.2);
+    animation: none; /* 离线状态不需要动画 */
+}
+
+.leg-status-indicator.offline::before {
+    border-color: rgba(102, 102, 102, 0.3);
+    animation: none;
+}
+
+/* 平衡显示样式 - 美化优化 */
+.balance-display {
+    text-align: center;
+    /* 确保内部内容不会影响父容器 */
+    position: relative;
+    height: 110px; /* 增加高度以适应新设计 */
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+}
+
+.balance-meter {
+    position: relative;
+    width: 220px;
+    height: 24px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 20, 40, 0.4) 100%);
+    border-radius: 12px;
+    margin: 0 auto 18px;
+    border: 1px solid rgba(0, 102, 255, 0.4);
+    /* 确保内部元素变化不影响布局 */
+    contain: layout;
+    /* 使用硬件加速 */
+    transform: translateZ(0);
+    will-change: transform;
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.2),
+        0 2px 8px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+}
+
+.balance-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 36px;
+    background: linear-gradient(180deg, #4da6ff 0%, #0066ff 100%);
+    border-radius: 3px;
+    box-shadow:
+        0 0 15px rgba(0, 102, 255, 0.6),
+        0 0 0 1px rgba(0, 102, 255, 0.3);
+    transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* 使用硬件加速，确保只有这个元素发生变化 */
+    transform: translate3d(calc(-50% + 0px), -50%, 0);
+    will-change: transform;
+    /* 确保只影响自身 */
+    contain: layout paint style;
+}
+
+.balance-indicator::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(180deg, rgba(77, 166, 255, 0.3) 0%, rgba(0, 102, 255, 0.3) 100%);
+    border-radius: 5px;
+    z-index: -1;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { opacity: 0.5; transform: scale(1); }
+    to { opacity: 1; transform: scale(1.1); }
+}
+
+.balance-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 8px;
+    padding: 0 10px;
+}
+
+/* 平衡数值显示样式 - 美化优化 */
+.balance-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    /* 固定高度，确保数值变化不影响布局 */
+    height: 50px;
+    margin-top: 5px;
+}
+
+.balance-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    transition: all 0.3s ease;
+}
+
+.balance-item .label {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.balance-item .value {
+    font-size: 18px;
+    color: #4da6ff;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* 数值更新时的动画效果 */
+.balance-item .value.updating {
+    animation: dataUpdate 0.5s ease-in-out;
+}
+
+.balance-item:hover .value {
+    color: #66b3ff;
+    text-shadow: 0 0 15px rgba(0, 102, 255, 0.4);
+}
+
+/* 移动状态样式 - 美化优化 */
+.movement-display {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.position-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+/* 位置信息样式 - 美化优化 */
+.position-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 2px 8px rgba(0, 102, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+}
+
+.position-item:hover {
+    border-color: rgba(0, 102, 255, 0.5);
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.1) 0%, rgba(0, 20, 40, 0.3) 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 16px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.position-item .label {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.2px;
+}
+
+.position-item .value {
+    font-size: 16px;
+    color: #4da6ff;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 102, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.position-item:hover .value {
+    color: #66b3ff;
+    text-shadow: 0 0 12px rgba(0, 102, 255, 0.4);
+}
+
+/* 步态选择样式 - 美化优化 */
+.gait-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gait-btn {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%);
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    border-radius: clamp(6px, 0.8vw, 12px);
+    color: rgba(255, 255, 255, 0.9);
+    padding: clamp(10px, 1.5vw, 16px) clamp(14px, 2vw, 20px);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1vw, 12px);
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    font-size: clamp(13px, 1.5vw, 16px);
+    box-shadow:
+        0 2px 8px rgba(0, 102, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+}
+
+.gait-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.gait-btn:hover::before {
+    left: 100%;
+}
+
+.gait-btn:hover {
+    border-color: rgba(0, 102, 255, 0.6);
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%);
+    color: rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+    box-shadow:
+        0 4px 16px rgba(0, 102, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.gait-btn.active {
+    border-color: rgba(0, 102, 255, 0.8);
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 102, 255, 0.15) 100%);
+    color: #4da6ff;
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.3),
+        0 4px 16px rgba(0, 102, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.gait-btn:active {
+    transform: translateY(0);
+    box-shadow:
+        0 2px 8px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* 步态按钮内容样式 - 响应式 */
+.gait-icon {
+    font-size: clamp(14px, 2vw, 18px);
+    transition: all 0.3s ease;
+}
+
+.gait-btn:hover .gait-icon {
+    transform: scale(1.1);
+}
+
+.gait-name {
+    font-size: clamp(12px, 1.5vw, 15px);
+    font-weight: 600;
+    flex: 1;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+}
+
+.gait-desc {
+    font-size: clamp(9px, 1.2vw, 12px);
+    opacity: 0.8;
+    font-weight: 400;
+    transition: all 0.3s ease;
+}
+
+.gait-btn:hover .gait-desc {
+    opacity: 1;
+}
+
+/* 设置面板样式 */
+.settings-section {
+    margin-bottom: 30px;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.settings-panel {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid rgba(0, 102, 255, 0.2);
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.setting-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setting-group:last-child {
+    border-bottom: none;
+}
+
+.setting-group label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    flex: 1;
+}
+
+.setting-group input[type="range"] {
+    flex: 1;
+    margin: 0 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    height: 6px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.setting-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0066ff;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.setting-group input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0066ff;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.range-value {
+    color: #0066ff;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* 开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: 0.3s;
+    border-radius: 24px;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: rgba(255, 255, 255, 0.5);
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: rgba(0, 102, 255, 0.3);
+    border-color: #0066ff;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+    background-color: #0066ff;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+/* 信息统计样式 */
+.info-section {
+    margin-top: 20px;
+}
+
+.info-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid rgba(0, 102, 255, 0.2);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 102, 255, 0.2);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 16px;
+    color: #0066ff;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 102, 255, 0.3);
+}
+
+/* 中等屏幕响应式布局 */
+@media (max-width: 1200px) {
+    .header {
+        padding: clamp(8px, 1.5vw, 12px) clamp(1%, 1.5vw, 2%) !important;
+    }
+
+    .title {
+        font-size: clamp(1.1rem, 2.2vw, 1.6rem) !important;
+    }
+
+    .leg-main {
+        margin-top: clamp(55px, 7vh, 70px) !important;
+        height: calc(100vh - clamp(55px, 7vh, 70px)) !important;
+        padding: clamp(6px, 1.2vw, 12px) clamp(0.8%, 1.2vw, 1.5%) !important;
+    }
+
+    .leg-layout-container {
+        gap: clamp(12px, 2vw, 16px) !important;
+    }
+
+    .leg-left-section, .leg-right-section {
+        padding: clamp(14px, 2vw, 18px) !important;
+    }
+
+    .direction-pad-extended {
+        max-width: min(400px, 80vw) !important;
+    }
+
+    .side-btn {
+        min-width: clamp(55px, 8vw, 75px) !important;
+        max-width: clamp(55px, 8vw, 75px) !important;
+        height: clamp(160px, 25vh, 220px) !important;
+    }
+
+    .btn {
+        padding: clamp(8px, 1vw, 12px) clamp(14px, 1.8vw, 18px) !important;
+        font-size: clamp(12px, 1.1vw, 15px) !important;
+    }
+
+    .btn-small {
+        padding: clamp(6px, 0.8vw, 10px) clamp(12px, 1.3vw, 16px) !important;
+        font-size: clamp(11px, 1vw, 14px) !important;
+    }
+}
+
+/* 中小屏幕响应式布局 */
+@media (max-width: 900px) {
+    .header {
+        padding: clamp(6px, 1.2vw, 10px) clamp(0.8%, 1.2vw, 1.5%) !important;
+    }
+
+    .title {
+        font-size: clamp(1rem, 2vw, 1.4rem) !important;
+    }
+
+    .leg-main {
+        margin-top: clamp(50px, 6vh, 65px) !important;
+        height: calc(100vh - clamp(50px, 6vh, 65px)) !important;
+        padding: clamp(5px, 1vw, 10px) clamp(0.5%, 1vw, 1.2%) !important;
+    }
+
+    .leg-layout-container {
+        gap: clamp(10px, 1.5vw, 14px) !important;
+    }
+
+    .leg-left-section, .leg-right-section {
+        padding: clamp(12px, 1.8vw, 16px) !important;
+    }
+
+    .btn {
+        padding: clamp(7px, 0.9vw, 11px) clamp(12px, 1.5vw, 16px) !important;
+        font-size: clamp(11px, 1vw, 14px) !important;
+    }
+
+    .btn-small {
+        padding: clamp(5px, 0.7vw, 9px) clamp(10px, 1.2vw, 14px) !important;
+        font-size: clamp(10px, 0.9vw, 13px) !important;
+    }
+
+    .header-buttons .btn {
+        padding: clamp(5px, 0.8vw, 8px) clamp(10px, 1.2vw, 14px) !important;
+        font-size: clamp(10px, 1vw, 12px) !important;
+    }
+}
+
+/* 平板响应式布局 */
+@media (max-width: 768px) {
+    .control-layout {
+        gap: clamp(12px, 2vw, 16px);
+    }
+
+    .direction-section h4 {
+        font-size: clamp(12px, 2vw, 14px);
+        margin-bottom: clamp(8px, 1.5vw, 10px);
+    }
+
+    .video-display {
+        min-height: clamp(200px, 35vh, 240px);
+        flex: 1;
+    }
+
+    .camera-controls {
+        gap: clamp(4px, 1vw, 6px);
+    }
+
+    .camera-btn {
+        font-size: clamp(14px, 2.5vw, 16px);
+        padding: clamp(10px, 2vw, 12px) clamp(12px, 2.5vw, 16px);
+    }
+
+    .btn {
+        padding: clamp(14px, 2.5vw, 16px) clamp(20px, 4vw, 24px);
+        font-size: clamp(16px, 3vw, 18px);
+    }
+
+    .btn-small {
+        padding: clamp(12px, 2vw, 14px) clamp(16px, 3vw, 20px);
+        font-size: clamp(15px, 2.5vw, 17px);
+        min-width: clamp(90px, 15vw, 100px);
+    }
+}
+
+/* 手机端响应式布局 */
+@media (max-width: 480px) {
+    .leg-layout-container {
+        flex-direction: column;
+        gap: 12px;
+        padding: 4px;
+    }
+
+    .leg-left-section, .leg-right-section {
+        width: 100%;
+        min-width: auto;
+        max-width: none;
+        flex: none;
+        padding: 12px;
+    }
+
+    .video-display {
+        min-height: clamp(160px, 30vh, 180px);
+        flex: 1;
+    }
+
+    .direction-pad-extended {
+        max-width: 95vw;
+        gap: 8px;
+    }
+
+    .direction-btn {
+        min-height: clamp(50px, 8vh, 55px);
+        min-width: clamp(75px, 12vw, 85px);
+        padding: clamp(8px, 1.5vw, 10px) clamp(16px, 3vw, 18px);
+    }
+
+    .side-btn {
+        min-width: clamp(55px, 8vw, 65px) !important;
+        max-width: clamp(55px, 8vw, 65px);
+        height: clamp(140px, 25vh, 160px) !important;
+    }
+
+    .btn {
+        padding: clamp(16px, 3vw, 18px) clamp(22px, 4vw, 26px);
+        font-size: clamp(18px, 3.5vw, 20px);
+    }
+
+    .btn-small {
+        padding: clamp(14px, 2.5vw, 16px) clamp(18px, 3.5vw, 22px);
+        font-size: clamp(17px, 3vw, 19px);
+        min-width: clamp(100px, 18vw, 110px);
+    }
+
+    .camera-btn {
+        font-size: clamp(16px, 3vw, 18px);
+        padding: clamp(12px, 2.5vw, 14px) clamp(16px, 3vw, 18px);
+    }
+
+    .gait-btn {
+        padding: clamp(16px, 3vw, 18px) clamp(18px, 3.5vw, 22px);
+        font-size: clamp(16px, 3vw, 18px);
+    }
+
+    .label {
+        font-size: clamp(14px, 2.5vw, 16px);
+    }
+}
+
+/* 监控区域样式 */
+.monitoring-section {
+    margin-bottom: 30px;
+    /* 确保子元素边框正常显示 */
+    overflow: visible;
+    /* 强制移除所有边框和背景 */
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 25px;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    outline: none !important;
+}
+
+/* 右侧状态监控区垂直排列 */
+.monitor-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 调整间距以适应外围框 */
+    /* 确保子元素边框正常显示 */
+    overflow: visible;
+}
+
+/* 监控面板样式 - 全面美化优化 */
+.monitor-panel {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 20, 40, 0.3) 100%);
+    border-radius: 14px;
+    padding: 22px;
+    border: 1px solid rgba(0, 102, 255, 0.5);
+    /* 添加硬件加速，防止回流影响整个页面 */
+    transform: translateZ(0);
+    will-change: transform;
+    /* 确保容器大小固定 */
+    box-sizing: border-box;
+    overflow: visible;
+    /* 增强视觉效果 */
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.2),
+        0 4px 16px rgba(0, 102, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 添加加载动画 */
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.monitor-panel:hover {
+    border-color: rgba(0, 102, 255, 0.6);
+    box-shadow:
+        0 0 0 1px rgba(0, 102, 255, 0.3),
+        0 6px 24px rgba(0, 102, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: translateZ(0) translateY(-2px);
+}
+
+/* 平衡面板特定样式 */
+.balance-panel {
+    border: 1px solid rgba(0, 102, 255, 0.6) !important;
+    box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.2), 0 2px 8px rgba(0, 102, 255, 0.15) !important;
+    /* 确保边框完整显示 */
+    position: relative;
+    z-index: 1;
+}
+
+/* 面板标题样式 - 美化优化 */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 102, 255, 0.2);
+    position: relative;
+}
+
+.panel-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 30%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0, 102, 255, 0.6) 0%, transparent 100%);
+}
+
+.panel-header h3 {
+    color: #4da6ff;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+    letter-spacing: 0.3px;
+}
+
+/* 下肢系统状态指示器样式 - 纯色正圆 */
+.leg-status-indicator {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important;
+    background: #00ff00 !important;
+    box-shadow:
+        0 0 0 2px rgba(0, 255, 0, 0.2),
+        0 0 20px rgba(0, 255, 0, 0.7),
+        0 0 40px rgba(0, 255, 0, 0.3) !important;
+    position: relative;
+    animation: pulse 2s infinite;
+    flex-shrink: 0; /* 防止被压缩 */
+    margin-left: auto; /* 推到最右边 */
+    border: 1px solid rgba(0, 255, 0, 0.5) !important;
+    /* 确保不被其他样式覆盖 */
+    display: block !important;
+    padding: 0 !important;
+}
+
+.leg-status-indicator::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    animation: ripple 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes ripple {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.leg-status-indicator.online {
+    background: #00ff00 !important;
+    border: 1px solid rgba(0, 255, 0, 0.5) !important;
+    box-shadow:
+        0 0 0 2px rgba(0, 255, 0, 0.2),
+        0 0 20px rgba(0, 255, 0, 0.7),
+        0 0 40px rgba(0, 255, 0, 0.3) !important;
+    animation: connectionPulse 3s infinite;
+}
+
+.leg-status-indicator.online::before {
+    border-color: rgba(0, 255, 0, 0.3);
+}
+
+.leg-status-indicator.warning {
+    background: #ffaa00;
+    border: 1px solid rgba(255, 170, 0, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(255, 170, 0, 0.2),
+        0 0 20px rgba(255, 170, 0, 0.7),
+        0 0 40px rgba(255, 170, 0, 0.3);
+}
+
+.leg-status-indicator.warning::before {
+    border-color: rgba(255, 170, 0, 0.3);
+}
+
+.leg-status-indicator.error {
+    background: #ff0000;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(255, 0, 0, 0.2),
+        0 0 20px rgba(255, 0, 0, 0.7),
+        0 0 40px rgba(255, 0, 0, 0.3);
+}
+
+.leg-status-indicator.error::before {
+    border-color: rgba(255, 0, 0, 0.3);
+}
+
+.leg-status-indicator.offline {
+    background: #666666;
+    border: 1px solid rgba(102, 102, 102, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(102, 102, 102, 0.2),
+        0 0 20px rgba(102, 102, 102, 0.4),
+        0 0 40px rgba(102, 102, 102, 0.2);
+    animation: none; /* 离线状态不需要动画 */
+}
+
+.leg-status-indicator.offline::before {
+    border-color: rgba(102, 102, 102, 0.3);
+    animation: none;
+}
+
+/* 大屏幕到平板过渡 */
+@media (max-width: 1024px) {
+    .leg-main {
+        padding: clamp(8px, 1.5vw, 10px);
+        height: calc(100vh - 70px);
+        background:
+            radial-gradient(circle at 20% 20%, rgba(0, 102, 255, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(0, 102, 255, 0.04) 0%, transparent 50%),
+            linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 20, 40, 0.98) 100%);
+    }
+
+    .leg-layout-container {
+        flex-direction: column;
+        gap: clamp(12px, 2vw, 15px);
+        padding: clamp(4px, 1vw, 5px);
+    }
+
+    .leg-left-section, .leg-right-section {
+        width: 100%;
+        min-width: auto;
+        max-width: none;
+        flex: none;
+        padding: clamp(12px, 2.5vw, 15px);
+        border-radius: clamp(10px, 1.5vw, 12px);
+    }
+
+    .control-section {
+        margin-bottom: 15px;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        outline: none !important;
+    }
+
+    .robot-control-center {
+        padding: 15px;
+        border-radius: 12px;
+        min-height: 500px;
+    }
+
+    .main-controls {
+        gap: 15px;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .control-layout {
+        gap: 15px;
+    }
+
+    .video-display {
+        min-height: 280px;
+    }
+
+    .direction-pad {
+        max-width: 280px;
+        gap: 15px;
+    }
+
+    .direction-pad-extended {
+        max-width: 400px;
+        gap: 15px;
+    }
+
+    .side-btn {
+        min-width: 70px !important;
+        max-width: 70px;
+        height: 240px !important; /* 进一步增加高度 */
+        gap: 8px !important;
+    }
+
+    .side-btn .arrow {
+        font-size: 30px !important;
+    }
+
+    .side-btn .label {
+        font-size: 14px !important;
+        writing-mode: initial !important;
+        text-orientation: initial !important;
+    }
+
+    .direction-btn {
+        min-height: 65px; /* 大屏幕减少高度 */
+        min-width: 95px; /* 大屏幕增加宽度 */
+        padding: 12px 22px; /* 调整padding */
+    }
+
+
+
+    .monitoring-section {
+        padding: 20px;
+        margin-bottom: 20px;
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .monitor-grid {
+        gap: 15px;
+    }
+
+    .monitor-panel {
+        padding: 18px;
+    }
+}
+
+/* 小屏幕优化 */
+@media (max-width: 768px) {
+    .leg-main {
+        padding: 8px;
+        margin-top: 70px;
+    }
+
+    .leg-layout-container {
+        gap: 12px;
+        padding: 2px;
+    }
+
+    .leg-left-section, .leg-right-section {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .control-section {
+        padding: 0 !important;
+        margin-bottom: 12px;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        outline: none !important;
+    }
+
+    .robot-control-center {
+        padding: 12px;
+        min-height: 450px;
+    }
+
+    .robot-control-center h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .control-layout {
+        gap: 12px;
+    }
+
+    .direction-section h4 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .video-display {
+        min-height: 220px;
+    }
+
+    .direction-pad {
+        max-width: 260px;
+        gap: 12px;
+    }
+
+    .direction-pad-extended {
+        max-width: 350px;
+        gap: 12px;
+    }
+
+    .side-btn {
+        min-width: 60px !important;
+        max-width: 60px;
+        height: 160px !important; /* 增加小屏幕高度 */
+    }
+
+    .side-btn .arrow {
+        font-size: 24px !important;
+        margin-bottom: 6px;
+    }
+
+    .side-btn .label {
+        font-size: 12px !important;
+        text-orientation: upright !important; /* 确保小屏幕也是竖直文字 */
+    }
+
+    .middle-row {
+        gap: 12px;
+    }
+
+    .direction-btn {
+        min-height: 60px; /* 小屏幕减少高度 */
+        min-width: 80px; /* 小屏幕增加宽度 */
+        padding: 10px 16px; /* 调整padding */
+        border-radius: 12px;
+    }
+
+    .arrow {
+        font-size: 24px;
+    }
+
+    .stop-icon {
+        font-size: 20px;
+    }
+
+    .label {
+        font-size: 14px;
+    }
+
+
+
+    .monitoring-section {
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .monitor-grid {
+        gap: 12px;
+    }
+
+    .monitor-panel {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .panel-header h3 {
+        font-size: 15px;
+    }
+
+    .leg-status-indicator {
+        width: 16px;
+        height: 16px;
+    }
+
+    .leg-status-indicator::before {
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+    }
+
+    .balance-meter {
+        width: 180px;
+        height: 20px;
+    }
+
+    .balance-indicator {
+        width: 5px;
+        height: 30px;
+    }
+
+    .balance-values {
+        gap: 12px;
+        height: 45px;
+    }
+
+    .balance-item {
+        padding: 6px;
+    }
+
+    .position-info {
+        gap: 12px;
+    }
+
+    .position-item {
+        padding: 10px 12px;
+    }
+
+    .gait-selector {
+        gap: 10px;
+    }
+
+    .gait-btn {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .gait-icon {
+        font-size: 16px;
+    }
+
+    .gait-name {
+        font-size: 13px;
+    }
+
+    .gait-desc {
+        font-size: 11px;
+    }
+}
+
+/* 响应式设计 - 大屏幕优化 */
+@media (min-width: 1440px) {
+    .leg-main {
+        width: 99%;
+    }
+
+    .leg-layout-container {
+        gap: 16px;
+    }
+
+    .leg-left-section {
+        min-width: 380px;
+        max-width: 42%;
+    }
+
+    .leg-right-section {
+        min-width: 420px;
+        max-width: 58%;
+    }
+}
+
+/* 超大屏幕优化 */
+@media (min-width: 1920px) {
+    .leg-main {
+        width: 99.5%;
+    }
+
+    .leg-layout-container {
+        gap: 20px;
+    }
+
+    .leg-left-section {
+        max-width: 40%;
+    }
+
+    .leg-right-section {
+        max-width: 60%;
+    }
+}
+
+/* 通知动画 */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* 紧急停止动画 */
+@keyframes emergency-flash {
+    0%, 100% {
+        filter: none;
+    }
+    50% {
+        filter: brightness(1.5) hue-rotate(0deg) saturate(2);
+        background: rgba(255, 0, 0, 0.1);
+    }
+}
+
+/* 移动状态指示器 */
+.direction-btn.moving {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(0, 102, 255, 0.8);
+    }
+}
+
+/* 键盘控制说明样式 */
+.keyboard-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 102, 255, 0.2);
+}
+
+.key {
+    background: rgba(0, 102, 255, 0.2);
+    color: #0066ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    min-width: 60px;
+    text-align: center;
+}
+
+.desc {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
