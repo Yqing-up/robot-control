@@ -68,7 +68,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 摄像头控制按钮 -->
           <div class="camera-controls">
             <button class="camera-btn" @click="handleInitializeCamera" :disabled="cameraLoading">
@@ -94,7 +94,7 @@
               <h3>🎤 语音库管理</h3>
               <div class="module-status" :class="voiceStatus">{{ voiceStatusText }}</div>
             </div>
-            
+
             <div class="module-content">
               <!-- 语音库统计 -->
               <div class="library-stats">
@@ -105,9 +105,9 @@
               <!-- 搜索和筛选 -->
               <div class="voice-controls">
                 <div class="search-box">
-                  <input 
-                    type="text" 
-                    v-model="searchText" 
+                  <input
+                    type="text"
+                    v-model="searchText"
                     placeholder="搜索语音内容..."
                     class="search-input"
                   >
@@ -170,7 +170,7 @@
               <h3>🦾 上肢动作库</h3>
               <div class="module-status" :class="armStatus">{{ armStatusText }}</div>
             </div>
-            
+
             <div class="module-content">
               <!-- 动作库统计 -->
               <div class="library-stats">
@@ -183,9 +183,9 @@
               <!-- 搜索和筛选 -->
               <div class="action-controls">
                 <div class="search-box">
-                  <input 
-                    type="text" 
-                    v-model="actionSearchText" 
+                  <input
+                    type="text"
+                    v-model="actionSearchText"
                     placeholder="搜索动作名称..."
                     class="search-input"
                   >
@@ -203,9 +203,9 @@
 
               <!-- 动作列表 -->
               <div class="action-list scrollable-list">
-                <div 
-                  class="action-item" 
-                  v-for="action in filteredActionLibrary" 
+                <div
+                  class="action-item"
+                  v-for="action in filteredActionLibrary"
                   :key="action.id"
                   :class="{ executing: executingActionId === action.id }"
                 >
@@ -245,14 +245,14 @@
               <h3>🦵 下肢移动控制</h3>
               <div class="module-status" :class="legStatus">{{ legStatusText }}</div>
             </div>
-            
+
             <div class="module-content">
               <!-- 方向控制 -->
               <div class="direction-control-panel">
                 <h4>方向控制</h4>
                 <div class="direction-pad-extended">
                   <!-- 左移按钮 -->
-                  <button 
+                  <button
                     class="direction-btn side-btn left-move"
                     :class="{ active: currentDirection === 'left-move' }"
                     :disabled="isExecutingMovement"
@@ -264,7 +264,7 @@
 
                   <!-- 中央控制区域 -->
                   <div class="center-controls">
-                    <button 
+                    <button
                       class="direction-btn forward"
                       :class="{ active: currentDirection === 'forward' }"
                       @click="handleExecuteMovement('forward')"
@@ -274,7 +274,7 @@
                       <span class="direction-label">前进</span>
                     </button>
                     <div class="direction-middle-row">
-                      <button 
+                      <button
                         class="direction-btn left"
                         :class="{ active: currentDirection === 'left' }"
                         @click="handleExecuteMovement('left')"
@@ -283,7 +283,7 @@
                         <span class="direction-icon">↺</span>
                         <span class="direction-label">左转</span>
                       </button>
-                      <button 
+                      <button
                         class="direction-btn stop emergency"
                         :class="{ active: currentDirection === 'stop' }"
                         @click="handleExecuteMovement('stop')"
@@ -291,7 +291,7 @@
                         <span class="direction-icon">■</span>
                         <span class="direction-label">紧急停止</span>
                       </button>
-                      <button 
+                      <button
                         class="direction-btn right"
                         :class="{ active: currentDirection === 'right' }"
                         @click="handleExecuteMovement('right')"
@@ -301,7 +301,7 @@
                         <span class="direction-label">右转</span>
                       </button>
                     </div>
-                    <button 
+                    <button
                       class="direction-btn backward"
                       :class="{ active: currentDirection === 'backward' }"
                       @click="handleExecuteMovement('backward')"
@@ -313,7 +313,7 @@
                   </div>
 
                   <!-- 右移按钮 -->
-                  <button 
+                  <button
                     class="direction-btn side-btn right-move"
                     :class="{ active: currentDirection === 'right-move' }"
                     :disabled="isExecutingMovement"
@@ -570,12 +570,8 @@ const fetchVoiceTexts = async () => {
     console.log('🌐 API端点:', '/api/tts/text')
     voiceStatusText.value = '正在加载语音库...'
 
-    const response = await voiceApi.getVoiceTexts()
-    console.log('📚 API返回的原始响应:', response)
-    
-    // 从Axios响应对象中提取数据
-    const result = response.data || response
-    console.log('📚 提取的API响应数据:', result)
+    const result = await voiceApi.getVoiceTexts()
+    console.log('📚 API返回的原始数据:', result)
     console.log('📊 返回数据类型:', typeof result, '是否为对象:', typeof result === 'object')
 
     // 正确处理嵌套的数据结构
@@ -651,12 +647,8 @@ const handlePlayVoiceText = async (voice) => {
     isSpeaking.value = true
     voiceStatusText.value = '正在合成语音...'
 
-    const response = await voiceApi.synthesizeText(voice.content)
-    console.log('🎵 语音合成API响应:', response)
-    
-    // 从Axios响应对象中提取数据
-    const result = response.data || response
-    console.log('🎵 提取的语音合成结果:', result)
+    const result = await voiceApi.synthesizeText(voice.content)
+    console.log('🎵 语音合成API响应:', result)
 
     if (result && result.success) {
       console.log('✅ 语音合成成功，机器人开始说话')
@@ -732,11 +724,11 @@ const handleLoadActionLibrary = async () => {
 
     const response = await movementApi.getRobotActions()
     console.log('动作列表API响应:', response)
-    
+
     // 从Axios响应对象中提取数据
     const result = response.data || response
     console.log('提取的动作列表数据:', result)
-    
+
     if (result.success && result.data && result.data.success) {
       // 解析API返回的动作数据
       const apiActions = parseApiActions(result.data.actions)
@@ -765,7 +757,7 @@ const parseApiActions = (apiData) => {
     console.warn('API返回的动作数据格式不正确:', apiData)
     return defaultActions
   }
-  
+
   return apiData.map((action, index) => {
     // 处理API返回的动作对象格式
     if (typeof action === 'object' && action.name) {
@@ -789,7 +781,7 @@ const parseApiActions = (apiData) => {
         modifiedTimeStr: action.modified_time_str
       }
     }
-    
+
     // 如果API返回的是字符串（文件名）
     if (typeof action === 'string' && action.endsWith('.tact')) {
       return {
@@ -808,7 +800,7 @@ const parseApiActions = (apiData) => {
         fileName: action
       }
     }
-    
+
     // 其他情况，创建默认动作
     return {
       id: Date.now() + index,
@@ -1096,7 +1088,7 @@ const handleInitializeCamera = async () => {
   try {
     const response = await cameraApi.testConnection()
     console.log('📹 摄像头连接测试响应:', response)
-    
+
     // 从Axios响应对象中提取数据
     const result = response.data || response
     console.log('📹 提取的摄像头状态数据:', result)

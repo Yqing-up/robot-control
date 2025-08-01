@@ -34,7 +34,7 @@
                 <p><strong>最后调用:</strong> {{ lastApiCall ? new Date(lastApiCall).toLocaleString() : '未调用' }}</p>
                 <p><strong>检查清单:</strong></p>
                 <ul>
-                  <li>✓ 确认服务器 192.168.0.103:5001 运行正常</li>
+                  <li>✓ 确认服务器 192.168.0.119:5001 运行正常</li>
                   <li>✓ 验证 /api/asr 路径配置正确</li>
                   <li>✓ 检查所有接口都使用HTTP协议</li>
                   <li>✓ 确认CORS跨域设置正确</li>
@@ -279,7 +279,46 @@ const systemUtils = {
     const secs = Math.floor(seconds % 60)
     return `${mins}:${secs.toString().padStart(2, '0')}`
   },
-  formatHistoryRecords: (records) => records || [],
+  formatHistoryRecords: (records) => {
+    if (!records || !Array.isArray(records)) return []
+
+    console.log('🔧 格式化历史记录，输入数据:', records)
+
+    // 确保每条记录都有必要的字段
+    const formattedRecords = records.map((record, index) => {
+      // 如果记录已经是正确格式，直接返回
+      if (record.text && record.timestamp && record.id) {
+        return record
+      }
+
+      // 否则进行格式化
+      const text = record.text || record.content || record.transcription ||
+                  record.transcript || record.result || ''
+
+      let timestamp = Date.now()
+      if (record.timestamp) {
+        timestamp = new Date(record.timestamp).getTime()
+      } else if (record.created_at) {
+        timestamp = new Date(record.created_at).getTime()
+      } else if (record.time) {
+        timestamp = new Date(record.time).getTime()
+      }
+
+      const id = record.id || record.uuid || `record_${timestamp}_${index}`
+
+      return {
+        text: text.trim(),
+        timestamp: timestamp,
+        language: record.language || 'zh-CN',
+        confidence: parseFloat(record.confidence || record.score || 0.95),
+        id: id,
+        source: 'api'
+      }
+    }).filter(record => record.text.length > 0)
+
+    console.log('✅ 格式化完成，输出数据:', formattedRecords)
+    return formattedRecords
+  },
   exportAudioData: (data) => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -420,7 +459,7 @@ const callAPI = async (endpoint, method = 'GET', data = null) => {
         errorMessage = `服务器内部错误 (500): 后端服务器出现问题，请检查服务器日志。API端点: ${endpoint}`
         console.error('🔧 500错误调试信息:')
         console.error('📍 请求端点:', endpoint)
-        console.error('📍 服务器地址: http://192.168.0.103:5001')
+        console.error('📍 服务器地址: http://192.168.0.119:5001')
         console.error('📍 建议检查: 1) 服务器是否运行 2) API路由是否正确 3) 服务器日志')
       } else if (response.status === 404) {
         errorMessage = `API端点不存在 (404): ${endpoint}，请检查服务器路由配置`
@@ -500,24 +539,34 @@ const sortedTextHistory = computed(() => {
 })
 
 // API接口调用函数
+// 录音控制接口 - 重构优化版本
 const startRecordingAPI = async () => {
   try {
     isLoading.value = true
     connectionStatus.value = 'connecting'
     statusText.value = '正在启动录音服务...'
 
+    console.log('🎤 调用 /asr/start 接口启动录音服务')
     const result = await recordingApi.startRecording()
-    console.log('开始录音API响应:', result)
+    console.log('📥 /asr/start 接口响应:', result)
 
-    if (result.success) {
-      statusText.value = result.message
+    if (result && result.success) {
+      statusText.value = result.message || '录音服务已启动'
       connectionStatus.value = 'connected'
+      console.log('✅ 录音服务启动成功')
+
+      // 启动录音后立即获取一次历史记录
+      setTimeout(() => {
+        fetchRecentRecords()
+      }, 1000)
+
       return true
     } else {
-      throw new Error(result.error || '启动录音服务失败')
+      const errorMsg = result?.message || result?.error || '启动录音服务失败'
+      throw new Error(errorMsg)
     }
   } catch (error) {
-    console.error('启动录音API失败:', error)
+    console.error('❌ 调用 /asr/start 接口失败:', error)
     statusText.value = `启动失败: ${error.message}`
     connectionStatus.value = 'error'
     apiError.value = error.message
@@ -531,26 +580,28 @@ const stopRecordingAPI = async () => {
   try {
     statusText.value = '正在停止录音服务...'
 
+    console.log('🛑 调用 /asr/stop 接口停止录音服务')
     const result = await recordingApi.stopRecording()
-    console.log('停止录音API响应:', result)
+    console.log('📥 /asr/stop 接口响应:', result)
 
-    if (result.success) {
-      statusText.value = result.message
+    if (result && result.success) {
+      statusText.value = result.message || '录音服务已停止'
+      console.log('✅ 录音服务停止成功')
 
-      // 停止录音后立即获取最新转录文本，然后获取历史记录
-      setTimeout(async () => {
-        console.log('🔄 停止录音后获取最终转录结果...')
-        await updateTranscriptionText() // 立即更新转录文本显示
-        await fetchRecentRecords() // 更新历史记录
+      // 停止录音后的处理 - 不自动调用历史记录更新
+      setTimeout(() => {
+        console.log('🔄 停止录音完成')
         statusText.value = '系统就绪'
-      }, 2000) // 等待2秒
+        console.log('💡 录音已停止，历史记录定时获取已停止')
+      }, 1000)
 
       return true
     } else {
-      throw new Error(result.error || '停止录音服务失败')
+      const errorMsg = result?.message || result?.error || '停止录音服务失败'
+      throw new Error(errorMsg)
     }
   } catch (error) {
-    console.error('停止录音API失败:', error)
+    console.error('❌ 调用 /asr/stop 接口失败:', error)
     statusText.value = `停止失败: ${error.message}`
     return false
   }
@@ -561,54 +612,58 @@ const stopRecordingAPI = async () => {
 // 获取当前转录文本 - 通过recent接口获取最新记录
 const fetchCurrentTranscription = async () => {
   try {
-    const result = await transcriptionApi.getCurrentTranscription()
-    console.log('📝 获取最新转录文本:', result)
+    // 使用 /asr/recent 接口获取最近1分钟的转录文本
+    const result = await recordingApi.getRecentRecords(1)
+    console.log('📝 获取最新转录文本 (通过recent接口，1分钟范围):', result)
 
-    if (result.success && result.data && result.data.results && result.data.results.length > 0) {
-      // 获取所有记录并按时间排序，找到最新的记录
-      const allRecords = result.data.results
-      console.log(`📊 获取到 ${allRecords.length} 条转录记录`)
+    // 处理 /asr/recent 接口返回的数据格式
+    let records = []
 
+    if (result && result.success && result.data && result.data.results && Array.isArray(result.data.results)) {
+      records = result.data.results
+      console.log(`📊 获取到 ${records.length} 条转录记录 (success格式，来自results数组)`)
+    } else if (result && result.success && result.data && Array.isArray(result.data)) {
+      records = result.data
+      console.log(`📊 获取到 ${records.length} 条转录记录 (success格式，直接数组)`)
+    } else if (result && Array.isArray(result)) {
+      records = result
+      console.log(`📊 获取到 ${records.length} 条转录记录 (直接数组格式)`)
+    } else {
+      console.log('⚪ 没有获取到有效的转录记录')
+      return result
+    }
+
+    if (records.length > 0) {
       // 按时间戳排序，获取最新的记录
-      const sortedRecords = allRecords.sort((a, b) => {
-        const timeA = new Date(a.timestamp || a.time || 0).getTime()
-        const timeB = new Date(b.timestamp || b.time || 0).getTime()
+      const sortedRecords = records.sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.created_at || a.time || 0).getTime()
+        const timeB = new Date(b.timestamp || b.created_at || b.time || 0).getTime()
         return timeB - timeA // 降序排列，最新的在前面
       })
 
-      if (sortedRecords.length > 0) {
-        const latestRecord = sortedRecords[0]
-        const currentText = latestRecord.text || latestRecord.content || latestRecord.transcription || ''
+      const latestRecord = sortedRecords[0]
+      const currentText = latestRecord.text || latestRecord.content ||
+                         latestRecord.transcription || latestRecord.transcript || ''
 
-        console.log('📝 最新记录:', {
-          timestamp: latestRecord.timestamp || latestRecord.time,
-          text: currentText,
-          confidence: latestRecord.confidence
-        })
-
-        if (currentText && currentText !== speechText.value) {
-          console.log('🔄 文本更新前:', speechText.value)
-          console.log('🔄 服务器返回最新文本:', currentText)
-          speechText.value = currentText
-          console.log('✅ 更新当前转录文本:', currentText)
-          console.log('🎯 语音转文字栏现在显示:', speechText.value)
-        } else if (currentText === speechText.value) {
-          console.log('⚪ 文本未变化，跳过更新:', currentText)
-        } else {
-          console.log('⚪ 最新记录为空文本')
-        }
-      } else {
-        console.log('⚪ 没有找到有效的转录记录')
-      }
-    } else if (result && Array.isArray(result) && result.length > 0) {
-      // 如果直接返回数组格式
-      const latestRecord = result[0]
-      const currentText = latestRecord.text || latestRecord.content || latestRecord.transcription || ''
+      console.log('📝 最新记录:', {
+        timestamp: latestRecord.timestamp || latestRecord.created_at || latestRecord.time,
+        text: currentText,
+        confidence: latestRecord.confidence
+      })
 
       if (currentText && currentText !== speechText.value) {
+        console.log('🔄 文本更新前:', speechText.value)
+        console.log('🔄 服务器返回最新文本:', currentText)
         speechText.value = currentText
-        console.log('✅ 更新当前转录文本 (数组格式):', currentText)
+        console.log('✅ 更新当前转录文本:', currentText)
+        console.log('🎯 语音转文字栏现在显示:', speechText.value)
+      } else if (currentText === speechText.value) {
+        console.log('⚪ 文本未变化，跳过更新:', currentText)
+      } else {
+        console.log('⚪ 最新记录为空文本')
       }
+    } else {
+      console.log('⚪ 没有找到有效的转录记录')
     }
     return result
   } catch (error) {
@@ -618,23 +673,30 @@ const fetchCurrentTranscription = async () => {
   }
 }
 
-// 实时更新转录文本的函数
+// 实时更新转录文本的函数 - 通过 /asr/recent 接口获取最新记录
 const updateTranscriptionText = async () => {
   try {
-    console.log('🔄 实时更新转录文本...')
+    console.log('🔄 实时更新转录文本 (通过/asr/recent接口)...')
     console.log('📺 当前语音转文字栏内容:', speechText.value || '(空)')
 
     const result = await fetchCurrentTranscription()
 
-    // 如果获取成功，同时更新历史记录显示
-    if (result && result.success && result.data && result.data.results && result.data.results.length > 0) {
-      console.log('✅ 获取到转录结果，记录数:', result.data.results.length)
-      // 更新历史记录显示（不需要等待）
-      fetchRecentRecords().catch(error => {
-        console.warn('⚠️ 更新历史记录失败:', error.message)
-      })
+    // 检查是否获取到转录结果 (统一使用 /asr/recent 接口)
+    let hasResults = false
+    if (result && result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
+      hasResults = true
+      console.log('✅ 获取到转录结果，记录数:', result.data.length)
+    } else if (result && Array.isArray(result) && result.length > 0) {
+      hasResults = true
+      console.log('✅ 获取到转录结果，记录数:', result.length)
     } else {
       console.log('⚪ 暂无新的转录结果')
+    }
+
+    // 注意：fetchCurrentTranscription 和 fetchRecentRecords 现在都使用同一个接口
+    // 所以不需要重复调用来更新历史记录，避免重复请求
+    if (hasResults) {
+      console.log('📝 转录文本已通过 /asr/recent 接口更新')
     }
 
     console.log('📺 更新后语音转文字栏内容:', speechText.value || '(空)')
@@ -650,17 +712,24 @@ let allowStatusSync = true
 let statusPollingInterval = null
 const STATUS_POLLING_INTERVAL = 3000 // 每3秒检查一次状态
 
-// 修改checkStatusAPI函数，添加更好的状态同步逻辑
+// 历史记录获取控制 - 每秒调用一次
+let historyFetchInterval = null
+const HISTORY_FETCH_INTERVAL = 1000 // 每1秒获取一次历史记录
+
+// 状态监控接口 - 重构优化版本
 const checkStatusAPI = async (enableSync = false) => {
   try {
+    console.log('📊 调用 /asr/status 接口查询录音服务状态')
     const result = await recordingApi.getStatus(enableSync)
-    console.log('📊 状态查询API响应:', result)
+    console.log('� /asr/status 接口响应:', result)
     console.log('🔍 当前前端录音状态:', isRecording.value ? '录音中' : '已停止')
 
     if (!enableSync) {
       console.log('🔒 状态同步已禁用，仅查询状态信息')
       return result
     }
+
+    console.log('🔄 开始执行前后端状态同步...')
 
     // 添加详细的调试信息
     if (result && result.data) {
@@ -734,7 +803,7 @@ const checkStatusAPI = async (enableSync = false) => {
       }
 
       // 如果没有is_running字段，检查传统的status字段作为备用
-      if (result.status) {
+      if (result.status && typeof result.status === 'string') {
         const serverStatus = result.status.toLowerCase()
         console.log('⚠️ 未找到is_running字段，使用备用status字段:', serverStatus)
         console.log('🔍 前端状态:', isRecording.value ? 'recording' : 'stopped')
@@ -806,9 +875,9 @@ const startStatusPolling = () => {
   if (statusPollingInterval) {
     clearInterval(statusPollingInterval)
   }
-  
+
   console.log('🔄 启动状态轮询，间隔:', STATUS_POLLING_INTERVAL, 'ms')
-  
+
   statusPollingInterval = setInterval(async () => {
     try {
       // 只在连接正常时进行状态检查
@@ -831,11 +900,47 @@ const stopStatusPolling = () => {
   }
 }
 
+// 启动历史记录定时获取 - 仅在录音时启动
+const startHistoryFetching = () => {
+  if (historyFetchInterval) {
+    clearInterval(historyFetchInterval)
+  }
+
+  console.log('🔄 启动历史记录定时获取，间隔:', HISTORY_FETCH_INTERVAL, 'ms (每秒1次)')
+
+  historyFetchInterval = setInterval(async () => {
+    try {
+      if (isRecording.value) {
+        console.log('🔄 定时获取历史记录 (录音中)...')
+        await fetchRecentRecords()
+      } else {
+        console.log('⏸️ 录音已停止，停止历史记录定时获取')
+        stopHistoryFetching()
+      }
+    } catch (error) {
+      console.warn('⚠️ 定时获取历史记录失败:', error.message)
+    }
+  }, HISTORY_FETCH_INTERVAL)
+}
+
+// 停止历史记录定时获取
+const stopHistoryFetching = () => {
+  if (historyFetchInterval) {
+    clearInterval(historyFetchInterval)
+    historyFetchInterval = null
+    console.log('⏹️ 历史记录定时获取已停止')
+  }
+}
+
 // 从API更新历史记录的辅助函数
 const updateHistoryFromAPI = (records) => {
-  if (!records || !Array.isArray(records)) return
+  if (!records || !Array.isArray(records)) {
+    console.log('⚠️ updateHistoryFromAPI 收到无效数据:', records)
+    return
+  }
 
   console.log('🔄 处理API记录，原始数据:', records)
+  console.log('🔄 当前历史记录数量:', textHistory.value.length)
 
   // 将API返回的记录转换为本地格式
   const newRecords = records.map((record, index) => {
@@ -879,18 +984,36 @@ const updateHistoryFromAPI = (records) => {
   }).filter(record => record.text.length > 0) // 过滤掉空文本
 
   console.log(`🔄 处理后得到 ${newRecords.length} 条有效记录`)
+  console.log('🔄 处理后的记录详情:', newRecords)
 
   // 合并新记录，避免重复（基于ID或时间戳）
   const existingIds = new Set(textHistory.value.map(r => r.id))
   const existingTexts = new Set(textHistory.value.map(r => r.text))
 
-  const uniqueNewRecords = newRecords.filter(r =>
-    !existingIds.has(r.id) && !existingTexts.has(r.text)
-  )
+  console.log('🔍 现有记录ID集合:', Array.from(existingIds))
+  console.log('🔍 现有记录文本集合:', Array.from(existingTexts))
+
+  const uniqueNewRecords = newRecords.filter(r => {
+    const isDuplicateId = existingIds.has(r.id)
+    const isDuplicateText = existingTexts.has(r.text)
+
+    if (isDuplicateId) {
+      console.log(`⚠️ 跳过重复ID记录: ${r.id}`)
+    }
+    if (isDuplicateText) {
+      console.log(`⚠️ 跳过重复文本记录: ${r.text}`)
+    }
+
+    return !isDuplicateId && !isDuplicateText
+  })
+
+  console.log(`🔍 过滤后的唯一记录数量: ${uniqueNewRecords.length}`)
 
   if (uniqueNewRecords.length > 0) {
+    console.log('📝 准备添加的新记录:', uniqueNewRecords)
     textHistory.value.push(...uniqueNewRecords)
-    console.log(`📝 添加了 ${uniqueNewRecords.length} 条新的API记录`)
+    console.log(`✅ 成功添加了 ${uniqueNewRecords.length} 条新的API记录`)
+    console.log('📊 更新后历史记录总数:', textHistory.value.length)
 
     // 保存到本地存储
     saveToLocalStorage()
@@ -933,20 +1056,85 @@ const parseCSV = (csvText) => {
   return records
 }
 
+// 历史记录获取接口 - 重构优化版本
 const fetchRecentRecords = async () => {
   try {
-    console.log('📋 获取转录记录...')
+    console.log('📋 调用 /asr/recent 接口获取转录记录 (最近1分钟)...')
 
-    const records = await transcriptionApi.getRecentRecords()
+    // 调用 /asr/recent 接口获取最近1分钟的记录
+    const result = await recordingApi.getRecentRecords(1)
+    console.log('📥 /asr/recent 接口响应 (1分钟范围):', result)
+    console.log('📥 API返回数据类型:', typeof result)
+    console.log('📥 API返回数据结构:', JSON.stringify(result, null, 2))
 
-    if (records && records.length > 0) {
-      // 使用系统工具函数格式化记录
+    let records = []
+    if (result && result.success && result.data && result.data.results && Array.isArray(result.data.results)) {
+      records = result.data.results
+      console.log(`📊 获取到 ${records.length} 条记录 (success格式，来自results数组)`)
+    } else if (result && result.success && result.data && Array.isArray(result.data)) {
+      records = result.data
+      console.log(`📊 获取到 ${records.length} 条记录 (success格式，直接数组)`)
+    } else if (result && Array.isArray(result)) {
+      records = result
+      console.log(`📊 获取到 ${records.length} 条记录 (直接数组格式)`)
+    } else {
+      console.log('📝 没有获取到转录记录')
+      console.log('📝 数据结构:', result)
+      return []
+    }
+
+    if (records.length > 0) {
+      console.log(`📊 开始处理 ${records.length} 条记录`)
+
+      // 1. 更新历史记录显示
       const formattedRecords = systemUtils.formatHistoryRecords(records)
+      console.log(`📋 格式化后得到 ${formattedRecords.length} 条记录`)
+
       updateHistoryFromAPI(formattedRecords)
-      console.log(`✅ 成功添加了 ${formattedRecords.length} 条历史记录`)
+      console.log(`✅ 历史记录面板已更新，当前总记录数: ${textHistory.value.length}`)
+
+      // 2. 更新语音转文字框 - 显示最新的一条转录文本（替换模式）
+      const sortedRecords = records.sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.created_at || a.time || 0).getTime()
+        const timeB = new Date(b.timestamp || b.created_at || b.time || 0).getTime()
+        return timeB - timeA // 降序排列，最新的在前面
+      })
+
+      const latestRecord = sortedRecords[0]
+      const currentText = latestRecord.text || latestRecord.content ||
+                         latestRecord.transcription || latestRecord.transcript || ''
+
+      console.log('📝 最新记录详情:', {
+        timestamp: latestRecord.timestamp,
+        text: currentText,
+        originalRecord: latestRecord
+      })
+
+      // 语音转文字框：替换模式 - 每次只显示最新记录，旧内容被新内容替换
+      if (currentText) {
+        if (currentText !== speechText.value) {
+          console.log('🔄 语音转文字框更新 (替换模式):', currentText)
+          speechText.value = currentText // 替换显示最新文本
+          console.log('✅ 语音转文字框已更新为最新转录文本')
+        } else {
+          console.log('⚪ 语音转文字框内容未变化 (已是最新)')
+        }
+      } else {
+        console.log('⚠️ 最新记录文本为空，保持当前显示')
+      }
+
+      // 3. 验证界面显示状态
+      console.log('📊 界面显示状态检查:')
+      console.log('  - 历史记录面板记录数:', textHistory.value.length)
+      console.log('  - 语音转文字框内容:', speechText.value || '(空)')
+      console.log('  - 过滤后历史记录数:', filteredTextHistory.value.length)
+
       return formattedRecords
     } else {
       console.log('📝 没有获取到转录记录')
+      console.log('📊 当前界面状态:')
+      console.log('  - 历史记录面板记录数:', textHistory.value.length)
+      console.log('  - 语音转文字框内容:', speechText.value || '(空)')
       return []
     }
   } catch (error) {
@@ -954,128 +1142,6 @@ const fetchRecentRecords = async () => {
     return []
   }
 }
-
-// 原有的fetchRecentRecords函数 (已废弃)
-const fetchRecentRecords_old = async () => {
-  try {
-    console.log('📋 获取转录记录...')
-
-    // 尝试不同的API调用方式来解决400错误
-    const attempts = [
-      // 尝试1: 1分钟 (快速响应，与实时转录保持一致)
-      { url: `${API_BASE_URL}/recent?minutes=1`, desc: '1分钟' },
-      // 尝试2: 5分钟
-      { url: `${API_BASE_URL}/recent?minutes=5`, desc: '5分钟' },
-      // 尝试3: 10分钟
-      { url: `${API_BASE_URL}/recent?minutes=10`, desc: '10分钟' },
-      // 尝试4: 不带参数
-      { url: `${API_BASE_URL}/recent`, desc: '默认参数' },
-      // 尝试5: 使用limit参数
-      { url: `${API_BASE_URL}/recent?limit=100`, desc: 'limit=100' }
-    ]
-
-    let response = null
-    let successAttempt = null
-
-    for (let i = 0; i < attempts.length; i++) {
-      try {
-        console.log(`🔄 尝试获取历史记录 (${attempts[i].desc}): ${attempts[i].url}`)
-
-        response = await fetch(attempts[i].url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json, */*',
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          }
-        })
-
-        if (response.ok) {
-          successAttempt = attempts[i]
-          console.log(`✅ 成功获取历史记录 (${attempts[i].desc})`)
-          break
-        } else {
-          console.log(`❌ 尝试${i + 1}失败: ${response.status} ${response.statusText}`)
-        }
-      } catch (error) {
-        console.log(`❌ 尝试${i + 1}出错: ${error.message}`)
-      }
-    }
-
-    if (!response || !response.ok) {
-      throw new Error(`所有API调用尝试都失败了。最后状态: ${response?.status || '无响应'} ${response?.statusText || ''}`)
-    }
-
-    const jsonData = await response.json()
-    console.log('📚 获取历史记录JSON响应:', jsonData)
-
-    // 检查响应格式
-    if (!jsonData.success) {
-      throw new Error(`API返回失败: ${jsonData.message || '未知错误'}`)
-    }
-
-    if (!jsonData.data || !jsonData.data.results || !Array.isArray(jsonData.data.results)) {
-      console.log('� API响应中没有results数组')
-      return []
-    }
-
-    const rawResults = jsonData.data.results
-    console.log(`📊 API返回 ${rawResults.length} 条原始记录`)
-
-    // 添加详细调试信息
-    if (rawResults.length === 0) {
-      console.warn('⚠️ 没有获取到任何语音识别记录，可能的原因:')
-      console.warn('   1. 机器人麦克风没有检测到声音')
-      console.warn('   2. 语音识别服务配置问题')
-      console.warn('   3. 音频输入设备未正确连接')
-      console.warn('   4. 需要检查服务器端日志获取更多信息')
-      console.warn('   5. CSV文件路径:', jsonData.data.csv_file)
-    } else {
-      console.log('✅ 成功获取到语音识别记录:', rawResults.slice(0, 2))
-    }
-
-    // 处理并转换记录格式
-    const records = rawResults.map((item, index) => {
-      // 处理Unicode编码的文本
-      let decodedText = item.text
-      try {
-        // 如果文本包含Unicode转义序列，尝试解码
-        if (item.text && item.text.includes('\\u')) {
-          decodedText = JSON.parse('"' + item.text + '"')
-        }
-      } catch (e) {
-        console.log('⚠️ Unicode解码失败，使用原始文本:', item.text)
-        decodedText = item.text
-      }
-
-      return {
-        id: `api_${Date.now()}_${index}`,
-        text: decodedText,
-        timestamp: item.timestamp,
-        source: 'api',
-        confidence: item.confidence || 1.0
-      }
-    })
-
-    console.log(`📝 处理后的记录数量: ${records.length}`)
-    console.log('📝 记录示例:', records.slice(0, 2))
-
-    if (records.length > 0) {
-      updateHistoryFromAPI(records)
-      console.log(`✅ 成功添加了 ${records.length} 条历史记录`)
-    } else {
-      console.log('📝 没有有效的记录数据')
-    }
-
-    return records
-  } catch (error) {
-    console.error('❌ 获取历史记录API失败:', error)
-    return null
-  }
-}
-
-
 
 
 
@@ -1103,16 +1169,16 @@ const requestMicrophonePermission = async () => {
 const setupAudioContext = (stream) => {
   // 创建音频上下文
   audioContext = new (window.AudioContext || window.webkitAudioContext)()
-  
+
   // 创建音频源和分析器
   audioSource = audioContext.createMediaStreamSource(stream)
   audioAnalyser = audioContext.createAnalyser()
-  
+
   // 配置分析器
   audioAnalyser.fftSize = 2048
   const bufferLength = audioAnalyser.frequencyBinCount
   audioDataArray = new Uint8Array(bufferLength)
-  
+
   // 连接音频节点
   audioSource.connect(audioAnalyser)
 }
@@ -1121,41 +1187,41 @@ const setupAudioContext = (stream) => {
 const initSpeechRecognition = () => {
   // 检查浏览器支持
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-  
+
   if (!SpeechRecognition) {
     isRecognitionSupported.value = false
     console.error('此浏览器不支持语音识别')
     return
   }
-  
+
   recognition = new SpeechRecognition()
-  
+
   // 配置语音识别
   recognition.continuous = true       // 持续识别
   recognition.interimResults = true   // 返回临时结果
   recognition.maxAlternatives = 1     // 返回最可能的识别结果
-  
+
   // 设置语言
   recognition.lang = selectedLanguage.value
-  
+
   // 监听识别结果
   recognition.onresult = (event) => {
     let interimTranscript = ''
     let finalTranscript = ''
-    
+
     console.log('收到语音识别结果:', event.results.length, '个结果')
-    
+
     // 处理识别结果
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const transcript = event.results[i][0].transcript
       console.log('转写结果:', i, transcript, '是否最终:', event.results[i].isFinal)
-      
+
       if (event.results[i].isFinal) {
         finalTranscript += transcript + ' '
-        
+
         // 更新识别准确度
         accuracy.value = Math.round(event.results[i][0].confidence * 100)
-        
+
         // 不再将本地识别结果添加到历史记录
         // 只通过API接口获取转录结果
         if (transcript.trim()) {
@@ -1165,7 +1231,7 @@ const initSpeechRecognition = () => {
         interimTranscript += transcript
       }
     }
-    
+
     // 本地识别结果仅用于调试，不更新界面文本显示
     if (finalTranscript) {
       console.log('🎤 本地最终识别结果 (仅调试，不显示):', finalTranscript)
@@ -1175,7 +1241,7 @@ const initSpeechRecognition = () => {
       // 注意：不创建临时显示元素，界面只显示服务器端API返回的结果
     }
   }
-  
+
   recognition.onerror = (event) => {
     console.error('语音识别错误:', event.error)
     if (isRecording.value) {
@@ -1191,7 +1257,7 @@ const initSpeechRecognition = () => {
       }, 1000)
     }
   }
-  
+
   recognition.onend = () => {
     // 如果仍然在录音，则重启识别
     if (isRecording.value) {
@@ -1288,7 +1354,8 @@ const toggleRecording = async () => {
       if (success) {
         isRecording.value = false
         stopRecording() // 停止本地计时器和语音识别
-        console.log('✅ 服务器端录音已停止')
+        stopHistoryFetching() // 停止历史记录定时获取
+        console.log('✅ 服务器端录音已停止，历史记录定时获取已停止')
       }
     } else {
       // 开始录音 - 调用服务器API并启动本地计时器
@@ -1297,7 +1364,8 @@ const toggleRecording = async () => {
       if (success) {
         isRecording.value = true
         await startRecording() // 启动本地计时器和语音识别
-        console.log('✅ 服务器端录音已开始')
+        startHistoryFetching() // 启动历史记录定时获取（每分钟2次）
+        console.log('✅ 服务器端录音已开始，历史记录定时获取已启动')
       }
     }
   } finally {
@@ -1336,7 +1404,7 @@ const startRecording = async () => {
   }
 
   audioChunks = []
-  
+
   // 启用本地语音识别仅用于音频可视化（频谱分析和波形显示）
   // 注意：本地识别结果不会显示在界面上，界面只显示服务器端API返回的转录结果
   if (recognition && isRecognitionSupported.value) {
@@ -1378,13 +1446,13 @@ const startRecording = async () => {
   // 开始录音
   if (audioStream) {
     mediaRecorder = new MediaRecorder(audioStream)
-    
+
     mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
         audioChunks.push(event.data)
       }
     }
-    
+
     mediaRecorder.start()
     console.log('MediaRecorder已启动')
   } else {
@@ -1410,11 +1478,7 @@ const startRecording = async () => {
       audioLevel.value = Math.min(100, Math.round(rms * 100 * 3))
     }
 
-    // 每3秒获取一次完整的历史记录，确保历史记录面板更新
-    if (recordTime.value % 3 === 0) {
-      console.log('🔄 定期更新历史记录面板...')
-      await fetchRecentRecords()
-    }
+    // 录音期间通过定时器自动获取历史记录，每秒1次
   }, 1000)
 
   // 转录文本更新定时器 - 降低频率，减少服务器压力
@@ -1431,7 +1495,7 @@ const startRecording = async () => {
 const stopRecording = () => {
   console.log('停止录音')
   statusText.value = '系统就绪'
-  
+
   // 停止本地语音识别（仅用于可视化）
   if (recognition && isRecognitionSupported.value) {
     try {
@@ -1445,19 +1509,19 @@ const stopRecording = () => {
   // 停止录音
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop()
-    
+
     // 确保录音数据被处理
     mediaRecorder.onstop = async (event) => {
       try {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
         const audioUrl = URL.createObjectURL(audioBlob)
-        
+
         console.log('录音已结束，blob大小:', audioBlob.size, '字节')
-        
+
         // 计算录音大小（MB）
         const audioSize = audioBlob.size / (1024 * 1024)
         storageUsage.value += parseFloat(audioSize.toFixed(2))
-        
+
         // 保存录音记录
         if (recordTime.value > 0) {
           const timestamp = Date.now()
@@ -1473,11 +1537,11 @@ const stopRecording = () => {
           }
 
           totalRecordTime.value += recordTime.value
-          
+
           // 立即保存到本地存储
           saveToLocalStorage()
         }
-        
+
         audioChunks = []
       } catch (error) {
         console.error('处理录音数据时出错:', error)
@@ -1586,20 +1650,20 @@ const downloadRecord = (record) => {
     console.error('录音数据不存在')
     return
   }
-  
+
   // 创建下载链接
   const downloadLink = document.createElement('a')
   downloadLink.href = record.url
-  
+
   // 格式化时间作为文件名
   const date = new Date(record.timestamp)
   const fileName = `录音_${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2,'0')}${date.getDate().toString().padStart(2,'0')}_${date.getHours().toString().padStart(2,'0')}${date.getMinutes().toString().padStart(2,'0')}${date.getSeconds().toString().padStart(2,'0')}.webm`
-  
+
   downloadLink.download = fileName
   document.body.appendChild(downloadLink)
   downloadLink.click()
   document.body.removeChild(downloadLink)
-  
+
   console.log('下载录音:', fileName)
 }
 
@@ -1855,36 +1919,50 @@ const handleResize = () => {
 
 // 状态轮询已移除 - 只在页面初始化时调用一次状态查询
 
-// 初始化API连接
+// 页面初始化API连接 - 重构优化版本
 const initializeAPI = async () => {
   try {
     statusText.value = '正在连接服务器...'
     connectionStatus.value = 'connecting'
 
-    // 只在页面初始化时检查一次服务器状态（同步录音状态）
-    console.log('🔄 页面初始化 - 检查服务器状态并同步（仅此一次）')
-    await checkStatusAPI(true) // 启用状态同步
+    console.log('🚀 页面初始化开始...')
 
-    // 获取历史记录
+    // 1. 页面初始化/刷新时必须调用状态接口，获取服务器端的真实状态
+    console.log('� 步骤1: 调用 /asr/status 接口获取服务器真实状态')
+    await checkStatusAPI(true) // 启用状态同步，确保前端按钮状态与后端服务状态一致
+
+    // 2. 获取历史记录（初始化时获取一次）
+    console.log('📋 步骤2: 获取历史记录')
     await fetchRecentRecords()
 
-    // 如果没有检测到录音状态，设置为就绪
-    if (!isRecording.value) {
+    // 3. 根据同步后的状态设置界面
+    if (isRecording.value) {
+      statusText.value = '正在录音...'
+      console.log('🎤 检测到服务器正在录音，前端状态已同步')
+      // 如果服务器正在录音，启动历史记录定时获取
+      startHistoryFetching()
+    } else {
       statusText.value = '系统就绪'
+      console.log('⏹️ 服务器未在录音，前端状态已同步')
     }
+
     connectionStatus.value = 'connected'
 
-    console.log('✅ API初始化完成，当前录音状态:', isRecording.value ? '录音中' : '已停止')
-    console.log('📋 状态轮询已禁用 - 只在页面刷新时检查状态')
+    console.log('✅ 页面初始化完成')
+    console.log('📊 当前录音状态:', isRecording.value ? '录音中' : '已停止')
+    console.log('� 前后端状态已同步，按钮显示与服务状态一致')
 
   } catch (error) {
-    console.error('初始化API连接失败:', error)
+    console.error('❌ 页面初始化失败:', error)
     statusText.value = '服务器连接失败，请检查网络连接'
     connectionStatus.value = 'error'
   }
 }
 
 
+
+// 在setup函数顶层注册生命周期钩子，避免在异步操作后注册
+const saveInterval = ref(null)
 
 onMounted(async () => {
   console.log('听觉系统组件已挂载')
@@ -1897,6 +1975,9 @@ onMounted(async () => {
   // 添加窗口大小变化监听器
   window.addEventListener('resize', handleResize)
 
+  // 定期保存数据
+  saveInterval.value = setInterval(saveToLocalStorage, 30000)
+
   // 请求麦克风权限用于音频可视化
   console.log('🎤 请求麦克风权限用于音频可视化...')
   try {
@@ -1908,42 +1989,46 @@ onMounted(async () => {
 
   // 初始化API连接
   initializeAPI()
+})
 
-  // 定期保存数据
-  const saveInterval = setInterval(saveToLocalStorage, 30000)
+onUnmounted(() => {
+  console.log('听觉系统组件已卸载')
 
-  onUnmounted(() => {
-    console.log('听觉系统组件已卸载')
+  // 如果正在录音，先停止
+  if (isRecording.value) {
+    stopRecordingAPI()
+  }
 
-    // 如果正在录音，先停止
-    if (isRecording.value) {
-      stopRecordingAPI()
-    }
+  // 停止历史记录定时获取
+  stopHistoryFetching()
 
-    clearInterval(saveInterval)
-    if (window.recordingTimer) {
-      clearInterval(window.recordingTimer)
-    }
-    if (window.transcriptionTimer) {
-      clearInterval(window.transcriptionTimer)
-    }
+  // 清理定时器
+  if (saveInterval.value) {
+    clearInterval(saveInterval.value)
+  }
+  if (window.recordingTimer) {
+    clearInterval(window.recordingTimer)
+  }
+  if (window.transcriptionTimer) {
+    clearInterval(window.transcriptionTimer)
+  }
 
-    // 移除事件监听器
-    window.removeEventListener('resize', handleResize)
+  // 移除事件监听器
+  window.removeEventListener('resize', handleResize)
 
-    // 清理音频资源
-    if (audioStream) {
-      audioStream.getTracks().forEach(track => track.stop())
-    }
-    if (audioSource) {
-      audioSource.disconnect()
-    }
-    if (audioContext) {
-      audioContext.close()
-    }
+  // 清理音频资源
+  if (audioStream) {
+    audioStream.getTracks().forEach(track => track.stop())
+  }
+  if (audioSource) {
+    audioSource.disconnect()
+  }
+  if (audioContext) {
+    audioContext.close()
+  }
 
-    saveToLocalStorage() // 最后保存一次
-  })
+  saveToLocalStorage() // 最后保存一次
+  console.log('✅ 听觉系统资源已清理')
 })
 </script>
 

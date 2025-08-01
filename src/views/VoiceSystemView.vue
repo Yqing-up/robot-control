@@ -34,9 +34,9 @@
             <!-- 搜索和筛选 -->
             <div class="voice-controls">
               <div class="search-box">
-                <input 
-                  type="text" 
-                  v-model="searchText" 
+                <input
+                  type="text"
+                  v-model="searchText"
                   placeholder="搜索语音内容..."
                   class="search-input"
                 >
@@ -61,9 +61,9 @@
 
             <!-- 语音列表 -->
             <div class="voice-list">
-              <div 
-                class="voice-item" 
-                v-for="voice in filteredVoiceLibrary" 
+              <div
+                class="voice-item"
+                v-for="voice in filteredVoiceLibrary"
                 :key="voice.id"
                 :class="{ playing: playingVoiceId === voice.id }"
               >
@@ -336,7 +336,7 @@ const playHistory = ref([])
 
 // 快速播放语音
 const quickPlayVoices = computed(() => {
-  return voiceLibrary.value.filter(voice => 
+  return voiceLibrary.value.filter(voice =>
     ['greeting', 'response', 'notification'].includes(voice.category)
   ).slice(0, 6)
 })
@@ -472,8 +472,7 @@ const fetchVoiceTexts = async () => {
     console.log('🔄 [VoiceSystemView] 开始获取语音文本...')
     console.log('🌐 [VoiceSystemView] API端点:', '/api/tts/text')
 
-    const response = await voiceApi.getVoiceTexts()
-    const result = response.data || response
+    const result = await voiceApi.getVoiceTexts()
     console.log('📚 [VoiceSystemView] API返回的原始数据:', result)
 
     // 正确处理嵌套的数据结构

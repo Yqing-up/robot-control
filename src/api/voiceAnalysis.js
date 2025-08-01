@@ -4,6 +4,7 @@
 
 // API基础配置
 const API_BASE_URL = '/api'
+// 听觉（语音分析）API密钥
 const WORKFLOW_API_KEY = 'app-h6jzZoq3N4iLNrS2dWbCFe74'
 
 /**
@@ -75,14 +76,33 @@ export const analyzeVoiceData = async (voiceText, userRequirement) => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${WORKFLOW_API_KEY}`,
+        'Accept': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify(analysisData)
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('API响应错误:', errorText)
-      throw new Error(`分析请求失败: ${response.status} ${response.statusText}`)
+      console.error('❌ 语音分析API响应错误详情:')
+      console.error('   状态码:', response.status)
+      console.error('   状态文本:', response.statusText)
+      console.error('   响应内容:', errorText)
+      console.error('   请求URL:', '/v1/workflows/run')
+      console.error('   目标服务器:', 'http://192.168.0.103')
+      console.error('   API密钥:', WORKFLOW_API_KEY)
+      console.error('   请求数据:', JSON.stringify(analysisData, null, 2))
+
+      // 尝试解析错误响应
+      try {
+        const errorJson = JSON.parse(errorText)
+        console.error('   解析后的错误:', errorJson)
+      } catch (e) {
+        console.error('   无法解析错误响应为JSON')
+      }
+
+      throw new Error(`语音分析请求失败: ${response.status} ${response.statusText}\n详情: ${errorText}`)
     }
 
     // 处理流式响应 (Server-Sent Events)
@@ -410,4 +430,4 @@ export const getTimeRangeOptions = () => {
     { value: 30, label: '30分钟' },
     { value: 60, label: '1小时' }
   ]
-} 
+}

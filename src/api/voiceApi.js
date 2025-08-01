@@ -11,6 +11,27 @@ const voiceAxiosInstance = axios.create({
   },
 });
 
+// 添加响应拦截器
+voiceAxiosInstance.interceptors.response.use(
+  (response) => {
+    console.log('语音API响应:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data
+    });
+    return response.data; // 直接返回data部分
+  },
+  (error) => {
+    console.error('语音API错误:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data
+    });
+    return Promise.reject(error);
+  }
+);
+
 // 语音接口的http方法
 const voiceHttp = {
   get: (url, params = {}, config = {}) => voiceAxiosInstance.get(url, { params, ...config }),
@@ -48,4 +69,4 @@ export const voiceApi = {
   getRecognitionHistory: () => voiceHttp.get('/voice/history'),
   deleteRecognitionHistory: () => voiceHttp.delete('/voice/history'),
   clearRecognitionHistory: () => voiceHttp.delete('/voice/history/clear'),
-} 
+}

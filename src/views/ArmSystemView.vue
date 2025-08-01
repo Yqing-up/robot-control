@@ -27,7 +27,7 @@
         </div>
         <button class="notification-close" @click="hideExecutionNotification">×</button>
       </div>
-      
+
       <!-- 使用左右布局容器 -->
       <div class="arm-layout-container">
         <!-- 左侧动作库管理区 -->
@@ -43,8 +43,8 @@
                   <span v-if="actionStats.fromDefault > 0" class="default-stats">({{ actionStats.fromDefault }} 个默认)</span>
                 </div>
                 <div class="library-actions">
-                  <button 
-                    class="btn btn-small btn-secondary" 
+                  <button
+                    class="btn btn-small btn-secondary"
                     @click="loadActionLibrary"
                     :disabled="isLoadingActions"
                   >
@@ -55,12 +55,53 @@
               </div>
             </div>
 
+            <!-- 仿真模式切换 -->
+            <div class="simulation-mode-section">
+              <div class="simulation-toggle-container">
+                <div class="simulation-info">
+                  <label class="simulation-label">仿真机器人模式</label>
+                  <div class="simulation-status">
+                    <span class="status-text" :class="{ 'simulation-active': isSimulationMode }">
+                      {{ isSimulationMode ? '仿真模式' : '真实机器人' }}
+                    </span>
+                    <span class="api-address">{{ currentApiAddress }}</span>
+                  </div>
+                </div>
+                <div class="simulation-toggle">
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      v-model="isSimulationMode"
+                      @change="handleSimulationModeChange"
+                      :disabled="isExecutingAction"
+                    >
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="simulation-description">
+                <p v-if="isSimulationMode" class="simulation-desc active">
+                  <span v-if="simulationServerAvailable">
+                    🤖 当前使用仿真机器人，动作执行将发送到仿真环境
+                  </span>
+                  <span v-else class="server-warning">
+                    ⚠️ 仿真服务器不可用，已自动降级到真实机器人
+                  </span>
+                </p>
+                <p v-else class="simulation-desc">
+                  🦾 当前使用真实机器人，动作执行将发送到物理机器人
+                </p>
+
+
+              </div>
+            </div>
+
             <!-- 搜索和筛选 -->
             <div class="action-controls">
               <div class="search-box">
-                <input 
-                  type="text" 
-                  v-model="searchText" 
+                <input
+                  type="text"
+                  v-model="searchText"
                   placeholder="搜索动作名称或描述..."
                   class="search-input"
                 >
@@ -90,14 +131,14 @@
                 <div class="loading-spinner"></div>
                 <div class="loading-text">正在加载动作列表...</div>
               </div>
-              
+
               <!-- 错误状态 -->
               <div v-else-if="actionLoadError" class="error-state">
                 <div class="error-icon">⚠️</div>
                 <div class="error-text">{{ actionLoadError }}</div>
                 <button class="btn btn-small btn-primary" @click="loadActionLibrary">重试</button>
               </div>
-              
+
               <!-- 动作列表 -->
               <template v-else>
                 <!-- 空状态 -->
@@ -106,12 +147,12 @@
                   <div class="empty-text">暂无动作</div>
                   <div class="empty-hint">点击刷新按钮重新加载动作列表</div>
                 </div>
-                
+
                 <!-- 动作列表 -->
-                <div 
+                <div
                   v-else
-                class="action-item" 
-                v-for="action in filteredActionLibrary" 
+                class="action-item"
+                v-for="action in filteredActionLibrary"
                 :key="action.id"
                 :class="{ executing: executingActionId === action.id }"
               >
@@ -125,8 +166,8 @@
                     </div>
                   </div>
                   <div class="action-actions">
-                    <button 
-                      class="btn btn-mini btn-execute" 
+                    <button
+                      class="btn btn-mini btn-execute"
                       @click="executeAction(action)"
                       :disabled="executingActionId === action.id || systemStatus !== 'ready'"
                     >
@@ -223,9 +264,9 @@
               <div class="quick-actions">
                 <h4>快速动作</h4>
                 <div class="quick-buttons">
-                  <button 
-                    class="btn btn-quick" 
-                    v-for="action in quickActions" 
+                  <button
+                    class="btn btn-quick"
+                    v-for="action in quickActions"
                     :key="action.id"
                     @click="executeAction(action)"
                     :disabled="systemStatus !== 'ready'"
@@ -276,9 +317,9 @@
               <div class="current-sequence" v-if="currentSequence.actions.length > 0">
                 <h4>当前序列</h4>
                 <div class="sequence-list">
-                  <div 
-                    class="sequence-item" 
-                    v-for="(action, index) in currentSequence.actions" 
+                  <div
+                    class="sequence-item"
+                    v-for="(action, index) in currentSequence.actions"
                     :key="index"
                     :class="{ active: currentSequence.currentIndex === index }"
                   >
@@ -353,7 +394,7 @@
         <div class="modal-body">
           <!-- 文件上传区域 -->
           <div class="file-upload-section">
-            <div class="upload-area" 
+            <div class="upload-area"
                  :class="{ 'drag-over': isDragOver, 'has-file': selectedFile }"
                  @drop="handleFileDrop"
                  @dragover="handleDragOver"
@@ -366,16 +407,16 @@
                   <span v-else class="file-name">{{ selectedFile.name }}</span>
                 </div>
                 <div class="upload-hint">支持 .tact 格式的动作文件</div>
-                <input 
+                <input
                   ref="fileInput"
-                  type="file" 
+                  type="file"
                   accept=".tact"
                   @change="handleFileSelect"
                   style="display: none"
                 >
               </div>
             </div>
-            
+
             <!-- 文件信息显示 -->
             <div class="file-info" v-if="selectedFile">
               <div class="file-details">
@@ -396,7 +437,7 @@
                   <span class="detail-value">{{ parsedAction.duration }}s</span>
                 </div>
               </div>
-              
+
               <!-- 解析预览 -->
               <div class="action-preview" v-if="parsedAction">
                 <h4>动作预览</h4>
@@ -420,20 +461,20 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 错误信息显示 -->
             <div class="error-message" v-if="uploadError">
               <div class="error-icon">⚠️</div>
               <div class="error-text">{{ uploadError }}</div>
             </div>
           </div>
-          
+
           <!-- 手动输入选项 -->
           <div class="manual-input-section">
             <div class="section-divider">
               <span>或手动输入动作信息</span>
             </div>
-            
+
           <div class="form-group">
             <label>动作名称:</label>
             <input type="text" v-model="actionForm.name" class="form-input">
@@ -483,9 +524,9 @@
         <div class="modal-body">
           <div class="form-group">
             <label>视觉流地址:</label>
-            <input 
-              type="text" 
-              v-model="visionStreamUrl" 
+            <input
+              type="text"
+              v-model="visionStreamUrl"
               class="form-input"
               placeholder="http://192.168.0.103:8080/live/demo"
             >
@@ -519,9 +560,9 @@
           <div class="form-group">
             <label>选择动作:</label>
             <div class="action-selector">
-              <div 
-                class="selector-item" 
-                v-for="action in actionLibrary" 
+              <div
+                class="selector-item"
+                v-for="action in actionLibrary"
                 :key="action.id"
                 @click="addToSequence(action)"
               >
@@ -543,7 +584,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { movementApi } from '../api/movementApi.js'
+import {
+  movementApi,
+  getSimulationMode,
+  setSimulationMode,
+  checkSimulationServerStatus
+} from '../api/movementApi.js'
+import { API_CONFIG } from '../config/api.js'
 // 如需用到动作相关API请用movementApi.getRobotActions等
 
 const router = useRouter()
@@ -558,6 +605,12 @@ const systemStatusText = ref('系统就绪')
 const currentAction = ref(null)
 const executionProgress = ref(0)
 const currentStepDescription = ref('')
+
+// 仿真模式相关
+const isSimulationMode = ref(false)
+const simulationServerAvailable = ref(true)
+
+const SIMULATION_STORAGE_KEY = 'armSimulationMode'
 
 // 对话框相关
 const showActionDialog = ref(false)
@@ -783,9 +836,23 @@ const executionHistory = ref([
   { id: 3, name: '拿取物品', timestamp: Date.now() - 900000, status: 'failed', duration: 2.1 }
 ])
 
+// 当前API地址显示
+const currentApiAddress = computed(() => {
+  if (isSimulationMode.value) {
+    return API_CONFIG.SIMULATION_CONFIG.SIMULATION_ROBOT_TARGET
+  } else {
+    return API_CONFIG.SIMULATION_CONFIG.REAL_ROBOT_TARGET
+  }
+})
+
+// 是否正在执行动作
+const isExecutingAction = computed(() => {
+  return executingActionId.value !== null
+})
+
 // 快速动作
 const quickActions = computed(() => {
-  return actionLibrary.value.filter(action => 
+  return actionLibrary.value.filter(action =>
     action.difficulty === 'easy' || action.category === 'gesture'
   ).slice(0, 6)
 })
@@ -793,13 +860,13 @@ const quickActions = computed(() => {
 // 过滤后的动作库
 const filteredActionLibrary = computed(() => {
   return actionLibrary.value.filter(action => {
-    const matchesSearch = !searchText.value || 
+    const matchesSearch = !searchText.value ||
       action.name.toLowerCase().includes(searchText.value.toLowerCase()) ||
       action.description.toLowerCase().includes(searchText.value.toLowerCase())
-    
+
     const matchesCategory = !selectedCategory.value || action.category === selectedCategory.value
     const matchesDifficulty = !selectedDifficulty.value || action.difficulty === selectedDifficulty.value
-    
+
     return matchesSearch && matchesCategory && matchesDifficulty
   })
 })
@@ -814,7 +881,7 @@ const actionStats = computed(() => {
   const total = actionLibrary.value.length
   const filtered = filteredActionLibrary.value.length
   const fromAPI = actionLibrary.value.filter(action => action.fileName).length
-  
+
   return {
     total,
     filtered,
@@ -827,6 +894,86 @@ const actionStats = computed(() => {
 const goBack = () => {
   router.push('/')
 }
+
+// 仿真模式相关方法
+const loadSimulationModeFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(SIMULATION_STORAGE_KEY)
+    if (saved !== null) {
+      const enabled = JSON.parse(saved)
+      isSimulationMode.value = enabled
+      setSimulationMode(enabled)
+      console.log('🔄 从localStorage恢复仿真模式状态:', enabled)
+    } else {
+      // 默认使用真实机器人
+      isSimulationMode.value = false
+      setSimulationMode(false)
+      console.log('🔄 使用默认仿真模式状态: false (真实机器人)')
+    }
+  } catch (error) {
+    console.error('❌ 加载仿真模式状态失败:', error)
+    isSimulationMode.value = false
+    setSimulationMode(false)
+  }
+}
+
+const saveSimulationModeToStorage = (enabled) => {
+  try {
+    localStorage.setItem(SIMULATION_STORAGE_KEY, JSON.stringify(enabled))
+    console.log('💾 仿真模式状态已保存到localStorage:', enabled)
+  } catch (error) {
+    console.error('❌ 保存仿真模式状态失败:', error)
+  }
+}
+
+const handleSimulationModeChange = async () => {
+  const enabled = isSimulationMode.value
+  console.log('🔄 仿真模式切换:', enabled ? '启用' : '禁用')
+
+  // 如果启用仿真模式，先检测服务器状态
+  if (enabled) {
+    console.log('🔍 检测仿真服务器状态...')
+    const result = await checkSimulationServerStatus()
+    simulationServerAvailable.value = result.available
+
+    if (!result.available) {
+      const errorMsg = result.error?.response?.status
+        ? `HTTP ${result.error.response.status}`
+        : result.error?.message || '连接失败'
+
+      showExecutionNotification(
+        'warning',
+        '仿真服务器不可用',
+        `仿真机器人服务器 (192.168.0.103:5001) 无法连接 (${errorMsg})，将自动降级到真实机器人`,
+        8000
+      )
+    }
+  }
+
+  // 更新API模式
+  setSimulationMode(enabled)
+
+  // 保存到localStorage
+  saveSimulationModeToStorage(enabled)
+
+  // 重新加载动作列表以获取对应服务器的动作
+  console.log('🔄 重新加载动作列表...')
+  await loadActionLibrary()
+
+  // 显示切换通知
+  const statusText = enabled
+    ? (simulationServerAvailable.value ? '仿真机器人' : '仿真机器人 (降级到真实机器人)')
+    : '真实机器人'
+
+  showExecutionNotification(
+    'info',
+    '模式切换',
+    `已切换到${statusText}模式，动作列表已更新`,
+    4000
+  )
+}
+
+
 
 const getCategoryName = (category) => {
   const categoryMap = {
@@ -872,13 +1019,13 @@ const getStatusText = (status) => {
 
 const executeAction = async (action) => {
   if (systemStatus.value !== 'ready') return
-  
+
   executingActionId.value = action.id
   currentAction.value = action
   systemStatus.value = 'executing'
   systemStatusText.value = '正在执行动作'
   executionProgress.value = 0
-  
+
   // 添加到执行历史
   const historyItem = {
     id: Date.now(),
@@ -888,36 +1035,34 @@ const executeAction = async (action) => {
     duration: 0
   }
   executionHistory.value.unshift(historyItem)
-  
+
   try {
     // 准备API调用参数
     let actionName = action.name
     let apiParams = {
       duration: action.duration || 3.0
     }
-    
+
     // 如果有文件名，使用文件名作为动作名称
     if (action.fileName) {
       actionName = action.fileName.replace('.tact', '')
       apiParams.filePath = action.filePath || action.fileName
     }
-    
+
     console.log('调用API执行动作:', {
       actionName,
       apiParams,
       originalAction: action
     })
-    
-    const response = await movementApi.executeRobotAction(actionName, apiParams)
-    console.log('执行动作API响应:', response)
-    const result = response.data || response
-    console.log('提取的执行动作数据:', result)
-    
+
+    const result = await movementApi.executeArmAction(actionName, apiParams)
+    console.log('执行动作API响应:', result)
+
     if (result.success) {
       // API执行成功，更新历史记录
       console.log('动作执行成功:', result.message)
       completeExecution(historyItem, action.duration, 'completed')
-      
+
       // 显示成功通知
       showExecutionNotification(
         'success',
@@ -933,7 +1078,7 @@ const executeAction = async (action) => {
         details: result.details
       })
       completeExecution(historyItem, action.duration, 'failed')
-      
+
       // 显示错误通知
       showExecutionNotification(
         'error',
@@ -945,7 +1090,7 @@ const executeAction = async (action) => {
   } catch (error) {
     console.error('执行动作时发生错误:', error)
     completeExecution(historyItem, action.duration, 'failed')
-    
+
     // 显示错误通知
     showExecutionNotification(
       'error',
@@ -965,7 +1110,7 @@ const completeExecution = (historyItem, duration, status = 'completed') => {
   systemStatusText.value = '系统就绪'
   executionProgress.value = 0
   currentStepDescription.value = ''
-  
+
   // 更新历史记录
   historyItem.status = status
   historyItem.duration = duration
@@ -1045,12 +1190,12 @@ const closeActionDialog = () => {
 const saveAction = () => {
   // 优先使用解析的文件数据
   const actionData = parsedAction.value || actionForm
-  
+
   if (!actionData.name?.trim() || !actionData.description?.trim()) {
     alert('请填写完整信息或上传有效的动作文件')
     return
   }
-  
+
   if (editingAction.value) {
     // 编辑现有动作
     const index = actionLibrary.value.findIndex(a => a.id === editingAction.value.id)
@@ -1082,7 +1227,7 @@ const saveAction = () => {
     }
     actionLibrary.value.unshift(newAction)
   }
-  
+
   closeActionDialog()
 }
 
@@ -1106,7 +1251,7 @@ const removeFromSequence = (index) => {
 const executeSequence = (sequence) => {
   const targetSequence = sequence || currentSequence
   if (targetSequence.actions.length === 0) return
-  
+
   // 执行序列中的每个动作
   let currentIndex = 0
   const executeNext = () => {
@@ -1130,7 +1275,7 @@ const saveSequence = () => {
     alert('序列为空，无法保存')
     return
   }
-  
+
   const name = prompt('请输入序列名称:')
   if (name) {
     const newSequence = {
@@ -1177,7 +1322,7 @@ const exportActionData = () => {
     armStatus: armStatus,
     timestamp: new Date().toISOString()
   }
-  
+
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -1195,24 +1340,47 @@ const formatTime = (timestamp) => {
 const loadActionLibrary = async () => {
   isLoadingActions.value = true
   actionLoadError.value = ''
-  
+
   try {
-    console.log('开始加载动作列表...')
-    const response = await movementApi.getRobotActions()
-    console.log('动作列表API响应:', response)
-    
-    // 从Axios响应对象中提取数据
-    const result = response.data || response
-    console.log('提取的动作列表数据:', result)
-    
-    if (result.success && result.data && result.data.success) {
-      // 解析API返回的动作数据
-      const apiActions = parseApiActions(result.data.actions)
-      actionLibrary.value = apiActions
-      console.log('动作列表加载成功:', apiActions.length, '个动作')
+    console.log(`开始加载动作列表... [${isSimulationMode.value ? '仿真模式' : '真实模式'}]`)
+    const result = await movementApi.getActionList()
+    console.log('动作列表API响应:', result)
+
+    if (result.success) {
+      // 检查多种可能的数据格式
+      let actionsData = null
+
+      if (result.data && result.data.success && result.data.actions) {
+        // 格式1: {success: true, data: {success: true, actions: [...]}}
+        actionsData = result.data.actions
+        console.log('使用格式1: result.data.actions')
+      } else if (result.data && Array.isArray(result.data.actions)) {
+        // 格式2: {success: true, data: {actions: [...]}}
+        actionsData = result.data.actions
+        console.log('使用格式2: result.data.actions (数组)')
+      } else if (result.data && Array.isArray(result.data)) {
+        // 格式3: {success: true, data: [...]}
+        actionsData = result.data
+        console.log('使用格式3: result.data (直接数组)')
+      } else if (Array.isArray(result.data?.data)) {
+        // 格式4: {success: true, data: {data: [...]}}
+        actionsData = result.data.data
+        console.log('使用格式4: result.data.data')
+      }
+
+      if (actionsData && Array.isArray(actionsData)) {
+        const apiActions = parseApiActions(actionsData)
+        actionLibrary.value = apiActions
+        console.log('动作列表加载成功:', apiActions.length, '个动作')
+      } else {
+        console.warn('未找到有效的动作数据，使用默认动作')
+        console.warn('响应数据结构:', result)
+        actionLibrary.value = [...defaultActions]
+        actionLoadError.value = '服务器返回的数据格式不正确'
+      }
     } else {
       // API调用失败，使用默认动作
-      const errorMessage = result.data?.message || result.message || '未知错误'
+      const errorMessage = result.error || result.message || '未知错误'
       console.warn('API获取动作列表失败，使用默认动作:', errorMessage)
       actionLibrary.value = [...defaultActions]
       actionLoadError.value = `API获取失败: ${errorMessage}`
@@ -1232,7 +1400,7 @@ const parseApiActions = (apiData) => {
     console.warn('API返回的动作数据格式不正确:', apiData)
     return defaultActions
   }
-  
+
   return apiData.map((action, index) => {
     // 处理API返回的动作对象格式
     if (typeof action === 'object' && action.name) {
@@ -1256,7 +1424,7 @@ const parseApiActions = (apiData) => {
         modifiedTimeStr: action.modified_time_str
       }
     }
-    
+
     // 如果API返回的是字符串（文件名）
     if (typeof action === 'string' && action.endsWith('.tact')) {
       return {
@@ -1275,7 +1443,7 @@ const parseApiActions = (apiData) => {
         fileName: action
       }
     }
-    
+
     // 其他情况，创建默认动作
     return {
       id: Date.now() + index,
@@ -1309,7 +1477,7 @@ const handleFileSelect = (event) => {
 const handleFileDrop = (event) => {
   event.preventDefault()
   isDragOver.value = false
-  
+
   const files = event.dataTransfer.files
   if (files.length > 0) {
     const file = files[0]
@@ -1335,14 +1503,14 @@ const processFile = (file) => {
   selectedFile.value = file
   uploadError.value = ''
   parsedAction.value = null
-  
+
   const reader = new FileReader()
   reader.onload = (e) => {
     try {
       const content = e.target.result
       const action = parseTactFile(content, file.name)
       parsedAction.value = action
-      
+
       // 自动填充表单
       actionForm.name = action.name
       actionForm.description = action.description
@@ -1354,11 +1522,11 @@ const processFile = (file) => {
       console.error('文件解析错误:', error)
     }
   }
-  
+
   reader.onerror = () => {
     uploadError.value = '文件读取失败'
   }
-  
+
   reader.readAsText(file)
 }
 
@@ -1366,12 +1534,12 @@ const parseTactFile = (content, filename) => {
   try {
     // 尝试解析JSON格式
     const data = JSON.parse(content)
-    
+
     // 验证必需字段
     if (!data.name || !data.description) {
       throw new Error('缺少必需的字段: name 或 description')
     }
-    
+
     return {
       name: data.name,
       description: data.description,
@@ -1388,20 +1556,20 @@ const parseTactFile = (content, filename) => {
 
 const parseCustomTactFormat = (content, filename) => {
   const lines = content.split('\n').filter(line => line.trim())
-  
+
   if (lines.length < 2) {
     throw new Error('文件格式不正确，至少需要动作名称和描述')
   }
-  
+
   const name = lines[0].trim()
   const description = lines[1].trim()
-  
+
   // 解析其他可选信息
   let category = 'basic'
   let difficulty = 'easy'
   let duration = 2.0
   let steps = []
-  
+
   for (let i = 2; i < lines.length; i++) {
     const line = lines[i].trim()
     if (line.startsWith('category:')) {
@@ -1419,7 +1587,7 @@ const parseCustomTactFormat = (content, filename) => {
       })
     }
   }
-  
+
   // 如果没有步骤，创建默认步骤
   if (steps.length === 0) {
     steps = [
@@ -1428,7 +1596,7 @@ const parseCustomTactFormat = (content, filename) => {
       { description: '完成动作', duration: duration * 0.3 }
     ]
   }
-  
+
   return {
     name,
     description,
@@ -1455,7 +1623,7 @@ const showExecutionNotification = (type, title, message, duration = 5000) => {
     title,
     message
   }
-  
+
   // 自动隐藏通知
   setTimeout(() => {
     hideExecutionNotification()
@@ -1486,7 +1654,7 @@ const saveVisionConfig = () => {
     )
     return
   }
-  
+
   try {
     new URL(visionStreamUrl.value)
   } catch (error) {
@@ -1498,14 +1666,14 @@ const saveVisionConfig = () => {
     )
     return
   }
-  
+
   // 如果当前已连接，先断开
   if (isVisionConnected.value) {
     disconnectVision()
   }
-  
+
   closeVisionConfigDialog()
-  
+
   // 显示配置成功通知
   showExecutionNotification(
     'success',
@@ -1524,19 +1692,19 @@ const saveSequenceDialog = () => {
     alert('请输入序列名称')
     return
   }
-  
+
   if (currentSequence.actions.length === 0) {
     alert('请至少添加一个动作')
     return
   }
-  
+
   const newSequence = {
     id: Date.now(),
     name: sequenceForm.name,
     actions: [...currentSequence.actions]
   }
   savedSequences.value.unshift(newSequence)
-  
+
   closeSequenceDialog()
   clearSequence()
 }
@@ -1547,13 +1715,13 @@ const manualSyncToLive = () => {
     if (hls.liveSyncPosition) {
       console.log('手动同步到最新片段:', hls.liveSyncPosition)
       visionVideo.value.currentTime = hls.liveSyncPosition
-      
+
       // 临时加快播放速度，帮助追帧
       visionVideo.value.playbackRate = 1.5
       setTimeout(() => {
         visionVideo.value.playbackRate = 1.05
       }, 1000)
-      
+
       showExecutionNotification(
         'info',
         '同步成功',
@@ -1567,6 +1735,10 @@ const manualSyncToLive = () => {
 // 生命周期
 onMounted(async () => {
   console.log('上肢系统组件已挂载')
+
+  // 加载仿真模式状态
+  loadSimulationModeFromStorage()
+
   await loadActionLibrary()
 
   // 自动连接视觉流
@@ -1595,10 +1767,10 @@ onMounted(async () => {
 onUnmounted(() => {
   console.log('上肢系统组件已卸载')
   stopExecution()
-  
+
   // 停止自动刷新
   // stopAutoRefresh() // 移除旧的自动刷新逻辑
-  
+
   // 清理HLS实例
   if (hls) {
     hls.destroy()
@@ -1607,3 +1779,171 @@ onUnmounted(() => {
   // 移除stopVisionSync()
 })
 </script>
+
+<style scoped>
+/* 仿真模式切换样式 */
+.simulation-mode-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  border: 1px solid #2d3748;
+}
+
+.simulation-toggle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.simulation-info {
+  flex: 1;
+}
+
+.simulation-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e8f0;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.simulation-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #cbd5e0;
+  transition: color 0.3s ease;
+}
+
+.status-text.simulation-active {
+  color: #48bb78;
+}
+
+.api-address {
+  font-size: 12px;
+  color: #718096;
+  font-family: 'Courier New', monospace;
+}
+
+.simulation-toggle {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+
+/* Toggle Switch 样式 */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #4a5568;
+  transition: 0.4s;
+  border-radius: 34px;
+  border: 2px solid #2d3748;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #e2e8f0;
+  transition: 0.4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .toggle-slider {
+  background-color: #48bb78;
+  border-color: #38a169;
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.3);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+  background-color: #ffffff;
+}
+
+input:disabled + .toggle-slider {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+input:disabled + .toggle-slider:before {
+  cursor: not-allowed;
+}
+
+.simulation-description {
+  margin-top: 8px;
+}
+
+.simulation-desc {
+  font-size: 13px;
+  color: #a0aec0;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(45, 55, 72, 0.5);
+  border-radius: 6px;
+  border-left: 3px solid #4a5568;
+  transition: all 0.3s ease;
+}
+
+.simulation-desc.active {
+  color: #c6f6d5;
+  background: rgba(72, 187, 120, 0.1);
+  border-left-color: #48bb78;
+}
+
+.server-warning {
+  color: #fed7d7 !important;
+  background: rgba(245, 101, 101, 0.1) !important;
+  border-left-color: #f56565 !important;
+}
+
+
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .simulation-toggle-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .simulation-toggle {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+}
+</style>

@@ -161,7 +161,7 @@
             </div>
           </section>
         </div>
-        
+
         <!-- 右侧监控区 -->
         <div class="leg-right-section">
           <!-- 状态监控区 -->
@@ -230,7 +230,7 @@
                   <div class="leg-status-indicator online"></div>
                 </div>
                 <div class="gait-selector">
-                  <button class="gait-btn" 
+                  <button class="gait-btn"
                           :class="{ active: currentGait === 'normal' }"
                           @click="setGait('normal')"
                           data-gait="normal">
@@ -238,7 +238,7 @@
                     <span class="gait-name">正常行走</span>
                     <span class="gait-desc">稳定平衡</span>
                   </button>
-                  <button class="gait-btn" 
+                  <button class="gait-btn"
                           :class="{ active: currentGait === 'fast' }"
                           @click="setGait('fast')"
                           data-gait="fast">
@@ -246,7 +246,7 @@
                     <span class="gait-name">快速移动</span>
                     <span class="gait-desc">高效率</span>
                   </button>
-                  <button class="gait-btn" 
+                  <button class="gait-btn"
                           :class="{ active: currentGait === 'precise' }"
                           @click="setGait('precise')"
                           data-gait="precise">
@@ -294,9 +294,9 @@ const position = reactive({ x: 0, y: 0 })
 const heading = ref(0)
 const totalDistance = ref(0)
 const stepCount = ref(0)
-const balance = reactive({ 
+const balance = reactive({
   tilt: 0, // 初始值为0度
-  stability: 98 
+  stability: 98
 })
 const runTime = ref(0)
 const batteryLevel = ref(1.0)
@@ -767,32 +767,32 @@ const startMonitoring = () => {
   // 初始化时间
   lastUpdateTime = performance.now()
   isUpdating = true
-  
+
   // 创建平滑的更新函数
   const updateFrame = (timestamp) => {
     if (!isUpdating) return
-    
+
     // 计算经过的时间（毫秒）
     const elapsed = timestamp - lastUpdateTime
-    
+
     // 控制更新频率，每200ms更新一次数据
     if (elapsed > 200) {
       updateCount++
-      
+
       // 平衡系统数据 - 使用平滑的变化算法
       // 使用更小更平滑的变化量
       const tiltChange = (Math.random() - 0.5) * 0.3 // 更小的变化
       let newTilt = balance.tilt + tiltChange
-      
+
       // 模拟一种自然的平衡恢复效果 - 向0回归
       newTilt = newTilt * 0.95 // 缓慢向中心位置靠近
-      
+
       // 限制在合理范围内
       newTilt = Math.max(-5, Math.min(5, newTilt))
-      
+
       // 保留1位小数，减少频繁微小更新
       balance.tilt = parseFloat(newTilt.toFixed(1))
-      
+
       // 稳定性只使用较小的变化，并立即格式化为2位小数
       const stabilityChange = (Math.random() - 0.5) * 0.1
       let newStability = Math.max(95, Math.min(99, balance.stability + stabilityChange))
@@ -803,7 +803,7 @@ const startMonitoring = () => {
       if (isMoving.value && currentDirection.value !== 'stop') {
         const speed = 1.0 // 固定速度 1.0 m/s
         const deltaTime = 0.1 // 100ms
-        
+
         switch (currentDirection.value) {
           case 'forward':
             position.y += speed * deltaTime
@@ -833,26 +833,26 @@ const startMonitoring = () => {
       if (updateCount % 10 === 0) {
         // 更新运行时间
         runTime.value++
-        
+
         // 模拟电池消耗
         if (isMoving.value) {
           batteryLevel.value = Math.max(0, batteryLevel.value - 0.001)
         }
-        
+
         // 模拟温度变化
         temperature.value = Math.round((40 + Math.random() * 10) * 10) / 10 // 保留1位小数
       }
-      
+
       lastUpdateTime = timestamp
     }
-    
+
     // 继续下一帧
     animationFrameId = requestAnimationFrame(updateFrame)
   }
-  
+
   // 开始动画循环
   animationFrameId = requestAnimationFrame(updateFrame)
-  
+
   // 返回一个停止函数
   return () => {
     isUpdating = false
@@ -905,7 +905,7 @@ const initializeCamera = async () => {
     // 测试摄像头连接
     const streamUrl = cameraApi.getStreamUrl()
     console.log('🔍 测试摄像头连接 (通过代理):', streamUrl)
-    console.log('🔍 实际目标地址: http://192.168.0.103:5001/api/video/raw_video_feed')
+    console.log('🔍 实际目标地址: http://192.168.0.119:5001/api/video/raw_video_feed')
     const isConnectable = await testCameraConnection()
 
     if (isConnectable) {

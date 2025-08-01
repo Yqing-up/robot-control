@@ -4,6 +4,7 @@
 
 // API基础配置
 const API_BASE_URL = '/api'
+// 视觉（图片分析）API密钥
 const WORKFLOW_API_KEY = 'app-oj3AJTDYGkfU2OxyIsY7LR1o'
 
 /**
@@ -56,11 +57,83 @@ export const getRecentImageData = async (minutes) => {
  */
 export const analyzeImageData = async (imageUrls, userRequirement) => {
   try {
-    // 组合分析数据 - 按照新的接口格式
+    console.log('🎯 analyzeImageData 输入参数:')
+    console.log('  - imageUrls:', imageUrls)
+    console.log('  - imageUrls 类型:', typeof imageUrls)
+    console.log('  - imageUrls 是否为数组:', Array.isArray(imageUrls))
+    console.log('  - userRequirement:', userRequirement)
+
+    // 将完整URL转换为相对路径数组
+    const relativePaths = imageUrls.map(url => {
+      if (typeof url === 'string' && url.includes('/api/photos/')) {
+        // 提取相对路径部分
+        const match = url.match(/\/api\/photos\/.*/)
+        return match ? match[0] : url
+      }
+      return url
+    })
+
+    console.log('🔄 转换后的相对路径数组:', relativePaths)
+    console.log('🔄 relativePaths 类型:', typeof relativePaths)
+    console.log('🔄 relativePaths 是否为数组:', Array.isArray(relativePaths))
+    console.log('🔄 relativePaths 长度:', relativePaths.length)
+
+    // 组合分析数据 - 将数组转换为字符串格式
+    console.log('🔄 图片路径数组（JSON格式）:', relativePaths)
+
+    // 测试 JSON.stringify 行为
+    console.log('🧪 测试 JSON.stringify 行为:')
+    const testArray = ["/api/photos/test1.jpg/content", "/api/photos/test2.jpg/content"]
+    const testStringified = JSON.stringify(testArray)
+    console.log('  - 测试数组:', testArray)
+    console.log('  - JSON.stringify 结果:', testStringified)
+    console.log('  - 结果类型:', typeof testStringified)
+
+    // 确保数组格式正确，然后转换为字符串
+    let pictureString
+
+    // 多重验证确保正确的JSON数组格式
+    if (Array.isArray(relativePaths)) {
+      pictureString = JSON.stringify(relativePaths)
+    } else {
+      console.error('❌ relativePaths 不是数组:', relativePaths)
+      // 如果不是数组，尝试修复
+      const fixedArray = Array.isArray(relativePaths) ? relativePaths : [relativePaths].filter(Boolean)
+      pictureString = JSON.stringify(fixedArray)
+    }
+
+    // 额外验证：确保结果是正确的JSON数组格式
+    if (!pictureString.startsWith('[') || !pictureString.endsWith(']')) {
+      console.error('❌ JSON.stringify 结果格式不正确:', pictureString)
+      // 强制修复格式
+      try {
+        const parsed = JSON.parse(pictureString)
+        if (Array.isArray(parsed)) {
+          pictureString = JSON.stringify(parsed)
+        } else {
+          pictureString = JSON.stringify([parsed])
+        }
+      } catch (e) {
+        console.error('❌ 无法修复格式，使用原始数组:', e)
+        pictureString = JSON.stringify(relativePaths)
+      }
+    }
+    console.log('🔄 转换为字符串格式的图片路径:', pictureString)
+    console.log('🔄 pictureString 类型:', typeof pictureString)
+    console.log('🔄 pictureString 长度:', pictureString.length)
+    console.log('🔄 pictureString 是否以[开头:', pictureString.startsWith('['))
+    console.log('🔄 pictureString 是否以]结尾:', pictureString.endsWith(']'))
+
+    // 验证是否与测试结果一致
+    console.log('🔍 验证结果格式:')
+    console.log('  - 期望格式: ["path1","path2"]')
+    console.log('  - 实际格式:', pictureString)
+    console.log('  - 格式正确:', pictureString.startsWith('[') && pictureString.endsWith(']'))
+
     const analysisData = {
       inputs: {
         question: userRequirement,
-        picture: imageUrls.join(',') // 将图片URL数组转换为逗号分隔的字符串
+        picture: pictureString // 使用字符串格式，后端期望字符串
       },
       response_mode: "streaming",
       user: "abc-123"
@@ -70,20 +143,45 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
     console.log('📡 请求URL: /v1/workflows/run')
     console.log('🔑 API密钥:', WORKFLOW_API_KEY ? '已设置' : '未设置')
 
+    // 额外验证发送的数据
+    const requestBody = JSON.stringify(analysisData)
+    console.log('📦 实际发送的请求体:', requestBody)
+    console.log('📦 请求体中的picture字段:', analysisData.inputs.picture)
+    console.log('📦 picture字段类型:', typeof analysisData.inputs.picture)
+
     // 使用新的工作流接口URL
     const response = await fetch('/v1/workflows/run', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${WORKFLOW_API_KEY}`,
+        'Accept': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify(analysisData)
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('API响应错误:', errorText)
-      throw new Error(`分析请求失败: ${response.status} ${response.statusText}`)
+      console.error('❌ API响应错误详情:')
+      console.error('   状态码:', response.status)
+      console.error('   状态文本:', response.statusText)
+      console.error('   响应内容:', errorText)
+      console.error('   请求URL:', '/v1/workflows/run')
+      console.error('   目标服务器:', 'http://192.168.0.103')
+      console.error('   API密钥:', WORKFLOW_API_KEY)
+      console.error('   请求数据:', JSON.stringify(analysisData, null, 2))
+
+      // 尝试解析错误响应
+      try {
+        const errorJson = JSON.parse(errorText)
+        console.error('   解析后的错误:', errorJson)
+      } catch (e) {
+        console.error('   无法解析错误响应为JSON')
+      }
+
+      throw new Error(`图片分析请求失败: ${response.status} ${response.statusText}\n详情: ${errorText}`)
     }
 
     // 处理流式响应 (Server-Sent Events) - 参考语音分析的实现
@@ -336,7 +434,7 @@ export const formatImageDataForDisplay = (imageData) => {
     // 如果是相对路径，转换为完整URL
     if (url && url.startsWith('/api/')) {
       // 使用实际的后端服务器地址构建完整URL
-      url = `http://192.168.0.103:5001${url}`
+      url = `http://192.168.0.119:5001${url}`
       console.log(`🌐 第${index + 1}张图片完整URL:`, url)
     }
 
@@ -518,7 +616,7 @@ export const extractImageUrls = (imageData) => {
     // 如果是相对路径，转换为完整URL
     if (url && url.startsWith('/api/')) {
       // 使用实际的后端服务器地址构建完整URL
-      url = `http://192.168.0.103:5001${url}`
+      url = `http://192.168.0.119:5001${url}`
       console.log(`🌍 第${index + 1}张完整URL:`, url)
     }
 
