@@ -17,7 +17,7 @@ export default defineConfig({
     proxy: {
       // 临时修复：捕获错误的 /api-sim 请求并重定向到仿真服务器
       '/api-sim': {
-        target: 'http://192.168.0.103:5001/api',
+        target: 'http://192.168.0.103:5001',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => {
@@ -25,7 +25,7 @@ export default defineConfig({
           console.log('🔧 临时修复 - api-sim代理:', {
             原始路径: path,
             重写后路径: rewrittenPath,
-            目标服务器: 'http://192.168.0.103:5001/api'
+            目标服务器: 'http://192.168.0.103:5001'
           });
           return rewrittenPath;
         },
@@ -52,7 +52,7 @@ export default defineConfig({
 
       // 运动相关接口代理 - 真实机器人
       '/api-move': {
-        target: 'http://192.168.0.117:5001/api',
+        target: 'http://192.168.0.117:5001',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api-move/, '/api'),
@@ -72,7 +72,7 @@ export default defineConfig({
 
       // 仿真机器人接口代理 - 代理到 192.168.0.103:5001
       '/api-move-sim': {
-        target: 'http://192.168.0.103:5001/api',
+        target: 'http://192.168.0.103:5001',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => {
@@ -81,7 +81,7 @@ export default defineConfig({
           console.log('🤖 仿真机器人代理路径重写:', {
             原始路径: path,
             重写后路径: rewrittenPath,
-            目标服务器: 'http://192.168.0.103:5001/api'
+            目标服务器: 'http://192.168.0.103:5001'
           });
           return rewrittenPath;
         },
