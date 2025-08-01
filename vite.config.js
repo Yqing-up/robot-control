@@ -110,7 +110,7 @@ export default defineConfig({
         },
       },
       '/v1': {
-        target: 'http://192.168.0.103',
+        target: 'http://192.168.0.119',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
