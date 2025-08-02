@@ -905,7 +905,7 @@ const initializeCamera = async () => {
     // 测试摄像头连接
     const streamUrl = cameraApi.getStreamUrl()
     console.log('🔍 测试摄像头连接 (通过代理):', streamUrl)
-    console.log('🔍 实际目标地址: http://192.168.0.119:5001/api/video/raw_video_feed')
+    console.log('🔍 实际目标地址: http://192.168.0.116:5001/api/video/raw_video_feed')
     const isConnectable = await testCameraConnection()
 
     if (isConnectable) {

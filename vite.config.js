@@ -52,7 +52,7 @@ export default defineConfig({
 
       // 运动相关接口代理 - 真实机器人
       '/api-move': {
-        target: 'http://192.168.0.117:5001',
+        target: 'http://192.168.0.115:5001',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api-move/, '/api'),
@@ -119,7 +119,7 @@ export default defineConfig({
 
       // 真实机器人代理 - 标准化代理
       '/api-robot-real': {
-        target: 'http://192.168.0.117:5001',
+        target: 'http://192.168.0.115:5001',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api-robot-real/, '/api'),
@@ -159,7 +159,7 @@ export default defineConfig({
 
       // 摄像头相关接口代理
       '/api-cam': {
-        target: 'http://192.168.0.119:5001/api',
+        target: 'http://192.168.0.116:5001/api',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api-cam/, ''),
@@ -178,7 +178,7 @@ export default defineConfig({
 
       // 语音相关接口代理
       '/api-voice': {
-        target: 'http://192.168.0.119:5001/api',
+        target: 'http://192.168.0.116:5001/api',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api-voice/, ''),
@@ -197,7 +197,7 @@ export default defineConfig({
 
       // 录音相关接口代理
       '/api-rec': {
-        target: 'http://192.168.0.119:5001/api',
+        target: 'http://192.168.0.116:5001/api',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api-rec/, ''),
@@ -216,7 +216,7 @@ export default defineConfig({
 
       // 保留原有的通用API代理，用于其他接口
       '/api': {
-        target: 'http://192.168.0.119:5001',
+        target: 'http://192.168.0.116:5001',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,

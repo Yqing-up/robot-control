@@ -19,7 +19,7 @@ export const setRobotMode = (mode) => {
   currentMode = mode;
 
   console.log(`🔄 机器人模式切换: ${oldMode} -> ${mode}`);
-  console.log(`📡 当前使用: ${mode === 'real' ? '真实机器人 (192.168.0.117:5001)' : '仿真机器人 (192.168.0.103:5001)'}`);
+  console.log(`📡 当前使用: ${mode === 'real' ? '真实机器人 (192.168.0.115:5001)' : '仿真机器人 (192.168.0.103:5001)'}`);
 
   return currentMode;
 };
@@ -43,7 +43,7 @@ export const robotApi = {
   // 获取当前模式的服务器地址
   getCurrentServerAddress: () => {
     return currentMode === 'real'
-      ? 'http://192.168.0.117:5001/api'
+      ? 'http://192.168.0.115:5001/api'
       : 'http://192.168.0.103:5001/api';
   },
 

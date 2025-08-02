@@ -947,7 +947,7 @@ const handleSimulationModeChange = async () => {
     showExecutionNotification(
       'warning',
       '真实机器人不可用',
-      `真实机器人服务器 (192.168.0.117:5001) 无法连接，将保持仿真机器人模式`,
+      `真实机器人服务器 (192.168.0.115:5001) 无法连接，将保持仿真机器人模式`,
       8000
     )
     // 强制保持仿真机器人模式

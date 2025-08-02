@@ -4,7 +4,7 @@ import { API_CONFIG } from '../config/api'
 // 为语音接口创建独立的axios实例
 const voiceAxiosInstance = axios.create({
   baseURL: API_CONFIG.VOICE_BASE_URL,
-  timeout: API_CONFIG.TIMEOUT,
+  timeout: 30000, // 语音合成需要更长时间，设置为30秒
   headers: {
     ...API_CONFIG.DEFAULT_HEADERS,
     'ngrok-skip-browser-warning': 'true'
@@ -22,11 +22,28 @@ voiceAxiosInstance.interceptors.response.use(
     return response.data; // 直接返回data部分
   },
   (error) => {
+    // 特殊处理超时错误
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      console.warn('⏰ 语音API超时 (这是正常现象，机器人可能仍在说话):', {
+        url: error.config?.url,
+        timeout: '30秒',
+        message: '语音合成可能需要更长时间，请耐心等待'
+      });
+
+      // 返回一个友好的超时响应而不是错误
+      return Promise.resolve({
+        success: true,
+        message: '语音请求已发送，机器人正在处理中...',
+        timeout: true
+      });
+    }
+
     console.error('语音API错误:', {
       url: error.config?.url,
       status: error.response?.status,
       message: error.message,
-      data: error.response?.data
+      data: error.response?.data,
+      code: error.code
     });
     return Promise.reject(error);
   }

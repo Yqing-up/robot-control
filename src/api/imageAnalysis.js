@@ -7,6 +7,8 @@ const API_BASE_URL = '/api'
 // 视觉（图片分析）API密钥
 const WORKFLOW_API_KEY = 'app-oj3AJTDYGkfU2OxyIsY7LR1o'
 
+
+
 /**
  * 获取指定时间范围内的图片数据
  * @param {number} minutes - 时间范围（分钟）
@@ -50,6 +52,54 @@ export const getRecentImageData = async (minutes) => {
 }
 
 /**
+ * 获取图片文件数据
+ * @param {Array} imageUrls - 图片URL列表
+ * @returns {Promise<Array>} 图片文件数据列表
+ */
+const fetchImageFiles = async (imageUrls) => {
+  console.log('📥 开始获取图片文件数据...')
+  const imageFiles = []
+
+  // 最多处理10张图片
+  const urlsToProcess = imageUrls.slice(0, 10)
+  console.log(`📊 处理图片数量: ${urlsToProcess.length} (最多10张)`)
+
+  for (let i = 0; i < urlsToProcess.length; i++) {
+    const url = urlsToProcess[i]
+    try {
+      console.log(`📷 获取第${i + 1}张图片: ${url}`)
+
+      const response = await fetch(url)
+      if (!response.ok) {
+        console.warn(`⚠️ 第${i + 1}张图片获取失败: ${response.status}`)
+        continue
+      }
+
+      const blob = await response.blob()
+      const filename = `image_${i + 1}.${blob.type.split('/')[1] || 'jpg'}`
+
+      // 创建File对象
+      const file = new File([blob], filename, { type: blob.type })
+
+      imageFiles.push({
+        file: file,
+        filename: filename,
+        size: blob.size,
+        type: blob.type,
+        url: url
+      })
+
+      console.log(`✅ 第${i + 1}张图片获取成功: ${filename} (${blob.size} bytes)`)
+    } catch (error) {
+      console.error(`❌ 第${i + 1}张图片获取失败:`, error)
+    }
+  }
+
+  console.log(`🎉 成功获取 ${imageFiles.length} 张图片文件`)
+  return imageFiles
+}
+
+/**
  * 发送数据到工作流进行智能分析
  * @param {Array} imageUrls - 图片URL列表
  * @param {string} userRequirement - 用户需求描述
@@ -63,8 +113,16 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
     console.log('  - imageUrls 是否为数组:', Array.isArray(imageUrls))
     console.log('  - userRequirement:', userRequirement)
 
-    // 将完整URL转换为相对路径数组
-    const relativePaths = imageUrls.map(url => {
+    // 获取图片文件数据
+    console.log('📥 开始获取图片文件数据...')
+    const imageFiles = await fetchImageFiles(imageUrls)
+
+    if (imageFiles.length === 0) {
+      throw new Error('无法获取任何图片文件数据')
+    }
+
+    // 将完整URL转换为相对路径数组（保留原有的picture参数以兼容）
+    const relativePaths = imageUrls.slice(0, 10).map(url => {
       if (typeof url === 'string' && url.includes('/api/photos/')) {
         // 提取相对路径部分
         const match = url.match(/\/api\/photos\/.*/)
@@ -74,82 +132,56 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
     })
 
     console.log('🔄 转换后的相对路径数组:', relativePaths)
-    console.log('🔄 relativePaths 类型:', typeof relativePaths)
-    console.log('🔄 relativePaths 是否为数组:', Array.isArray(relativePaths))
-    console.log('🔄 relativePaths 长度:', relativePaths.length)
+    const pictureString = JSON.stringify(relativePaths)
+    console.log('🔄 picture参数 (兼容性):', pictureString)
 
-    // 组合分析数据 - 将数组转换为字符串格式
-    console.log('🔄 图片路径数组（JSON格式）:', relativePaths)
+    // 准备符合API文档的文件列表格式
+    const pictureFileList = []
+    const BASE_URL = 'https://blog.u2829437.nyat.app:25855'
 
-    // 测试 JSON.stringify 行为
-    console.log('🧪 测试 JSON.stringify 行为:')
-    const testArray = ["/api/photos/test1.jpg/content", "/api/photos/test2.jpg/content"]
-    const testStringified = JSON.stringify(testArray)
-    console.log('  - 测试数组:', testArray)
-    console.log('  - JSON.stringify 结果:', testStringified)
-    console.log('  - 结果类型:', typeof testStringified)
-
-    // 确保数组格式正确，然后转换为字符串
-    let pictureString
-
-    // 多重验证确保正确的JSON数组格式
-    if (Array.isArray(relativePaths)) {
-      pictureString = JSON.stringify(relativePaths)
-    } else {
-      console.error('❌ relativePaths 不是数组:', relativePaths)
-      // 如果不是数组，尝试修复
-      const fixedArray = Array.isArray(relativePaths) ? relativePaths : [relativePaths].filter(Boolean)
-      pictureString = JSON.stringify(fixedArray)
-    }
-
-    // 额外验证：确保结果是正确的JSON数组格式
-    if (!pictureString.startsWith('[') || !pictureString.endsWith(']')) {
-      console.error('❌ JSON.stringify 结果格式不正确:', pictureString)
-      // 强制修复格式
+    for (const imageFile of imageFiles) {
       try {
-        const parsed = JSON.parse(pictureString)
-        if (Array.isArray(parsed)) {
-          pictureString = JSON.stringify(parsed)
-        } else {
-          pictureString = JSON.stringify([parsed])
+        // 确保URL包含完整的域名前缀
+        let fullUrl = imageFile.url
+        if (fullUrl.startsWith('/')) {
+          fullUrl = BASE_URL + fullUrl
+        } else if (!fullUrl.startsWith('http')) {
+          fullUrl = BASE_URL + '/' + fullUrl
         }
-      } catch (e) {
-        console.error('❌ 无法修复格式，使用原始数组:', e)
-        pictureString = JSON.stringify(relativePaths)
+
+        // 根据API文档格式构建文件对象
+        const fileObject = {
+          type: 'image', // 文件类型：image
+          transfer_method: 'remote_url', // 传递方式：远程URL
+          url: fullUrl // 完整的图片URL
+        }
+        pictureFileList.push(fileObject)
+        console.log(`📎 添加第${pictureFileList.length}张图片: ${imageFile.filename} -> ${fullUrl}`)
+      } catch (error) {
+        console.error(`❌ 处理图片失败: ${imageFile.filename}`, error)
       }
     }
-    console.log('🔄 转换为字符串格式的图片路径:', pictureString)
-    console.log('🔄 pictureString 类型:', typeof pictureString)
-    console.log('🔄 pictureString 长度:', pictureString.length)
-    console.log('🔄 pictureString 是否以[开头:', pictureString.startsWith('['))
-    console.log('🔄 pictureString 是否以]结尾:', pictureString.endsWith(']'))
 
-    // 验证是否与测试结果一致
-    console.log('🔍 验证结果格式:')
-    console.log('  - 期望格式: ["path1","path2"]')
-    console.log('  - 实际格式:', pictureString)
-    console.log('  - 格式正确:', pictureString.startsWith('[') && pictureString.endsWith(']'))
-
-    const analysisData = {
+    // 准备JSON请求数据
+    const requestData = {
       inputs: {
         question: userRequirement,
-        picture: pictureString // 使用字符串格式，后端期望字符串
+        picture: pictureString, // 保留原有参数以兼容
+        picturelist: pictureFileList // 使用符合API文档的文件列表格式
       },
-      response_mode: "streaming",
-      user: "abc-123"
+      response_mode: 'streaming',
+      user: 'abc-123'
     }
 
-    console.log('🚀 发送到工作流的数据:', JSON.stringify(analysisData, null, 2))
+    console.log('🚀 发送到工作流的JSON数据:')
+    console.log('  - question:', userRequirement)
+    console.log('  - picture参数:', pictureString)
+    console.log('  - picturelist文件数量:', pictureFileList.length)
+    console.log('  - 文件详情:', pictureFileList.map(f => ({ type: f.type, method: f.transfer_method, url: f.url })))
     console.log('📡 请求URL: /v1/workflows/run')
     console.log('🔑 API密钥:', WORKFLOW_API_KEY ? '已设置' : '未设置')
 
-    // 额外验证发送的数据
-    const requestBody = JSON.stringify(analysisData)
-    console.log('📦 实际发送的请求体:', requestBody)
-    console.log('📦 请求体中的picture字段:', analysisData.inputs.picture)
-    console.log('📦 picture字段类型:', typeof analysisData.inputs.picture)
-
-    // 使用新的工作流接口URL
+    // 使用新的工作流接口URL，发送JSON数据
     const response = await fetch('/v1/workflows/run', {
       method: 'POST',
       headers: {
@@ -159,7 +191,7 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
         'Cache-Control': 'no-cache',
         'X-Requested-With': 'XMLHttpRequest'
       },
-      body: JSON.stringify(analysisData)
+      body: JSON.stringify(requestData)
     })
 
     if (!response.ok) {
@@ -171,7 +203,8 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
       console.error('   请求URL:', '/v1/workflows/run')
       console.error('   目标服务器:', 'http://192.168.0.103')
       console.error('   API密钥:', WORKFLOW_API_KEY)
-      console.error('   请求数据:', JSON.stringify(analysisData, null, 2))
+      console.error('   请求数据:', JSON.stringify(requestData, null, 2))
+      console.error('   图片文件数量:', pictureFileList.length)
 
       // 尝试解析错误响应
       try {
@@ -431,11 +464,10 @@ export const formatImageDataForDisplay = (imageData) => {
     let url = item.url || item.image_url || item.path || item.src || ''
     console.log(`🔗 第${index + 1}张图片原始URL:`, url)
 
-    // 如果是相对路径，转换为完整URL
+    // 如果是相对路径，保持相对路径使用代理
     if (url && url.startsWith('/api/')) {
-      // 使用实际的后端服务器地址构建完整URL
-      url = `http://192.168.0.119:5001${url}`
-      console.log(`🌐 第${index + 1}张图片完整URL:`, url)
+      // 保持相对路径，通过代理访问避免CORS问题
+      console.log(`🌐 第${index + 1}张图片代理URL:`, url)
     }
 
     return url
@@ -613,11 +645,10 @@ export const extractImageUrls = (imageData) => {
     let url = item.url || item.image_url || item.path || item.src || ''
     console.log(`📎 第${index + 1}张原始URL:`, url)
 
-    // 如果是相对路径，转换为完整URL
+    // 如果是相对路径，保持相对路径使用代理
     if (url && url.startsWith('/api/')) {
-      // 使用实际的后端服务器地址构建完整URL
-      url = `http://192.168.0.119:5001${url}`
-      console.log(`🌍 第${index + 1}张完整URL:`, url)
+      // 保持相对路径，通过代理访问避免CORS问题
+      console.log(`🌍 第${index + 1}张代理URL:`, url)
     }
 
     return url
@@ -656,3 +687,5 @@ export const validateImageUrls = async (urls) => {
     isValid: result.status === 'fulfilled' && result.value
   }))
 }
+
+
