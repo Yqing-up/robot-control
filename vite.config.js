@@ -117,6 +117,46 @@ export default defineConfig({
         },
       },
 
+      // 真实机器人代理 - 标准化代理
+      '/api-robot-real': {
+        target: 'http://192.168.0.117:5001',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api-robot-real/, '/api'),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('真实机器人代理错误:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            const rewrittenPath = req.url.replace(/^\/api-robot-real/, '/api');
+            console.log('真实机器人代理请求 -> 真实机器人:', req.method, req.url, '->', `${options.target}${rewrittenPath}`);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('真实机器人代理响应 <- 真实机器人:', proxyRes.statusCode, req.url);
+          });
+        },
+      },
+
+      // 仿真机器人代理 - 标准化代理
+      '/api-robot-sim': {
+        target: 'http://192.168.0.103:5001',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api-robot-sim/, '/api'),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('仿真机器人代理错误:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            const rewrittenPath = req.url.replace(/^\/api-robot-sim/, '/api');
+            console.log('仿真机器人代理请求 -> 仿真机器人:', req.method, req.url, '->', `${options.target}${rewrittenPath}`);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('仿真机器人代理响应 <- 仿真机器人:', proxyRes.statusCode, req.url);
+          });
+        },
+      },
+
       // 摄像头相关接口代理
       '/api-cam': {
         target: 'http://192.168.0.119:5001/api',

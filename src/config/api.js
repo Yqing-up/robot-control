@@ -1,10 +1,14 @@
 // API配置文件
 export const API_CONFIG = {
-  // 运动相关接口 - 使用独立的代理前缀
+  // 运动相关接口 - 使用独立的代理前缀（保留用于腿部系统）
   MOVEMENT_BASE_URL: '/api-move',
 
-  // 仿真运动相关接口 - 使用独立的代理前缀
+  // 仿真运动相关接口 - 使用独立的代理前缀（保留用于腿部系统）
   MOVEMENT_SIMULATION_BASE_URL: '/api-move-sim',
+
+  // 机器人代理接口 - 新的标准化代理
+  REAL_ROBOT_BASE_URL: '/api-robot-real',
+  SIMULATION_ROBOT_BASE_URL: '/api-robot-sim',
 
   // 摄像头相关接口 - 使用独立的代理前缀
   CAMERA_BASE_URL: '/api-cam',
@@ -26,7 +30,13 @@ export const API_CONFIG = {
     'Content-Type': 'application/json',
   },
 
-  // 仿真模式配置
+  // 机器人服务器配置
+  ROBOT_CONFIG: {
+    REAL_ROBOT_TARGET: 'http://192.168.0.117:5001/api',
+    SIMULATION_ROBOT_TARGET: 'http://192.168.0.103:5001/api'
+  },
+
+  // 仿真模式配置（保留向后兼容）
   SIMULATION_CONFIG: {
     REAL_ROBOT_TARGET: 'http://192.168.0.117:5001/api',
     SIMULATION_ROBOT_TARGET: 'http://192.168.0.103:5001/api'

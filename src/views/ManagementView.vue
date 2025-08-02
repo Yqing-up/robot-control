@@ -722,22 +722,64 @@ const handleLoadActionLibrary = async () => {
     console.log('📚 正在从API加载动作库...')
     armStatusText.value = '正在加载动作库...'
 
-    const response = await movementApi.getRobotActions()
-    console.log('动作列表API响应:', response)
+    // 临时修改：如果真实机器人服务器不可用，尝试使用仿真机器人服务器
+    let response
+    try {
+      console.log('📚 尝试从真实机器人服务器加载动作库...')
+      response = await movementApi.getRobotActions()
+      console.log('真实机器人动作列表API响应:', response)
+    } catch (error) {
+      console.warn('❌ 真实机器人服务器不可用，尝试仿真机器人服务器:', error.message)
+      console.log('📚 尝试从仿真机器人服务器加载动作库...')
+      response = await movementApi.getSimulationActions()
+      console.log('仿真机器人动作列表API响应:', response)
+    }
 
-    // 从Axios响应对象中提取数据
-    const result = response.data || response
-    console.log('提取的动作列表数据:', result)
+    if (response.success) {
+      // 服务器返回格式: { success: true, data: { success: true, actions: [...] } }
+      console.log('API调用成功，解析动作数据...')
+      console.log('完整响应数据:', JSON.stringify(response, null, 2))
 
-    if (result.success && result.data && result.data.success) {
-      // 解析API返回的动作数据
-      const apiActions = parseApiActions(result.data.actions)
-      actionLibrary.value = apiActions
-      armStatusText.value = `动作库已加载，共 ${apiActions.length} 个动作`
-      console.log('✅ 动作库加载完成')
+      let actionsData = null
+
+      // 根据实际的服务器响应结构解析数据
+      // 服务器返回: { success: true, data: { success: true, message: "...", data: { success: true, actions: [...] } } }
+
+      if (response.data && response.data.data && response.data.data.actions && Array.isArray(response.data.data.actions)) {
+        // 实际格式: response.data.data.actions
+        actionsData = response.data.data.actions
+        console.log('✅ 找到动作数据（三层嵌套），数量:', actionsData.length)
+      } else if (response.data && response.data.actions && Array.isArray(response.data.actions)) {
+        // 备用格式: response.data.actions
+        actionsData = response.data.actions
+        console.log('✅ 找到动作数据（二层嵌套），数量:', actionsData.length)
+      } else if (Array.isArray(response.data)) {
+        // 备用格式: response.data 直接是数组
+        actionsData = response.data
+        console.log('✅ 找到动作数据（直接数组），数量:', actionsData.length)
+      } else {
+        console.error('❌ 未找到actions数组')
+        console.error('response.data结构:', response.data)
+        if (response.data && response.data.data) {
+          console.error('response.data.data结构:', response.data.data)
+          console.error('response.data.data的keys:', Object.keys(response.data.data))
+        }
+      }
+
+      if (actionsData && Array.isArray(actionsData) && actionsData.length > 0) {
+        const apiActions = parseApiActions(actionsData)
+        actionLibrary.value = apiActions
+        armStatusText.value = `动作库已加载，共 ${apiActions.length} 个动作`
+        console.log('✅ 动作库加载完成，解析后动作数量:', apiActions.length)
+      } else {
+        console.warn('❌ 动作数据为空或格式不正确')
+        console.warn('actionsData:', actionsData)
+        actionLibrary.value = [...defaultActions]
+        armStatusText.value = '动作数据为空，使用默认动作'
+      }
     } else {
       // API调用失败，使用默认动作
-      const errorMessage = result.data?.message || result.message || '未知错误'
+      const errorMessage = response.error || response.message || '未知错误'
       console.warn('API获取动作列表失败，使用默认动作:', errorMessage)
       actionLibrary.value = [...defaultActions]
       armStatusText.value = `加载动作库失败: ${errorMessage}`

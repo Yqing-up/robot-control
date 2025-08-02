@@ -584,14 +584,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  movementApi,
-  getSimulationMode,
-  setSimulationMode,
-  checkSimulationServerStatus
-} from '../api/movementApi.js'
+import robotApi from '../api/robotApi.js'
 import { API_CONFIG } from '../config/api.js'
-// 如需用到动作相关API请用movementApi.getRobotActions等
+// 注意：此页面使用独立的robotApi，不影响其他页面的movementApi
 
 const router = useRouter()
 
@@ -606,11 +601,12 @@ const currentAction = ref(null)
 const executionProgress = ref(0)
 const currentStepDescription = ref('')
 
-// 仿真模式相关
+// 机器人模式相关
 const isSimulationMode = ref(false)
 const simulationServerAvailable = ref(true)
+const realServerAvailable = ref(true)
 
-const SIMULATION_STORAGE_KEY = 'armSimulationMode'
+const ROBOT_MODE_STORAGE_KEY = 'armRobotMode'
 
 // 对话框相关
 const showActionDialog = ref(false)
@@ -838,11 +834,7 @@ const executionHistory = ref([
 
 // 当前API地址显示
 const currentApiAddress = computed(() => {
-  if (isSimulationMode.value) {
-    return API_CONFIG.SIMULATION_CONFIG.SIMULATION_ROBOT_TARGET
-  } else {
-    return API_CONFIG.SIMULATION_CONFIG.REAL_ROBOT_TARGET
-  }
+  return robotApi.getCurrentServerAddress()
 })
 
 // 是否正在执行动作
@@ -896,81 +888,87 @@ const goBack = () => {
 }
 
 // 仿真模式相关方法
-const loadSimulationModeFromStorage = () => {
+const loadRobotModeFromStorage = () => {
   try {
-    const saved = localStorage.getItem(SIMULATION_STORAGE_KEY)
+    const saved = localStorage.getItem(ROBOT_MODE_STORAGE_KEY)
     if (saved !== null) {
-      const enabled = JSON.parse(saved)
-      isSimulationMode.value = enabled
-      setSimulationMode(enabled)
-      console.log('🔄 从localStorage恢复仿真模式状态:', enabled)
+      const mode = JSON.parse(saved)
+      const isSimulation = mode === 'simulation'
+      isSimulationMode.value = isSimulation
+      robotApi.setRobotMode(mode)
+      console.log('🔄 从localStorage恢复机器人模式:', mode)
     } else {
       // 默认使用真实机器人
       isSimulationMode.value = false
-      setSimulationMode(false)
-      console.log('🔄 使用默认仿真模式状态: false (真实机器人)')
+      robotApi.setRobotMode('real')
+      console.log('🔄 使用默认机器人模式: real (真实机器人)')
     }
   } catch (error) {
-    console.error('❌ 加载仿真模式状态失败:', error)
+    console.error('❌ 加载机器人模式失败:', error)
     isSimulationMode.value = false
-    setSimulationMode(false)
+    robotApi.setRobotMode('real')
   }
 }
 
-const saveSimulationModeToStorage = (enabled) => {
+const saveRobotModeToStorage = (mode) => {
   try {
-    localStorage.setItem(SIMULATION_STORAGE_KEY, JSON.stringify(enabled))
-    console.log('💾 仿真模式状态已保存到localStorage:', enabled)
+    localStorage.setItem(ROBOT_MODE_STORAGE_KEY, JSON.stringify(mode))
+    console.log('💾 机器人模式已保存到localStorage:', mode)
   } catch (error) {
-    console.error('❌ 保存仿真模式状态失败:', error)
+    console.error('❌ 保存机器人模式失败:', error)
   }
 }
 
 const handleSimulationModeChange = async () => {
   const enabled = isSimulationMode.value
-  console.log('🔄 仿真模式切换:', enabled ? '启用' : '禁用')
+  const newMode = enabled ? 'simulation' : 'real'
+  console.log('🔄 机器人模式切换:', newMode)
 
-  // 如果启用仿真模式，先检测服务器状态
-  if (enabled) {
-    console.log('🔍 检测仿真服务器状态...')
-    const result = await checkSimulationServerStatus()
-    simulationServerAvailable.value = result.available
+  // 检测服务器状态
+  console.log('🔍 检测机器人服务器状态...')
+  const connections = await robotApi.checkBothConnections()
 
-    if (!result.available) {
-      const errorMsg = result.error?.response?.status
-        ? `HTTP ${result.error.response.status}`
-        : result.error?.message || '连接失败'
+  simulationServerAvailable.value = connections.simulation.connected
+  realServerAvailable.value = connections.real.connected
 
-      showExecutionNotification(
-        'warning',
-        '仿真服务器不可用',
-        `仿真机器人服务器 (192.168.0.103:5001) 无法连接 (${errorMsg})，将自动降级到真实机器人`,
-        8000
-      )
-    }
+  // 检查目标服务器是否可用
+  if (enabled && !connections.simulation.connected) {
+    showExecutionNotification(
+      'warning',
+      '仿真服务器不可用',
+      `仿真机器人服务器 (192.168.0.103:5001) 无法连接，将保持真实机器人模式`,
+      8000
+    )
+    // 强制保持真实机器人模式
+    isSimulationMode.value = false
+    robotApi.setRobotMode('real')
+    return
+  } else if (!enabled && !connections.real.connected) {
+    showExecutionNotification(
+      'warning',
+      '真实机器人不可用',
+      `真实机器人服务器 (192.168.0.117:5001) 无法连接，将保持仿真机器人模式`,
+      8000
+    )
+    // 强制保持仿真机器人模式
+    isSimulationMode.value = true
+    robotApi.setRobotMode('simulation')
+    return
   }
 
-  // 更新API模式
-  setSimulationMode(enabled)
+  // 更新机器人模式
+  robotApi.setRobotMode(newMode)
 
   // 保存到localStorage
-  saveSimulationModeToStorage(enabled)
+  saveRobotModeToStorage(newMode)
 
   // 重新加载动作列表以获取对应服务器的动作
   console.log('🔄 重新加载动作列表...')
   await loadActionLibrary()
 
-  // 显示切换通知
-  const statusText = enabled
-    ? (simulationServerAvailable.value ? '仿真机器人' : '仿真机器人 (降级到真实机器人)')
-    : '真实机器人'
-
-  showExecutionNotification(
-    'info',
-    '模式切换',
-    `已切换到${statusText}模式，动作列表已更新`,
-    4000
-  )
+  // 模式切换完成，不显示通知
+  const statusText = robotApi.getCurrentModeLabel()
+  console.log(`✅ 已切换到${statusText}模式，动作列表已更新`)
 }
 
 
@@ -1055,7 +1053,7 @@ const executeAction = async (action) => {
       originalAction: action
     })
 
-    const result = await movementApi.executeArmAction(actionName, apiParams)
+    const result = await robotApi.executeAction(actionName, apiParams)
     console.log('执行动作API响应:', result)
 
     if (result.success) {
@@ -1342,48 +1340,61 @@ const loadActionLibrary = async () => {
   actionLoadError.value = ''
 
   try {
-    console.log(`开始加载动作列表... [${isSimulationMode.value ? '仿真模式' : '真实模式'}]`)
-    const result = await movementApi.getActionList()
+    console.log(`开始加载动作列表... [${robotApi.getCurrentModeLabel()}]`)
+    const result = await robotApi.getActions()
     console.log('动作列表API响应:', result)
 
-    if (result.success) {
-      // 检查多种可能的数据格式
-      let actionsData = null
+    // 根据实际的服务器响应结构解析数据
+    let actionsData = null
 
-      if (result.data && result.data.success && result.data.actions) {
-        // 格式1: {success: true, data: {success: true, actions: [...]}}
-        actionsData = result.data.actions
-        console.log('使用格式1: result.data.actions')
-      } else if (result.data && Array.isArray(result.data.actions)) {
-        // 格式2: {success: true, data: {actions: [...]}}
-        actionsData = result.data.actions
-        console.log('使用格式2: result.data.actions (数组)')
-      } else if (result.data && Array.isArray(result.data)) {
-        // 格式3: {success: true, data: [...]}
-        actionsData = result.data
-        console.log('使用格式3: result.data (直接数组)')
-      } else if (Array.isArray(result.data?.data)) {
-        // 格式4: {success: true, data: {data: [...]}}
-        actionsData = result.data.data
-        console.log('使用格式4: result.data.data')
-      }
+    // 详细调试信息
+    console.log('🔍 robotApi响应调试信息:')
+    console.log('result存在:', !!result)
+    console.log('result.data存在:', !!(result && result.data))
+    console.log('result.data.actions存在:', !!(result && result.data && result.data.actions))
+    if (result && result.data && result.data.actions) {
+      console.log('result.data.actions是数组:', Array.isArray(result.data.actions))
+      console.log('result.data.actions长度:', result.data.actions.length)
+    }
 
-      if (actionsData && Array.isArray(actionsData)) {
-        const apiActions = parseApiActions(actionsData)
-        actionLibrary.value = apiActions
-        console.log('动作列表加载成功:', apiActions.length, '个动作')
-      } else {
-        console.warn('未找到有效的动作数据，使用默认动作')
-        console.warn('响应数据结构:', result)
-        actionLibrary.value = [...defaultActions]
-        actionLoadError.value = '服务器返回的数据格式不正确'
-      }
+    if (result && result.data && result.data.actions && Array.isArray(result.data.actions)) {
+      // 格式1: {success: true, message: "...", data: {success: true, actions: [...]}}
+      actionsData = result.data.actions
+      console.log('✅ 使用格式1: result.data.actions (三层嵌套)')
+    } else if (result && result.success && result.actions) {
+      // 格式2: {success: true, actions: [...]}
+      actionsData = result.actions
+      console.log('✅ 使用格式2: result.actions')
+    } else if (result && Array.isArray(result.actions)) {
+      // 格式3: {actions: [...]}
+      actionsData = result.actions
+      console.log('✅ 使用格式3: result.actions (数组)')
+    } else if (Array.isArray(result)) {
+      // 格式4: 直接返回数组
+      actionsData = result
+      console.log('✅ 使用格式4: 直接数组')
+    } else if (result && result.data && Array.isArray(result.data)) {
+      // 格式5: {data: [...]}
+      actionsData = result.data
+      console.log('✅ 使用格式5: result.data')
     } else {
-      // API调用失败，使用默认动作
-      const errorMessage = result.error || result.message || '未知错误'
-      console.warn('API获取动作列表失败，使用默认动作:', errorMessage)
+      console.error('❌ 未识别的数据格式')
+      console.error('result结构:', result)
+      if (result && result.data) {
+        console.error('result.data结构:', result.data)
+        console.error('result.data的keys:', Object.keys(result.data))
+      }
+    }
+
+    if (actionsData && Array.isArray(actionsData)) {
+      const apiActions = parseApiActions(actionsData)
+      actionLibrary.value = apiActions
+      console.log('动作列表加载成功:', apiActions.length, '个动作')
+    } else {
+      console.warn('未找到有效的动作数据，使用默认动作')
+      console.warn('响应数据结构:', result)
       actionLibrary.value = [...defaultActions]
-      actionLoadError.value = `API获取失败: ${errorMessage}`
+      actionLoadError.value = '服务器返回的数据格式不正确'
     }
   } catch (error) {
     console.error('加载动作列表时发生错误:', error)
@@ -1736,8 +1747,8 @@ const manualSyncToLive = () => {
 onMounted(async () => {
   console.log('上肢系统组件已挂载')
 
-  // 加载仿真模式状态
-  loadSimulationModeFromStorage()
+  // 加载机器人模式状态
+  loadRobotModeFromStorage()
 
   await loadActionLibrary()
 
