@@ -76,44 +76,38 @@ export const simulationRobotApi = {
   executeAction: (actionName, params = {}) => {
     console.log('🤖 仿真机器人执行动作 - 输入参数:', { actionName, params });
 
+    // 仿真机器人只需要action_name参数
     const payload = {
-      action_name: actionName,
-      duration: params.duration || 3.0
+      action_name: actionName
     };
 
-    // 只有当filePath存在且不为空时才添加file_path
-    if (params.filePath && params.filePath.trim() !== '') {
-      payload.file_path = params.filePath;
-    }
-
-    // 添加其他非空参数
-    Object.keys(params).forEach(key => {
-      if (key !== 'duration' && key !== 'filePath' &&
-          params[key] !== null && params[key] !== undefined && params[key] !== '') {
-        payload[key] = params[key];
-      }
+    console.log('🤖 仿真机器人最终payload:', payload);
+    console.log('🔍 仿真机器人请求详情:', {
+      method: 'POST',
+      url: '/robot/execute',
+      baseURL: API_CONFIG.SIMULATION_ROBOT_BASE_URL,
+      fullURL: `${API_CONFIG.SIMULATION_ROBOT_BASE_URL}/robot/execute`,
+      payload: payload
     });
 
-    console.log('🤖 最终payload:', payload);
     return simulationRobotHttp.post('/robot/execute', payload);
   },
 
   // 执行太极动作
   executeTaijiAction: (params = {}) => {
+    // 仿真机器人太极只需要script_path参数
     const payload = {
-      script_path: "/root/kuavo_ws/src/demo/taiji/actions_player.py",
-      duration: params.duration || 30.0,
-      ...params
+      script_path: "/home/lab/kuavo-ros-opensource/src/demo/taiji/actions_player.py"
     };
 
-    // 清理空值
-    Object.keys(payload).forEach(key => {
-      if (payload[key] === null || payload[key] === undefined) {
-        delete payload[key];
-      }
-    });
-
     console.log('🥋 仿真机器人执行太极动作:', payload);
+    console.log('🔍 仿真机器人太极请求详情:', {
+      method: 'POST',
+      url: '/robot/taiji/execute',
+      baseURL: API_CONFIG.SIMULATION_ROBOT_BASE_URL,
+      fullURL: `${API_CONFIG.SIMULATION_ROBOT_BASE_URL}/robot/taiji/execute`,
+      payload: payload
+    });
 
     // 为太极动作设置更长的超时时间（35秒）
     const config = {
@@ -139,6 +133,31 @@ export const simulationRobotApi = {
         connected: false,
         status: 'disconnected',
         error: error.message
+      };
+    }
+  },
+
+  // 测试动作执行接口
+  testActionExecution: async (actionName = 'wave_hello') => {
+    try {
+      console.log('🤖 测试仿真机器人动作执行接口');
+      console.log('🔍 测试URL:', `${API_CONFIG.SIMULATION_ROBOT_BASE_URL}/robot/execute`);
+
+      const testPayload = {
+        action_name: actionName,
+        duration: 0.1 // 极短时间，用于测试
+      };
+
+      const response = await simulationRobotHttp.post('/robot/execute', testPayload, { timeout: 5000 });
+      console.log('✅ 仿真机器人动作执行测试成功:', response);
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('❌ 仿真机器人动作执行测试失败:', error);
+      return {
+        success: false,
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data
       };
     }
   }

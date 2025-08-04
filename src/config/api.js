@@ -32,13 +32,13 @@ export const API_CONFIG = {
 
   // 机器人服务器配置
   ROBOT_CONFIG: {
-    REAL_ROBOT_TARGET: 'http://192.168.0.115:5001/api',
+    REAL_ROBOT_TARGET: 'http://192.168.0.117:5001/api',
     SIMULATION_ROBOT_TARGET: 'http://192.168.0.103:5001/api'
   },
 
   // 仿真模式配置（保留向后兼容）
   SIMULATION_CONFIG: {
-    REAL_ROBOT_TARGET: 'http://192.168.0.115:5001/api',
+    REAL_ROBOT_TARGET: 'http://192.168.0.117:5001/api',
     SIMULATION_ROBOT_TARGET: 'http://192.168.0.103:5001/api'
   }
 };
