@@ -243,6 +243,12 @@
     font-size: 14px;
 }
 
+.library-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .voice-controls, .action-controls {
     display: flex;
     gap: 12px;

@@ -175,9 +175,14 @@
               <!-- 动作库统计 -->
               <div class="library-stats">
                 <span>共 {{ actionLibrary.length }} 个动作</span>
-                <button class="btn btn-small btn-secondary" @click="handleLoadActionLibrary" :disabled="isLoadingActions">
-                  {{ isLoadingActions ? '刷新中...' : '刷新' }}
-                </button>
+                <div class="library-actions">
+                  <button class="btn btn-small btn-primary" @click="handleExecuteTaiji" :disabled="isExecutingTaiji">
+                    {{ isExecutingTaiji ? '太极中...' : '太极' }}
+                  </button>
+                  <button class="btn btn-small btn-secondary" @click="handleLoadActionLibrary" :disabled="isLoadingActions">
+                    {{ isLoadingActions ? '刷新中...' : '刷新' }}
+                  </button>
+                </div>
               </div>
 
               <!-- 搜索和筛选 -->
@@ -428,6 +433,7 @@ import { useRouter } from 'vue-router'
 import { voiceApi } from '../api/voiceApi.js'
 import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
+import { realRobotApi } from '../api/realRobotApi.js'
 // 其它API如有需要可继续补充
 
 const router = useRouter()
@@ -699,6 +705,9 @@ const executingActionId = ref(null)
 const armProgress = ref(0)
 const isLoadingActions = ref(false)
 
+// 太极动作相关
+const isExecutingTaiji = ref(false)
+
 // 动作库数据和搜索筛选
 const actionLibrary = ref([])
 const actionSearchText = ref('')
@@ -933,6 +942,58 @@ const handleExecuteAction = async (action) => {
     executingActionId.value = null
     armProgress.value = 0
     alert(`动作执行失败: ${error.message}`)
+  }
+}
+
+// 太极动作执行方法
+const handleExecuteTaiji = async () => {
+  if (isExecutingTaiji.value) return
+
+  isExecutingTaiji.value = true
+  console.log('🥋 开始执行太极动作')
+
+  try {
+    const result = await realRobotApi.executeTaijiAction({
+      duration: 30.0 // 太极动作通常需要较长时间
+    })
+
+    if (result && result.success !== false) {
+      console.log('✅ 太极动作执行成功')
+      armStatusText.value = '太极动作执行中...'
+
+      // 模拟太极动作执行时间（30秒）
+      setTimeout(() => {
+        isExecutingTaiji.value = false
+        armStatusText.value = '太极动作执行完成'
+        console.log('🥋 太极动作执行完成')
+
+        // 3秒后恢复状态文本
+        setTimeout(() => {
+          armStatusText.value = '上肢系统就绪'
+        }, 3000)
+      }, 30000)
+    } else {
+      throw new Error(result?.error || '太极动作执行失败')
+    }
+  } catch (error) {
+    console.error('❌ 太极动作执行异常:', error)
+    isExecutingTaiji.value = false
+    armStatusText.value = '上肢系统就绪'
+
+    // 提供更友好的错误信息
+    let errorMessage = '太极动作执行失败'
+    if (error.message) {
+      errorMessage += `: ${error.message}`
+    }
+    if (error.response?.status === 404) {
+      errorMessage = '太极接口不存在，请检查服务器配置'
+    } else if (error.response?.status === 500) {
+      errorMessage = '服务器内部错误，请检查机器人状态'
+    } else if (error.code === 'ECONNABORTED') {
+      errorMessage = '请求超时，请检查网络连接'
+    }
+
+    alert(errorMessage)
   }
 }
 

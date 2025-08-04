@@ -53,9 +53,20 @@ export const robotApi = {
     return getCurrentRobotApi().getActions();
   },
 
+  getActionsHistory: () => {
+    console.log(`📜 获取${robotApi.getCurrentModeLabel()}执行历史`);
+    return getCurrentRobotApi().getActionsHistory();
+  },
+
   executeAction: (actionName, params = {}) => {
     console.log(`🎬 ${robotApi.getCurrentModeLabel()}执行动作: ${actionName}`);
     return getCurrentRobotApi().executeAction(actionName, params);
+  },
+
+  // 执行太极动作
+  executeTaijiAction: (params = {}) => {
+    console.log(`🥋 ${robotApi.getCurrentModeLabel()}执行太极动作`);
+    return getCurrentRobotApi().executeTaijiAction(params);
   },
 
   // 连接检查接口

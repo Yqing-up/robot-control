@@ -264,6 +264,16 @@
               <div class="quick-actions">
                 <h4>快速动作</h4>
                 <div class="quick-buttons">
+                  <!-- 太极按钮 -->
+                  <button
+                    class="btn btn-quick btn-taiji"
+                    @click="executeTaijiAction"
+                    :disabled="systemStatus !== 'ready' || isExecutingTaiji"
+                  >
+                    <span v-if="isExecutingTaiji" class="executing-indicator">⏳</span>
+                    {{ isExecutingTaiji ? '太极中...' : '太极' }}
+                  </button>
+                  <!-- 其他快速动作 -->
                   <button
                     class="btn btn-quick"
                     v-for="action in quickActions"
@@ -276,86 +286,11 @@
                 </div>
               </div>
 
-              <!-- 上肢状态监控 -->
-              <div class="arm-status">
-                <h4>上肢状态</h4>
-                <div class="status-grid">
-                  <div class="status-item">
-                    <div class="status-label">左臂位置</div>
-                    <div class="status-value">{{ armStatus.leftArm.position }}</div>
-                    <div class="arm-signal-status online"></div>
-                  </div>
-                  <div class="status-item">
-                    <div class="status-label">右臂位置</div>
-                    <div class="status-value">{{ armStatus.rightArm.position }}</div>
-                    <div class="arm-signal-status online"></div>
-                  </div>
-                  <div class="status-item">
-                    <div class="status-label">电机温度</div>
-                    <div class="status-value">{{ armStatus.temperature }}°C</div>
-                    <div class="arm-signal-status" :class="getTemperatureStatus(armStatus.temperature)"></div>
-                  </div>
-                  <div class="status-item">
-                    <div class="status-label">电池电量</div>
-                    <div class="status-value">{{ armStatus.battery }}%</div>
-                    <div class="arm-signal-status" :class="getBatteryStatus(armStatus.battery)"></div>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </section>
 
-          <!-- 动作序列管理 -->
-          <section class="sequence-section">
-            <div class="section-header">
-              <h3>动作序列</h3>
-              <button class="btn btn-small" @click="showSequenceDialog = true">创建序列</button>
-            </div>
 
-            <div class="sequence-controls">
-              <!-- 当前序列 -->
-              <div class="current-sequence" v-if="currentSequence.actions.length > 0">
-                <h4>当前序列</h4>
-                <div class="sequence-list">
-                  <div
-                    class="sequence-item"
-                    v-for="(action, index) in currentSequence.actions"
-                    :key="index"
-                    :class="{ active: currentSequence.currentIndex === index }"
-                  >
-                    <span class="sequence-number">{{ index + 1 }}</span>
-                    <span class="sequence-name">{{ action.name }}</span>
-                    <button class="btn btn-mini btn-danger" @click="removeFromSequence(index)">移除</button>
-                  </div>
-                </div>
-                <div class="sequence-buttons">
-                  <button class="btn btn-primary" @click="executeSequence" :disabled="systemStatus !== 'ready'">
-                    执行序列
-                  </button>
-                  <button class="btn btn-secondary" @click="clearSequence">清空序列</button>
-                  <button class="btn btn-secondary" @click="saveSequence">保存序列</button>
-                </div>
-              </div>
-
-              <!-- 保存的序列 -->
-              <div class="saved-sequences">
-                <h4>保存的序列</h4>
-                <div class="saved-list">
-                  <div class="saved-item" v-for="sequence in savedSequences" :key="sequence.id">
-                    <div class="saved-header">
-                      <span class="saved-name">{{ sequence.name }}</span>
-                      <span class="saved-count">{{ sequence.actions.length }} 个动作</span>
-                    </div>
-                    <div class="saved-actions">
-                      <button class="btn btn-mini" @click="loadSequence(sequence)">加载</button>
-                      <button class="btn btn-mini" @click="executeSequence(sequence)">执行</button>
-                      <button class="btn btn-mini btn-danger" @click="deleteSavedSequence(sequence.id)">删除</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <!-- 执行历史 -->
           <section class="history-section">
@@ -373,10 +308,6 @@
                 <div class="history-status" :class="item.status">
                   {{ getStatusText(item.status) }}
                 </div>
-                <div class="history-duration">
-                  执行时长: {{ item.duration }}s
-                </div>
-                <button class="btn btn-mini" @click="repeatAction(item)">重复执行</button>
               </div>
             </div>
           </section>
@@ -545,47 +476,14 @@
       </div>
     </div>
 
-    <!-- 创建序列对话框 -->
-    <div class="modal" v-if="showSequenceDialog" @click="closeSequenceDialog">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>创建动作序列</h3>
-          <button class="modal-close" @click="closeSequenceDialog">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>序列名称:</label>
-            <input type="text" v-model="sequenceForm.name" class="form-input">
-          </div>
-          <div class="form-group">
-            <label>选择动作:</label>
-            <div class="action-selector">
-              <div
-                class="selector-item"
-                v-for="action in actionLibrary"
-                :key="action.id"
-                @click="addToSequence(action)"
-              >
-                <span class="selector-name">{{ action.name }}</span>
-                <span class="selector-duration">{{ action.duration }}s</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" @click="closeSequenceDialog">取消</button>
-          <button class="btn btn-primary" @click="saveSequenceDialog">保存</button>
-        </div>
-      </div>
-    </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import robotApi from '../api/robotApi.js'
-import { API_CONFIG } from '../config/api.js'
+import { robotApi } from '../api/robotApi.js'
 // 注意：此页面使用独立的robotApi，不影响其他页面的movementApi
 
 const router = useRouter()
@@ -606,11 +504,13 @@ const isSimulationMode = ref(false)
 const simulationServerAvailable = ref(true)
 const realServerAvailable = ref(true)
 
+// 太极动作相关
+const isExecutingTaiji = ref(false)
+
 const ROBOT_MODE_STORAGE_KEY = 'armRobotMode'
 
 // 对话框相关
 const showActionDialog = ref(false)
-const showSequenceDialog = ref(false)
 const showVisionConfigDialog = ref(false)
 const editingAction = ref(null)
 const actionForm = reactive({
@@ -619,9 +519,6 @@ const actionForm = reactive({
   category: 'basic',
   difficulty: 'easy',
   duration: 2.0
-})
-const sequenceForm = reactive({
-  name: ''
 })
 
 // 文件上传相关
@@ -655,8 +552,8 @@ const connectVision = async () => {
   await nextTick()
   if (!visionVideo.value) return
 
-  if (Hls.isSupported()) {
-    hls = new Hls({
+  if (window.Hls && window.Hls.isSupported()) {
+    hls = new window.Hls({
       lowLatencyMode: true,
       liveSyncDuration: 0.1, // 极限低延迟
       maxBufferLength: 2,
@@ -667,12 +564,12 @@ const connectVision = async () => {
     })
     hls.loadSource(visionStreamUrl.value)
     hls.attachMedia(visionVideo.value)
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
       visionVideo.value.play()
       isVisionConnected.value = true
       // 移除startVisionSync()
     })
-    hls.on(Hls.Events.ERROR, (event, data) => {
+    hls.on(window.Hls.Events.ERROR, (_, data) => {
       console.error('HLS error', data)
       isVisionConnected.value = false
       // 移除stopVisionSync()
@@ -701,7 +598,7 @@ const disconnectVision = () => {
 
 const loadHlsLibrary = () => {
   return new Promise((resolve, reject) => {
-    if (typeof Hls !== 'undefined') return resolve()
+    if (typeof window.Hls !== 'undefined') return resolve()
     const script = document.createElement('script')
     script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest'
     script.onload = resolve
@@ -790,47 +687,10 @@ const defaultActions = [
   }
 ]
 
-// 上肢状态
-const armStatus = reactive({
-  leftArm: { position: '待机位置', status: 'normal' },
-  rightArm: { position: '待机位置', status: 'normal' },
-  temperature: 35,
-  battery: 88
-})
 
-// 当前序列
-const currentSequence = reactive({
-  actions: [],
-  currentIndex: -1
-})
 
-// 保存的序列
-const savedSequences = ref([
-  {
-    id: 1,
-    name: '欢迎客人',
-    actions: [
-      { id: 1, name: '挥手问候' },
-      { id: 5, name: '双臂展开' }
-    ]
-  },
-  {
-    id: 2,
-    name: '服务流程',
-    actions: [
-      { id: 4, name: '指向动作' },
-      { id: 3, name: '拿取物品' },
-      { id: 2, name: '握手动作' }
-    ]
-  }
-])
-
-// 执行历史
-const executionHistory = ref([
-  { id: 1, name: '挥手问候', timestamp: Date.now() - 300000, status: 'completed', duration: 2.5 },
-  { id: 2, name: '握手动作', timestamp: Date.now() - 600000, status: 'completed', duration: 3.0 },
-  { id: 3, name: '拿取物品', timestamp: Date.now() - 900000, status: 'failed', duration: 2.1 }
-])
+// 执行历史 - 从API获取真实数据
+const executionHistory = ref([])
 
 // 当前API地址显示
 const currentApiAddress = computed(() => {
@@ -966,9 +826,13 @@ const handleSimulationModeChange = async () => {
   console.log('🔄 重新加载动作列表...')
   await loadActionLibrary()
 
+  // 重新获取执行历史数据以获取对应服务器的历史记录
+  console.log('🔄 重新加载执行历史...')
+  await fetchExecutionHistory()
+
   // 模式切换完成，不显示通知
   const statusText = robotApi.getCurrentModeLabel()
-  console.log(`✅ 已切换到${statusText}模式，动作列表已更新`)
+  console.log(`✅ 已切换到${statusText}模式，动作列表和执行历史已更新`)
 }
 
 
@@ -993,17 +857,7 @@ const getDifficultyName = (difficulty) => {
   return difficultyMap[difficulty] || difficulty
 }
 
-const getTemperatureStatus = (temp) => {
-  if (temp > 50) return 'error'
-  if (temp > 40) return 'warning'
-  return '' // 正常状态使用默认绿色
-}
 
-const getBatteryStatus = (battery) => {
-  if (battery < 20) return 'error'
-  if (battery < 50) return 'warning'
-  return '' // 正常状态使用默认绿色
-}
 
 const getStatusText = (status) => {
   const statusMap = {
@@ -1101,7 +955,7 @@ const executeAction = async (action) => {
 
 
 
-const completeExecution = (historyItem, duration, status = 'completed') => {
+const completeExecution = async (historyItem, duration, status = 'completed') => {
   executingActionId.value = null
   currentAction.value = null
   systemStatus.value = 'ready'
@@ -1112,6 +966,11 @@ const completeExecution = (historyItem, duration, status = 'completed') => {
   // 更新历史记录
   historyItem.status = status
   historyItem.duration = duration
+
+  // 动作执行完成后，刷新执行历史数据
+  setTimeout(async () => {
+    await fetchExecutionHistory()
+  }, 1000) // 延迟1秒后刷新，确保服务器端数据已更新
 }
 
 const pauseExecution = () => {
@@ -1139,6 +998,78 @@ const resetArms = () => {
   armStatus.leftArm.position = '待机位置'
   armStatus.rightArm.position = '待机位置'
   systemStatusText.value = '上肢已重置'
+}
+
+// 太极动作执行方法
+const executeTaijiAction = async () => {
+  if (isExecutingTaiji.value || systemStatus.value !== 'ready') return
+
+  isExecutingTaiji.value = true
+  systemStatus.value = 'executing'
+  systemStatusText.value = '正在执行太极动作'
+
+  console.log('🥋 开始执行太极动作')
+
+  // 添加到执行历史
+  const historyItem = {
+    id: Date.now(),
+    name: '太极',
+    timestamp: Date.now(),
+    status: 'executing',
+    duration: 0
+  }
+  executionHistory.value.unshift(historyItem)
+
+  try {
+    const result = await robotApi.executeTaijiAction({
+      duration: 30.0 // 太极动作通常需要较长时间
+    })
+
+    console.log('太极动作API响应:', result)
+
+    if (result && result.success !== false) {
+      console.log('✅ 太极动作执行成功')
+      completeExecution(historyItem, 30.0, 'completed')
+
+      // 显示成功通知
+      showExecutionNotification(
+        'success',
+        '执行成功',
+        '太极动作执行完成',
+        4000
+      )
+    } else {
+      throw new Error(result?.message || '太极动作执行失败')
+    }
+  } catch (error) {
+    console.error('❌ 太极动作执行异常:', error)
+    completeExecution(historyItem, 30.0, 'failed')
+
+    // 提供更友好的错误信息
+    let errorMessage = '太极动作执行失败'
+    if (error.message) {
+      errorMessage += `: ${error.message}`
+    }
+    if (error.response?.status === 404) {
+      errorMessage = '太极接口不存在，请检查服务器配置'
+    } else if (error.response?.status === 500) {
+      errorMessage = '服务器内部错误，请检查机器人状态'
+    } else if (error.code === 'ECONNABORTED') {
+      errorMessage = '请求超时，请检查网络连接'
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = `无法连接到${robotApi.getCurrentModeLabel()}服务器，请检查网络连接`
+    }
+
+    // 显示错误通知
+    showExecutionNotification(
+      'error',
+      '执行失败',
+      errorMessage,
+      6000
+    )
+  } finally {
+    isExecutingTaiji.value = false
+  }
 }
 
 const toggleSteps = (actionId) => {
@@ -1238,77 +1169,90 @@ const deleteAction = (actionId) => {
   }
 }
 
-const addToSequence = (action) => {
-  currentSequence.actions.push(action)
-}
 
-const removeFromSequence = (index) => {
-  currentSequence.actions.splice(index, 1)
-}
 
-const executeSequence = (sequence) => {
-  const targetSequence = sequence || currentSequence
-  if (targetSequence.actions.length === 0) return
+// 获取执行历史数据
+const fetchExecutionHistory = async () => {
+  try {
+    console.log('📜 获取执行历史数据...')
+    const response = await robotApi.getActionsHistory()
 
-  // 执行序列中的每个动作
-  let currentIndex = 0
-  const executeNext = () => {
-    if (currentIndex < targetSequence.actions.length) {
-      const action = targetSequence.actions[currentIndex]
-      executeAction(action)
-      currentIndex++
-      setTimeout(executeNext, action.duration * 1000 + 500)
+    if (response && response.data) {
+      console.log('📜 API返回的原始数据:', response.data)
+
+      // 处理API返回的数据格式 - 数据在 data.records 中
+      let historyData = []
+      if (response.data.records && Array.isArray(response.data.records)) {
+        historyData = response.data.records
+      } else if (Array.isArray(response.data)) {
+        historyData = response.data
+      }
+
+      console.log('📜 解析出的历史数据:', historyData)
+
+      // 格式化历史数据以匹配界面需求
+      executionHistory.value = historyData.map(item => {
+        // 确定状态
+        let status = 'completed'
+        if (item.success === false || item.status === 'failed') {
+          status = 'failed'
+        } else if (item.status === 'executing' || item.status === 'running') {
+          status = 'executing'
+        } else if (item.status === 'cancelled') {
+          status = 'cancelled'
+        }
+
+        return {
+          id: item.id || Date.now() + Math.random(),
+          name: item.action_name || item.name || '未知动作',
+          timestamp: item.start_time ? new Date(item.start_time).getTime() :
+                    (item.timestamp ? new Date(item.timestamp).getTime() : Date.now()),
+          status: status,
+          duration: item.duration || 0
+        }
+      })
+
+      console.log('✅ 执行历史数据获取成功:', executionHistory.value.length, '条记录')
+      console.log('✅ 格式化后的数据:', executionHistory.value)
+    } else {
+      console.log('📜 执行历史数据为空或格式不正确')
+      executionHistory.value = []
     }
-  }
-  executeNext()
-}
+  } catch (error) {
+    console.error('❌ 获取执行历史失败:', error)
 
-const clearSequence = () => {
-  currentSequence.actions = []
-  currentSequence.currentIndex = -1
-}
-
-const saveSequence = () => {
-  if (currentSequence.actions.length === 0) {
-    alert('序列为空，无法保存')
-    return
-  }
-
-  const name = prompt('请输入序列名称:')
-  if (name) {
-    const newSequence = {
-      id: Date.now(),
-      name: name,
-      actions: [...currentSequence.actions]
+    // 检查是否是404错误（接口未实现）
+    if (error.response && error.response.status === 404) {
+      console.warn('⚠️ 执行历史接口未实现，当前服务器不支持历史记录功能')
+      // 显示友好提示
+      showExecutionNotification(
+        'warning',
+        '历史记录功能不可用',
+        `当前${robotApi.getCurrentModeLabel()}服务器暂不支持执行历史功能`,
+        5000
+      )
     }
-    savedSequences.value.unshift(newSequence)
-  }
-}
 
-const loadSequence = (sequence) => {
-  currentSequence.actions = [...sequence.actions]
-  currentSequence.currentIndex = -1
-}
-
-const deleteSavedSequence = (sequenceId) => {
-  if (confirm('确定要删除这个序列吗？')) {
-    const index = savedSequences.value.findIndex(s => s.id === sequenceId)
-    if (index !== -1) {
-      savedSequences.value.splice(index, 1)
-    }
-  }
-}
-
-const repeatAction = (historyItem) => {
-  const action = actionLibrary.value.find(a => a.name === historyItem.name)
-  if (action) {
-    executeAction(action)
+    // 保持当前历史数据，不清空
   }
 }
 
 const clearHistory = () => {
   if (confirm('确定要清空执行历史吗？')) {
     executionHistory.value = []
+  }
+}
+
+// 测试API连接的辅助函数
+const testHistoryAPI = async () => {
+  try {
+    console.log('🧪 测试执行历史API连接...')
+    const response = await robotApi.getActionsHistory()
+    console.log('🧪 API测试响应:', response)
+    return response
+  } catch (error) {
+    console.error('🧪 API测试失败:', error)
+    return null
   }
 }
 
@@ -1694,31 +1638,7 @@ const saveVisionConfig = () => {
   )
 }
 
-const closeSequenceDialog = () => {
-  showSequenceDialog.value = false
-}
 
-const saveSequenceDialog = () => {
-  if (!sequenceForm.name.trim()) {
-    alert('请输入序列名称')
-    return
-  }
-
-  if (currentSequence.actions.length === 0) {
-    alert('请至少添加一个动作')
-    return
-  }
-
-  const newSequence = {
-    id: Date.now(),
-    name: sequenceForm.name,
-    actions: [...currentSequence.actions]
-  }
-  savedSequences.value.unshift(newSequence)
-
-  closeSequenceDialog()
-  clearSequence()
-}
 
 // 手动同步到最新片段
 const manualSyncToLive = () => {
@@ -1751,6 +1671,9 @@ onMounted(async () => {
   loadRobotModeFromStorage()
 
   await loadActionLibrary()
+
+  // 获取执行历史数据
+  await fetchExecutionHistory()
 
   // 自动连接视觉流
   console.log('自动连接视觉流...')
@@ -1942,7 +1865,36 @@ input:disabled + .toggle-slider:before {
   border-left-color: #f56565 !important;
 }
 
+/* 太极按钮特殊样式 */
+.btn-taiji {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.3)) !important;
+  color: #ffd700 !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  position: relative;
+  overflow: hidden;
+}
 
+.btn-taiji:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.4)) !important;
+  border-color: rgba(255, 215, 0, 0.8) !important;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+.btn-taiji:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-taiji .executing-indicator {
+  animation: spin 1s linear infinite;
+  margin-right: 4px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 /* 响应式设计 */
 @media (max-width: 768px) {

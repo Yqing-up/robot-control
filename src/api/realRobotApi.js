@@ -66,12 +66,42 @@ export const realRobotApi = {
     return realRobotHttp.get('/robot/actions');
   },
 
+  // 获取执行历史
+  getActionsHistory: () => {
+    console.log('🦾 获取真实机器人执行历史');
+    return realRobotHttp.get('/robot/actions/history');
+  },
+
   // 执行动作
   executeAction: (actionName, params = {}) => {
+    console.log('🦾 真实机器人执行动作 - 输入参数:', { actionName, params });
+
     const payload = {
       action_name: actionName,
-      duration: params.duration || 3.0,
-      file_path: params.filePath || null,
+      duration: params.duration || 3.0
+    };
+
+    // 只有当filePath存在且不为空时才添加file_path
+    if (params.filePath && params.filePath.trim() !== '') {
+      payload.file_path = params.filePath;
+    }
+
+    // 添加其他非空参数
+    Object.keys(params).forEach(key => {
+      if (key !== 'duration' && key !== 'filePath' &&
+          params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        payload[key] = params[key];
+      }
+    });
+
+    console.log('🦾 最终payload:', payload);
+    return realRobotHttp.post('/robot/execute', payload);
+  },
+
+  // 执行太极动作
+  executeTaijiAction: (params = {}) => {
+    const payload = {
+      duration: params.duration || 30.0,
       ...params
     };
 
@@ -82,8 +112,14 @@ export const realRobotApi = {
       }
     });
 
-    console.log('🦾 真实机器人执行动作:', actionName, payload);
-    return realRobotHttp.post('/robot/execute', payload);
+    console.log('🥋 真实机器人执行太极动作:', payload);
+
+    // 为太极动作设置更长的超时时间（35秒）
+    const config = {
+      timeout: 35000 // 35秒超时，比动作时间稍长
+    };
+
+    return realRobotHttp.post('/robot/taiji/execute', payload, config);
   },
 
   // 检查连接状态 - 使用动作列表接口来检测连接
