@@ -343,13 +343,13 @@ body::before {
       rgba(26, 26, 26, 0.95) 100%);
   border: 1px solid rgba(102, 102, 102, 0.4);
   border-radius: 16px;
-  padding: 20px 15px 30px 15px;
+  padding: 15px 15px 30px 15px;
   min-width: 160px;
   max-width: 370px;
   width: 500px;
-  min-height: 120px;
-  max-height: 150px;
-  height: 180px;
+  min-height: 122px;
+  max-height: 152px;
+  height: 182px;
   backdrop-filter: blur(20px);
   box-shadow:
       0 4px 16px rgba(0, 0, 0, 0.25),
@@ -395,19 +395,27 @@ body::before {
 
 .panel-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 18px;
     padding-bottom: 12px;
     border-bottom: 1px solid rgba(136, 136, 136, 0.3);
+    position: relative;
 }
 
 .panel-header h3 {
-  font-size: 1.25rem;
+  font-size: 1.8rem;
   margin: 0;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  text-align: center;
+  flex: 1;
+}
+
+.connection-status {
+    position: absolute;
+    right: 0;
 }
 
 .connection-status {
@@ -417,7 +425,6 @@ body::before {
     background: radial-gradient(circle, #0099ff, #007acc);
     animation: statusPulse 2s infinite;
     box-shadow: 0 0 15px rgba(0, 153, 255, 0.6);
-    position: relative;
 }
 
 .connection-status::after {
@@ -440,7 +447,7 @@ body::before {
 .panel-description {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
 }
 
 .system-intro {
@@ -452,7 +459,7 @@ body::before {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     border-left: 3px solid #00ffff;
-    text-align: left;
+    text-align: center;
     font-weight: 400;
     font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
@@ -464,7 +471,7 @@ body::before {
 
 .action-hint {
     color: #00ffff;
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 500;
     opacity: 0.8;
     transition: opacity 0.3s ease;
