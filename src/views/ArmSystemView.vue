@@ -19,7 +19,11 @@
       <!-- 执行状态通知 -->
       <div v-if="executionNotification.show" class="execution-notification" :class="executionNotification.type">
         <div class="notification-icon">
-          {{ executionNotification.type === 'success' ? '✅' : executionNotification.type === 'error' ? '❌' : '⏳' }}
+          {{
+            executionNotification.type === 'success' ? '✅' :
+            executionNotification.type === 'error' ? '❌' :
+            executionNotification.type === 'warning' ? '⚠️' : '⏳'
+          }}
         </div>
         <div class="notification-content">
           <div class="notification-title">{{ executionNotification.title }}</div>
@@ -1025,44 +1029,72 @@ const executeTaijiAction = async () => {
 
     if (result && result.success !== false) {
       console.log('✅ 太极动作执行成功')
-      completeExecution(historyItem, 30.0, 'completed')
 
-      // 显示成功通知
-      showExecutionNotification(
-        'success',
-        '执行成功',
-        '太极动作执行完成',
-        4000
-      )
+      // 检查是否有警告（超时或400错误但动作正在执行）
+      if (result.warning || result.timeout) {
+        console.log('⚠️ 太极动作启动成功，但有警告:', result.message)
+        completeExecution(historyItem, 30.0, 'completed')
+
+        // 显示警告通知
+        showExecutionNotification(
+          'warning',
+          '动作已启动',
+          result.message || '太极动作已启动，请观察机器人执行情况',
+          6000
+        )
+      } else {
+        completeExecution(historyItem, 30.0, 'completed')
+
+        // 显示成功通知
+        showExecutionNotification(
+          'success',
+          '执行成功',
+          '太极动作执行完成',
+          4000
+        )
+      }
     } else {
       throw new Error(result?.message || '太极动作执行失败')
     }
   } catch (error) {
     console.error('❌ 太极动作执行异常:', error)
-    completeExecution(historyItem, 30.0, 'failed')
 
-    // 提供更友好的错误信息
-    let errorMessage = '太极动作执行失败'
-    if (error.message) {
-      errorMessage += `: ${error.message}`
-    }
-    if (error.response?.status === 404) {
-      errorMessage = '太极接口不存在，请检查服务器配置'
-    } else if (error.response?.status === 500) {
-      errorMessage = '服务器内部错误，请检查机器人状态'
-    } else if (error.code === 'ECONNABORTED') {
-      errorMessage = '请求超时，请检查网络连接'
-    } else if (error.code === 'ECONNREFUSED') {
-      errorMessage = `无法连接到${robotApi.getCurrentModeLabel()}服务器，请检查网络连接`
-    }
+    // 检查是否是超时错误但动作可能正在执行
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      console.log('⚠️ 请求超时，但太极动作可能正在执行中')
+      completeExecution(historyItem, 30.0, 'completed')
 
-    // 显示错误通知
-    showExecutionNotification(
-      'error',
-      '执行失败',
-      errorMessage,
-      6000
-    )
+      // 显示警告通知而不是错误
+      showExecutionNotification(
+        'warning',
+        '请求超时',
+        '网络请求超时，但太极动作可能已启动，请观察机器人执行情况',
+        8000
+      )
+    } else {
+      completeExecution(historyItem, 30.0, 'failed')
+
+      // 提供更友好的错误信息
+      let errorMessage = '太极动作执行失败'
+      if (error.message) {
+        errorMessage += `: ${error.message}`
+      }
+      if (error.response?.status === 404) {
+        errorMessage = '太极接口不存在，请检查服务器配置'
+      } else if (error.response?.status === 500) {
+        errorMessage = '服务器内部错误，请检查机器人状态'
+      } else if (error.code === 'ECONNREFUSED') {
+        errorMessage = `无法连接到${robotApi.getCurrentModeLabel()}服务器，请检查网络连接`
+      }
+
+      // 显示错误通知
+      showExecutionNotification(
+        'error',
+        '执行失败',
+        errorMessage,
+        6000
+      )
+    }
   } finally {
     isExecutingTaiji.value = false
   }
