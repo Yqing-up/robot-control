@@ -64,7 +64,6 @@
                     <span class="status-text" :class="{ 'simulation-active': isSimulationMode }">
                       {{ isSimulationMode ? '仿真模式' : '真实机器人' }}
                     </span>
-                    <span class="api-address" v-if="!isSimulationMode">{{ currentApiAddress }}</span>
                   </div>
                 </div>
                 <div class="simulation-toggle">
@@ -692,10 +691,7 @@ const defaultActions = [
 // 执行历史 - 从API获取真实数据
 const executionHistory = ref([])
 
-// 当前API地址显示
-const currentApiAddress = computed(() => {
-  return robotApi.getCurrentServerAddress()
-})
+// API地址显示已移除
 
 // 是否正在执行动作
 const isExecutingAction = computed(() => {
