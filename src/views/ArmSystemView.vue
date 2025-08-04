@@ -64,7 +64,7 @@
                     <span class="status-text" :class="{ 'simulation-active': isSimulationMode }">
                       {{ isSimulationMode ? '仿真模式' : '真实机器人' }}
                     </span>
-                    <span class="api-address">{{ currentApiAddress }}</span>
+                    <span class="api-address" v-if="!isSimulationMode">{{ currentApiAddress }}</span>
                   </div>
                 </div>
                 <div class="simulation-toggle">
