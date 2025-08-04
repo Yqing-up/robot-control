@@ -408,9 +408,15 @@ body::before {
   margin: 0;
   font-weight: 700;
   letter-spacing: 0.8px;
-  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  font-family: 'Microsoft YaHei', sans-serif;
   text-align: center;
   flex: 1;
+  transition: font-family 0.3s ease;
+}
+
+/* 字体加载完成后的样式 */
+.font-loaded .panel-header h3 {
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .connection-status {
@@ -682,10 +688,16 @@ body::before {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 2px;
-  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  font-family: 'Microsoft YaHei', sans-serif;
   text-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
   user-select: none;
   pointer-events: none;
+  transition: font-family 0.3s ease;
+}
+
+/* 字体加载完成后的主标题样式 */
+.font-loaded .main-title {
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .top-buttons {

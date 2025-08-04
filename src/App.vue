@@ -8,7 +8,6 @@ import { RouterView } from 'vue-router'
 
 <style>
 /* 导入原始样式文件 */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 @import './assets/styles.css';
 @import './assets/leg-system.css';
 @import './assets/audio-system.css';
