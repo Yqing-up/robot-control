@@ -54,32 +54,88 @@
         </div>
         
         <div class="dialog-form">
+          <!-- 照片库选择区域 -->
           <div class="form-group">
             <label class="form-label">选择照片：</label>
-            <select v-model="selectedVideoIdx" class="form-select">
-              <option value="" disabled>请选择舌苔照片</option>
-              <option v-for="(video, idx) in videos" :key="idx" :value="idx">{{ video.name }}</option>
-            </select>
+            <div class="photo-selector">
+              <div class="photo-dropdown-container">
+                <div 
+                  class="photo-dropdown-trigger"
+                  @click="togglePhotoDropdown"
+                  :class="{ 'active': isPhotoDropdownOpen }"
+                >
+                  <div v-if="selectedPhoto" class="selected-photo-display">
+                    <img :src="selectedPhoto.url" :alt="selectedPhoto.filename" class="selected-photo-thumbnail" />
+                    <span class="selected-photo-name">{{ selectedPhoto.filename }}</span>
+                    <span class="selected-photo-date">{{ new Date(selectedPhoto.date).toLocaleString() }}</span>
+                  </div>
+                  <div v-else class="placeholder-text">
+                    请选择一张舌苔照片
+                  </div>
+                  <span class="dropdown-arrow">▼</span>
+                </div>
+                
+                <div v-if="isPhotoDropdownOpen" class="photo-dropdown">
+                  <div v-if="photoLoading" class="photo-loading">
+                    <div class="loading-spinner"></div>
+                    <span>正在加载照片...</span>
+                  </div>
+                  
+                  <div v-else-if="photoData.length === 0" class="photo-empty">
+                    <span>暂无照片数据</span>
+                  </div>
+                  
+                  <div v-else class="photo-dropdown-list">
+                    <div 
+                      v-for="(photo, index) in sortedPhotoData" 
+                      :key="index"
+                      class="photo-dropdown-item"
+                      :class="{ 'selected': selectedPhoto && selectedPhoto.url === photo.url }"
+                      @click="selectPhoto(photo)"
+                    >
+                      <img :src="photo.url" :alt="photo.filename" class="photo-dropdown-thumbnail" />
+                      <div class="photo-dropdown-info">
+                        <span class="photo-dropdown-name">{{ photo.filename }}</span>
+                        <span class="photo-dropdown-date">{{ new Date(photo.date).toLocaleString() }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+          
           <div class="form-group">
             <label class="form-label">提示词：</label>
             <input v-model="prompt" placeholder="如：请分析舌苔健康状况" class="form-input" />
           </div>
-          <button class="btn-submit" @click="analyze" :disabled="selectedVideoIdx===null || !prompt">
-            提交检测
+          
+          <button 
+            class="btn-submit" 
+            @click="analyze" 
+            :disabled="!selectedPhoto || !prompt || analysisLoading"
+          >
+            {{ analysisLoading ? '检测中...' : '提交检测' }}
           </button>
+          
           <div v-if="result" class="analysis-result">
             <h4 class="result-title">检测结果：</h4>
             <div class="result-content">{{ result }}</div>
           </div>
+          
           <div class="detection-results">
             <h4 class="result-title">检测结果：</h4>
-            <textarea v-model="detectionOutput" class="detection-output" placeholder="舌苔检测开始...
+            <textarea 
+              v-model="detectionOutput" 
+              class="detection-output" 
+              placeholder="舌苔检测开始...
 检测到舌苔颜色：淡红色
 舌苔厚度：适中
 舌苔分布：均匀
 舌苔质地：正常
-建议：继续保持良好的口腔卫生习惯" readonly></textarea>
+建议：继续保持良好的口腔卫生习惯" 
+              readonly
+            ></textarea>
           </div>
         </div>
       </div>
@@ -87,8 +143,16 @@
   </div>
 </template>
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { cameraApi } from '../api/cameraApi';
+import { 
+  getRecentPhotoData, 
+  analyzeTongueData, 
+  validateTongueInput, 
+  formatPhotoDataForDisplay,
+  extractPhotoUrls,
+  formatTongueAnalysisResult
+} from '../api/tongueAnalysisApi';
 
 const {
   getRawVideoFeed,
@@ -106,6 +170,14 @@ const selectedVideoIdx = ref(null);
 const prompt = ref('');
 const result = ref('');
 const detectionOutput = ref('');
+
+// 照片库相关
+const photoData = ref([]);
+const selectedPhoto = ref(null); // 改为单选
+const timeRange = ref(30); // 默认30分钟
+const photoLoading = ref(false);
+const analysisLoading = ref(false);
+const isPhotoDropdownOpen = ref(false);
 
 // 暴露给模板使用的函数
 const getVideoFeed = () => {
@@ -127,11 +199,22 @@ const isTimerPhotoActive = ref(false);
 const timerCountdown = ref(0);
 let countdownTimer = null;
 
+// 计算属性：按时间倒序排列的照片数据
+const sortedPhotoData = computed(() => {
+  return [...photoData.value].sort((a, b) => {
+    const dateA = new Date(a.date || 0);
+    const dateB = new Date(b.date || 0);
+    return dateB - dateA; // 倒序排列，最新的在前
+  });
+});
+
 watch(() => props.visible, v => {
   if (!v) {
     selectedVideoIdx.value = null;
     prompt.value = '';
     result.value = '';
+    selectedPhoto.value = null;
+    isPhotoDropdownOpen.value = false;
   }
 });
 
@@ -139,6 +222,21 @@ watch(() => props.visible, v => {
 onMounted(() => {
   initializeCamera();
   loadPhotoList();
+  loadPhotoData();
+  
+  // 添加点击外部关闭下拉框的事件监听
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  // 清理定时器（如果有的话）
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  
+  // 移除事件监听
+  document.removeEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
@@ -251,17 +349,94 @@ async function executePhoto() {
   }
 }
 
-function analyze() {
-  // mock大模型返回
-  result.value = `检测结果：针对"${prompt.value}"，舌苔健康状况良好。`;
-  
-  // 模拟检测结果输出
-  detectionOutput.value = `舌苔检测开始...
-检测到舌苔颜色：淡红色
-舌苔厚度：适中
-舌苔分布：均匀
-舌苔质地：正常
-建议：继续保持良好的口腔卫生习惯`;
+// 加载照片库数据
+async function loadPhotoData() {
+  try {
+    photoLoading.value = true;
+    console.log('📥 开始加载照片库数据...');
+    
+    const result = await cameraApi.getPhotoList();
+    
+    if (result && result.data) {
+      // 适配返回数据结构
+      photoData.value = Array.isArray(result.data.photos) ? result.data.photos : result.data;
+      console.log('✅ 照片库数据加载成功:', photoData.value.length, '张照片');
+    } else {
+      console.error('❌ 照片库数据加载失败: 返回数据格式异常');
+      photoData.value = [];
+    }
+  } catch (error) {
+    console.error('❌ 加载照片库数据时出错:', error);
+    photoData.value = [];
+  } finally {
+    photoLoading.value = false;
+  }
+}
+
+// 点击外部关闭下拉框
+function handleClickOutside(event) {
+  const dropdownContainer = event.target.closest('.photo-dropdown-container');
+  if (!dropdownContainer && isPhotoDropdownOpen.value) {
+    isPhotoDropdownOpen.value = false;
+  }
+}
+
+// 切换照片下拉框
+function togglePhotoDropdown() {
+  isPhotoDropdownOpen.value = !isPhotoDropdownOpen.value;
+}
+
+// 选择照片
+function selectPhoto(photo) {
+  selectedPhoto.value = photo;
+  isPhotoDropdownOpen.value = false; // 选择后关闭下拉框
+  console.log('✅ 选择照片:', photo.filename);
+}
+
+// 获取选中照片的URL列表
+function getSelectedPhotoUrls() {
+  return selectedPhoto.value ? [selectedPhoto.value.url] : [];
+}
+
+// 舌苔检测分析
+async function analyze() {
+  try {
+    // 验证输入
+    const validation = validateTongueInput(prompt.value, selectedPhoto.value ? [selectedPhoto.value] : []);
+    if (!validation.isValid) {
+      alert(validation.errors.join('\n'));
+      return;
+    }
+
+    analysisLoading.value = true;
+    console.log('🎯 开始舌苔检测分析...');
+    console.log('📝 提示词:', prompt.value);
+    console.log('📷 选中照片:', selectedPhoto.value?.filename);
+
+    // 获取选中照片的URL列表
+    const photoUrls = getSelectedPhotoUrls();
+    console.log('🔗 照片URLs:', photoUrls);
+
+    // 调用舌苔检测API
+    const result = await analyzeTongueData(photoUrls, prompt.value);
+    
+    if (result.success) {
+      console.log('✅ 舌苔检测成功');
+      const formattedResult = formatTongueAnalysisResult(result.data);
+      detectionOutput.value = formattedResult;
+      result.value = formattedResult;
+    } else {
+      console.error('❌ 舌苔检测失败:', result.message);
+      detectionOutput.value = `检测失败: ${result.message}`;
+      result.value = `检测失败: ${result.message}`;
+    }
+  } catch (error) {
+    console.error('❌ 舌苔检测过程中出错:', error);
+    detectionOutput.value = `检测出错: ${error.message}`;
+    result.value = `检测出错: ${error.message}`;
+  } finally {
+    analysisLoading.value = false;
+  }
 }
 </script>
 <style scoped>
@@ -733,6 +908,309 @@ function analyze() {
   border-color: #0099ff;
   box-shadow: 0 0 10px rgba(0, 153, 255, 0.2);
 }
+
+/* 照片选择器样式 */
+.photo-selector {
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(0, 153, 255, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.photo-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.time-range-select {
+  flex: 1;
+  max-width: 150px;
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  border: 1px solid rgba(0, 153, 255, 0.4);
+  border-radius: 6px;
+  background: rgba(0, 153, 255, 0.1);
+  color: #4da6ff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: rgba(0, 153, 255, 0.2);
+  border-color: rgba(0, 153, 255, 0.6);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.photo-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #42a5f5;
+  font-size: 1rem;
+  gap: 16px;
+}
+
+.photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #888;
+  font-size: 1rem;
+  border: 2px dashed rgba(0, 153, 255, 0.2);
+  border-radius: 8px;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(16, 28, 44, 0.3);
+  border-radius: 8px;
+}
+
+.photo-item {
+  position: relative;
+  border: 2px solid rgba(0, 153, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(26, 26, 26, 0.8);
+}
+
+.photo-item:hover {
+  border-color: rgba(0, 153, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 153, 255, 0.2);
+}
+
+.photo-item.selected {
+  border-color: #00ccff;
+  box-shadow: 0 0 15px rgba(0, 204, 255, 0.4);
+}
+
+.photo-item.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: #00ccff;
+  color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.photo-thumbnail {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-info {
+  padding: 8px;
+  background: rgba(16, 28, 44, 0.8);
+}
+
+.photo-name {
+  display: block;
+  font-size: 0.75rem;
+  color: #e0e0e0;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.photo-date {
+  display: block;
+  font-size: 0.7rem;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-photos {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 153, 255, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #00ccff;
+}
+
+.selected-count {
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* 照片下拉框样式 */
+.photo-dropdown-container {
+  position: relative;
+}
+
+.photo-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(16, 28, 44, 0.8);
+  border: 1px solid rgba(0, 153, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 60px;
+}
+
+.photo-dropdown-trigger:hover {
+  border-color: rgba(0, 153, 255, 0.5);
+  background: rgba(16, 28, 44, 0.9);
+}
+
+.photo-dropdown-trigger.active {
+  border-color: #00ccff;
+  box-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
+}
+
+.selected-photo-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.selected-photo-thumbnail {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 153, 255, 0.3);
+}
+
+.selected-photo-name {
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.selected-photo-date {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.placeholder-text {
+  color: #888;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.dropdown-arrow {
+  color: #4da6ff;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.photo-dropdown-trigger.active .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.photo-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(26, 26, 26, 0.98);
+  border: 1px solid rgba(0, 153, 255, 0.3);
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.photo-dropdown-list {
+  padding: 8px;
+}
+
+.photo-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 4px;
+}
+
+.photo-dropdown-item:hover {
+  background: rgba(0, 153, 255, 0.1);
+  border: 1px solid rgba(0, 153, 255, 0.2);
+}
+
+.photo-dropdown-item.selected {
+  background: rgba(0, 153, 255, 0.2);
+  border: 1px solid rgba(0, 153, 255, 0.4);
+}
+
+.photo-dropdown-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 153, 255, 0.3);
+}
+
+.photo-dropdown-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.photo-dropdown-name {
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-dropdown-date {
+  color: #888;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .dialog-box.large {
   min-width: 900px;
   width: 85vw;
@@ -792,6 +1270,39 @@ function analyze() {
   
   .photo-controls {
     flex-direction: column;
+  }
+  
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    max-height: 200px;
+  }
+  
+  .photo-selector-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .time-range-select {
+    max-width: none;
+  }
+  
+  .photo-dropdown-trigger {
+    min-height: 50px;
+  }
+  
+  .selected-photo-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .photo-dropdown-item {
+    padding: 8px;
+  }
+  
+  .photo-dropdown-thumbnail {
+    width: 40px;
+    height: 40px;
   }
 }
 </style> 
