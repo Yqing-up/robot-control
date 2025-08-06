@@ -9,7 +9,6 @@
       <div class="header-controls">
         <div class="header-buttons">
           <button class="btn btn-small voice-recognition-btn" @click="openVoiceRecognition">智能语音识别</button>
-          <button class="btn btn-small" @click="stopAllVoice">停止播放</button>
           <button class="btn btn-small" @click="exportVoiceData">导出语音库</button>
         </div>
       </div>
@@ -750,12 +749,7 @@ const stopVoice = () => {
   }
 }
 
-const stopAllVoice = () => {
-  console.log('🛑 停止所有语音播放')
-  stopVoice()
-  const audios = document.querySelectorAll('audio')
-  audios.forEach(audio => audio.pause())
-}
+
 
 
 
@@ -984,7 +978,10 @@ onUnmounted(() => {
     currentAbortController.value.abort()
   }
 
-  stopAllVoice()
+  // 停止所有语音播放
+  stopVoice()
+  const audios = document.querySelectorAll('audio')
+  audios.forEach(audio => audio.pause())
 })
 </script>
 

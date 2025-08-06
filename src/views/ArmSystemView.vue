@@ -8,8 +8,6 @@
       </div>
       <div class="header-controls">
         <div class="header-buttons">
-          <button class="btn btn-small header-action-btn" @click="emergencyStop">紧急停止</button>
-          <button class="btn btn-small header-action-btn" @click="resetArms">重置上肢</button>
           <button class="btn btn-small header-action-btn" @click="exportActionData">导出数据</button>
         </div>
       </div>

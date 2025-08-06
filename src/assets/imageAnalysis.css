@@ -1142,15 +1142,20 @@
   }
 
   .page-header {
-    flex-direction: column;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     gap: 6px;
-    text-align: center;
     padding: 6px 12px; /* 减少内边距 */
     margin-bottom: 8px; /* 减少底部外边距 */
   }
 
   .nav-section {
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
   }
 
   .page-title {
@@ -1257,18 +1262,38 @@
     padding: 8px;
   }
 
+  /* 头部响应式优化 */
   .page-header {
-    padding: 6px 8px;
+    padding: 6px 8px !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+  }
+
+  .nav-section {
+    gap: 4px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
   }
 
   .page-title {
-    font-size: 1rem;
-    letter-spacing: 1px;
+    font-size: clamp(0.8rem, 2vw, 1.1rem) !important;
+    letter-spacing: clamp(0.5px, 0.1vw, 1px) !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    max-width: clamp(120px, 30vw, 200px) !important;
   }
 
   .btn-back {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px) !important;
+    font-size: clamp(0.4rem, 0.7vw, 0.5rem) !important;
+    max-width: clamp(50px, 12vw, 70px) !important;
+    white-space: nowrap !important;
   }
 
   .main-container {

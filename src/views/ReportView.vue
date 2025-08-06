@@ -428,7 +428,7 @@ const circleStyle = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 20%, rgba(0, 153, 255, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(0, 153, 255, 0.02) 0%, transparent 50%),
     linear-gradient(45deg, transparent 49%, rgba(0, 153, 255, 0.01) 50%, transparent 51%);
@@ -452,7 +452,7 @@ const circleStyle = computed(() => {
   border: 2px solid rgba(0, 153, 255, 0.3);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
@@ -483,7 +483,7 @@ const circleStyle = computed(() => {
   gap: 8px;
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   border-radius: 12px;
-  box-shadow: 
+  box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   padding: 4px;
@@ -539,7 +539,7 @@ const circleStyle = computed(() => {
   background: linear-gradient(135deg, rgba(0, 153, 255, 0.2), rgba(77, 166, 255, 0.3));
   color: #00ccff;
   border: 1px solid rgba(0, 153, 255, 0.5);
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 153, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   text-shadow: 0 0 10px rgba(0, 153, 255, 0.5);
@@ -555,7 +555,7 @@ const circleStyle = computed(() => {
 .card {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   border-radius: 16px;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   padding: 32px;
@@ -566,7 +566,7 @@ const circleStyle = computed(() => {
 
 .card:hover {
   border-color: rgba(0, 153, 255, 0.5);
-  box-shadow: 
+  box-shadow:
     0 12px 40px rgba(0, 153, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -610,7 +610,7 @@ const circleStyle = computed(() => {
   align-items: center;
   justify-content: center;
   border: 2px solid rgba(0, 153, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -675,7 +675,7 @@ const circleStyle = computed(() => {
   justify-content: center;
   border-radius: 50%;
   border: 2px solid rgba(0, 153, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -825,7 +825,7 @@ const circleStyle = computed(() => {
   padding: 24px;
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   border: 2px solid rgba(0, 153, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
@@ -834,7 +834,7 @@ const circleStyle = computed(() => {
 
 .detail-block:hover {
   border-color: rgba(0, 153, 255, 0.5);
-  box-shadow: 
+  box-shadow:
     0 8px 24px rgba(0, 153, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -1013,14 +1013,14 @@ const circleStyle = computed(() => {
   font-weight: 600;
   transition: all 0.3s ease;
   border: 1px solid rgba(0, 153, 255, 0.2);
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 .trend-bar:hover {
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(0, 153, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -1053,6 +1053,26 @@ const circleStyle = computed(() => {
     padding: 18px;
   }
 }
+@media (max-width: 768px) {
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .header-buttons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .header-buttons .btn {
+    width: 100%;
+  }
+}
+
 @media (max-width: 600px) {
   .report-main {
     padding: 0 4px;
@@ -1061,5 +1081,19 @@ const circleStyle = computed(() => {
     width: 90px;
     height: 90px;
   }
+
+  .btn {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
 }
-</style> 
+
+@media (max-width: 480px) {
+  .btn {
+    min-height: 52px;
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+}
+</style>

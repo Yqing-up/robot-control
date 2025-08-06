@@ -9,7 +9,6 @@
       <div class="header-controls">
         <div class="header-buttons">
           <button class="btn" @click="exportAudioData">导出音频数据</button>
-          <button class="btn" @click="resetSystem">重置系统</button>
         </div>
       </div>
     </header>
@@ -2049,5 +2048,87 @@ onUnmounted(() => {
 .history-content {
     min-height: 530px !important;
     max-height: 530px !important;
+}
+
+/* 听觉系统响应式设计补充 */
+@media (max-width: 768px) {
+  .header-buttons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .header-buttons .btn {
+    min-height: 44px;
+    min-width: 44px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .recognition-banner {
+    padding: 12px;
+    margin: 8px 0;
+  }
+
+  .debug-info {
+    margin-top: 8px;
+  }
+
+  .debug-content {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  /* 录音控制按钮优化 */
+  .main-controls .btn {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+    touch-action: manipulation;
+  }
+
+  /* 面板内按钮优化 */
+  .panel-controls .btn,
+  .viz-controls .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-buttons .btn {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+
+  .main-controls {
+    padding: 16px 12px;
+  }
+
+  .main-controls .btn {
+    min-height: 52px;
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+
+  .recognition-banner {
+    padding: 10px;
+    margin: 6px 0;
+  }
+
+  .banner-text {
+    font-size: 14px;
+  }
+
+  .debug-content {
+    font-size: 11px;
+  }
 }
 </style>

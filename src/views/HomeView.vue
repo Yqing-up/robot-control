@@ -282,74 +282,83 @@ body::before {
   overflow: visible;
 }
 
-/* 新的flex布局 */
+/* 恢复原始flex布局 */
 .robot-section {
     width: 100%;
     min-height: 100vh;
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 0;
     position: relative;
     background: transparent;
+    padding: 0 120px;
+    box-sizing: border-box;
 }
+
 .side-panel {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
-  gap: 12px;
-  flex: 1 1 0;
-  min-width: 260px;
+  gap: clamp(20px, 3vh, 40px);
+  flex: 0 0 auto;
+  width: clamp(180px, 15vw, 280px);
 }
+
 .left-panel {
   align-items: flex-end;
+  position: absolute;
+  left: clamp(20px, 4vw, 60px);
+  top: 50%;
+  transform: translateY(-50%);
 }
+
 .right-panel {
   align-items: flex-start;
+  position: absolute;
+  right: clamp(50px, 8vw, 120px);
+  top: 50%;
+  transform: translateY(-50%);
 }
 .robot-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 600px;   /* 更大尺寸，适应大屏 */
-  height: 650px;  /* 更大尺寸，适应大屏 */
-  margin: 0px 48px;
-  flex-shrink: 0;
-  transition: width 0.3s, height 0.3s;
+  width: clamp(500px, 50vw, 1000px);
+  height: clamp(600px, 60vh, 1100px);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  transition: all 0.3s ease;
 }
 
 .robot-image {
     width: 100%;
     height: 100%;
-    max-width: 600px;
-    max-height: 650px;
     object-fit: contain;
     filter:
         drop-shadow(0 0 40px rgba(0, 153, 255, 0.4))
         drop-shadow(0 0 80px rgba(77, 166, 255, 0.2))
         drop-shadow(0 0 120px rgba(255, 255, 255, 0.1));
     z-index: 10;
-    transition: filter 0.3s ease, max-width 0.3s, max-height 0.3s;
+    transition: filter 0.3s ease;
 }
 
 /* 控制面板样式 */
 .control-panel {
-  margin: 8px;
+  margin: clamp(4px, 1vh, 12px);
   background: linear-gradient(135deg,
       rgba(26, 26, 26, 0.95) 0%,
       rgba(45, 45, 45, 0.9) 50%,
       rgba(26, 26, 26, 0.95) 100%);
   border: 1px solid rgba(102, 102, 102, 0.4);
-  border-radius: 16px;
-  padding: 15px 15px 30px 15px;
-  min-width: 160px;
-  max-width: 370px;
-  width: 500px;
-  min-height: 122px;
-  max-height: 152px;
-  height: 182px;
+  border-radius: clamp(12px, 1.5vw, 20px);
+  padding: clamp(10px, 1.5vw, 20px) clamp(8px, 1.2vw, 16px) clamp(15px, 2vw, 30px) clamp(8px, 1.2vw, 16px);
+  width: clamp(180px, 22vw, 350px);
+  min-height: clamp(100px, 12vh, 150px);
+  max-height: clamp(140px, 18vh, 200px);
   backdrop-filter: blur(20px);
   box-shadow:
       0 4px 16px rgba(0, 0, 0, 0.25),
@@ -363,6 +372,7 @@ body::before {
   flex-direction: column;
   justify-content: space-between;
   align-items: stretch;
+  position: relative;
 }
 
 .control-panel::before {
@@ -397,21 +407,13 @@ body::before {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 18px;
-    padding-bottom: 12px;
+    margin-bottom: clamp(8px, 1.5vh, 18px);
+    padding-bottom: clamp(6px, 1vh, 12px);
     border-bottom: 1px solid rgba(136, 136, 136, 0.3);
     position: relative;
 }
 
-.panel-header h3 {
-  font-size: 1.8rem;
-  margin: 0;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
-  text-align: center;
-  flex: 1;
-}
+
 
 .connection-status {
     position: absolute;
@@ -419,8 +421,8 @@ body::before {
 }
 
 .connection-status {
-    width: 12px;
-    height: 12px;
+    width: clamp(8px, 1.2vw, 14px);
+    height: clamp(8px, 1.2vw, 14px);
     border-radius: 50%;
     background: radial-gradient(circle, #0099ff, #007acc);
     animation: statusPulse 2s infinite;
@@ -447,35 +449,12 @@ body::before {
 .panel-description {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-}
-
-.system-intro {
-    color: #e0e0e0;
-    font-size: 1rem;
-    line-height: 1.4;
-    margin: 0;
-    padding: 4px 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    border-left: 3px solid #00ffff;
-    text-align: center;
-    font-weight: 400;
-    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+    gap: clamp(4px, 0.8vh, 10px);
 }
 
 .panel-action {
-    margin-top: 4px;
+    margin-top: clamp(2px, 0.5vh, 6px);
     text-align: center;
-}
-
-.action-hint {
-    color: #00ffff;
-    font-size: 0.85rem;
-    font-weight: 500;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .ears-panel {
@@ -589,37 +568,38 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* 控制面板位置 */
-/* 左侧面板组 */
-.brain-panel {
-    top: 18%;
-    left: calc(51vw - 650px);
+/* 控制面板响应式字体 */
+.panel-header h3 {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  text-align: center;
+  flex: 1;
 }
 
-.eyes-panel {
-    top: 43%;
-    left: calc(51vw - 650px);
+.system-intro {
+    color: #e0e0e0;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    line-height: 1.4;
+    margin: 0;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid #00ffff;
+    text-align: center;
+    font-weight: 400;
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
-.arms-panel {
-    top: 68%;
-    left: calc(51vw - 650px);
-}
-
-/* 右侧面板组 */
-.ears-panel {
-    top: 18%;
-    right: calc(49vw - 650px);
-}
-
-.mouth-panel {
-    top: 43%;
-    right: calc(49vw - 650px);
-}
-
-.legs-panel {
-    top: 68%;
-    right: calc(49vw - 650px);
+.action-hint {
+    color: #00ffff;
+    font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+    font-weight: 500;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 /* 动画效果 */
@@ -675,13 +655,13 @@ body::before {
   top: 18px;
   left: 32px;
   z-index: 1200;
-  font-size: 2rem;
+  font-size: clamp(1rem, 4vw, 2rem);
   font-weight: 700;
   background: linear-gradient(135deg, #00ccff, #0099ff, #ffffff);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.5vw, 2px);
   font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
   text-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
   user-select: none;
@@ -699,20 +679,20 @@ body::before {
 
 .health-report-btn,
 .management-btn {
-  font-size: 1.2rem;
+  font-size: clamp(0.8rem, 2.5vw, 1.2rem);
   font-weight: 700;
   background: linear-gradient(135deg, #00ccff, #0099ff, #ffffff);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.3vw, 2px);
   font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
   text-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
   user-select: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px);
+  border-radius: clamp(4px, 1vw, 8px);
   border: 1px solid transparent;
   color: #fff;
 }
@@ -729,75 +709,356 @@ body::before {
 
 @media (max-width: 1440px) {
   .robot-container {
-    width: 480px;
-    height: 520px;
+    width: 800px;
+    height: 900px;
   }
   .robot-image {
-    max-width: 480px;
-    max-height: 520px;
-    }
+    max-width: 800px;
+    max-height: 900px;
+  }
 }
 
 @media (max-width: 1024px) {
-    .robot-container {
-    width: 350px;
-    height: 380px;
-    margin: 0 12px;
-    }
-    .robot-image {
-    max-width: 350px;
-    max-height: 380px;
-    }
-}
-
-@media (max-width: 768px) {
   .robot-container {
-    width: 90vw;
-    height: 40vw;
-    min-width: 180px;
-    min-height: 180px;
-    max-width: 320px;
-    max-height: 320px;
-    margin: 0 2vw;
+    width: 600px;
+    height: 650px;
   }
   .robot-image {
-    max-width: 90vw;
-    max-height: 40vw;
-    min-width: 120px;
-    min-height: 120px;
+    max-width: 600px;
+    max-height: 650px;
   }
+}
+
+/* 大屏幕优化 (1200px以上) */
+@media (min-width: 1200px) {
+  .robot-section {
+    padding: 0 150px;
+  }
+
+  .side-panel {
+    gap: clamp(25px, 4vh, 50px);
+  }
+
+
+}
+
+/* 中等屏幕适配 (768px-1200px) */
+@media (max-width: 1200px) {
+  .robot-section {
+    padding: 0 80px;
+  }
+
+  .side-panel {
+    min-width: clamp(160px, 18vw, 250px);
+    max-width: clamp(220px, 22vw, 320px);
+  }
+
+  .robot-container {
+    width: clamp(450px, 45vw, 800px);
+    height: clamp(500px, 50vh, 900px);
+  }
+}
+
+/* 平板设备适配 (768px以下) - 垂直布局 */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .robot-section {
+    flex-direction: row;
+    padding: 10px 5px;
+    min-height: 90vh;
+    gap: 5px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .side-panel {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: clamp(80px, 22vw, 120px) !important;
+    min-width: auto !important;
+    max-width: none !important;
+    gap: clamp(5px, 1vh, 10px);
+    flex-wrap: nowrap;
+  }
+
+  .left-panel {
+    order: 1;
+    align-items: flex-end !important;
+  }
+
+  .right-panel {
+    order: 3;
+    align-items: flex-start !important;
+  }
+
+  .robot-container {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    order: 2;
+    width: clamp(200px, 45vw, 280px);
+    height: clamp(280px, 50vh, 400px);
+    margin: 0 auto;
+    flex: 0 0 auto;
+  }
+
+  .control-panel {
+    width: clamp(140px, 20vw, 220px);
+    min-height: clamp(80px, 10vh, 120px);
+    max-height: clamp(110px, 14vh, 150px);
+    margin: clamp(3px, 0.8vh, 8px);
+    padding: clamp(6px, 1.2vw, 12px) clamp(5px, 1vw, 10px) clamp(10px, 1.5vw, 20px) clamp(5px, 1vw, 10px);
+  }
+
   .main-title {
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
     top: 10px;
     left: 12px;
   }
+
   .top-buttons {
     top: 10px;
     right: 12px;
     gap: 8px;
   }
+
   .health-report-btn,
   .management-btn {
-    font-size: 1rem;
-    padding: 6px 12px;
+    font-size: clamp(0.8rem, 2vw, 1.1rem);
+    padding: clamp(4px, 1vw, 8px) clamp(8px, 1.5vw, 14px);
   }
 }
 
+/* 小屏幕设备适配 (480px以下) - 垂直布局 */
 @media (max-width: 480px) {
-    .robot-container {
-    width: 98vw;
-    height: 38vw;
-    min-width: 120px;
-    min-height: 120px;
-    max-width: 200px;
-    max-height: 200px;
-    margin: 0 1vw;
-    }
-    .robot-image {
-    max-width: 98vw;
-    max-height: 38vw;
-    min-width: 80px;
-    min-height: 80px;
-    }
+  .container {
+    padding: 8px;
+  }
+
+  .robot-section {
+    flex-direction: row;
+    padding: 8px 3px;
+    min-height: 85vh;
+    gap: 3px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .side-panel {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: clamp(65px, 20vw, 90px) !important;
+    min-width: auto !important;
+    max-width: none !important;
+    gap: clamp(3px, 0.8vh, 8px);
+    flex-wrap: nowrap;
+  }
+
+  .left-panel {
+    order: 1;
+    align-items: flex-end !important;
+  }
+
+  .right-panel {
+    order: 3;
+    align-items: flex-start !important;
+  }
+
+  .robot-container {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    order: 2;
+    width: clamp(160px, 40vw, 220px);
+    height: clamp(220px, 45vh, 300px);
+    margin: 0 auto;
+    flex: 0 0 auto;
+  }
+
+  .control-panel {
+    width: clamp(70px, 20vw, 100px) !important;
+    height: clamp(39px, 11.2vw, 56px) !important;
+    min-width: auto !important;
+    max-width: none !important;
+    min-height: auto !important;
+    max-height: none !important;
+    margin: clamp(1px, 0.5vh, 3px) !important;
+    padding: clamp(3px, 0.8vw, 6px) clamp(2px, 0.5vw, 4px) clamp(6px, 1vw, 10px) clamp(2px, 0.5vw, 4px);
+    flex: 0 0 auto;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    right: auto !important;
+  }
+
+  .panel-header h3 {
+    font-size: clamp(0.7rem, 3vw, 1rem) !important;
+    margin-bottom: clamp(2px, 0.5vh, 4px) !important;
+  }
+
+  .system-intro {
+    font-size: clamp(0.5rem, 2.2vw, 0.7rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  .action-hint {
+    font-size: clamp(0.45rem, 2vw, 0.65rem) !important;
+  }
+
+  .panel-header h3 {
+    font-size: clamp(0.9rem, 2.8vw, 1.1rem);
+    margin-bottom: clamp(3px, 0.8vh, 6px);
+  }
+
+  .system-intro {
+    font-size: clamp(0.65rem, 2.2vw, 0.8rem);
+    line-height: 1.2;
+    padding: clamp(1px, 0.3vw, 3px) clamp(2px, 0.5vw, 4px);
+  }
+
+  .action-hint {
+    font-size: clamp(0.55rem, 1.8vw, 0.7rem);
+  }
+
+  .connection-status {
+    width: clamp(5px, 1vw, 8px);
+    height: clamp(5px, 1vw, 8px);
+  }
+
+  .main-title {
+    font-size: clamp(0.9rem, 2.2vw, 1.1rem);
+    top: 8px;
+    left: 8px;
+  }
+
+  .top-buttons {
+    top: 8px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .health-report-btn,
+  .management-btn {
+    font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+    padding: clamp(3px, 0.8vw, 6px) clamp(6px, 1.2vw, 10px);
+  }
+}
+
+/* 超小屏幕适配 (360px以下) - 垂直布局 */
+@media (max-width: 360px) {
+  .container {
+    padding: 5px;
+  }
+
+  .robot-section {
+    flex-direction: row;
+    padding: 5px 2px;
+    min-height: 80vh;
+    gap: 2px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .side-panel {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: clamp(50px, 22vw, 70px) !important;
+    min-width: auto !important;
+    max-width: none !important;
+    gap: clamp(2px, 0.6vh, 6px);
+    flex-wrap: nowrap;
+  }
+
+  .left-panel {
+    order: 1;
+    align-items: flex-end !important;
+  }
+
+  .right-panel {
+    order: 3;
+    align-items: flex-start !important;
+  }
+
+  .robot-container {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    order: 2;
+    width: clamp(120px, 45vw, 160px);
+    height: clamp(160px, 50vh, 220px);
+    margin: 0 auto;
+    flex: 0 0 auto;
+  }
+
+  .control-panel {
+    width: clamp(45px, 20vw, 65px) !important;
+    height: clamp(25px, 11.2vw, 36px) !important;
+    min-width: auto !important;
+    max-width: none !important;
+    min-height: auto !important;
+    max-height: none !important;
+    margin: clamp(1px, 0.3vh, 2px) !important;
+    padding: clamp(2px, 0.6vw, 4px) clamp(1px, 0.4vw, 3px) clamp(4px, 0.8vw, 8px) clamp(1px, 0.4vw, 3px);
+    flex: 0 0 auto;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    right: auto !important;
+  }
+
+  .panel-header h3 {
+    font-size: clamp(0.6rem, 2.8vw, 0.9rem) !important;
+    margin-bottom: clamp(1px, 0.3vh, 3px) !important;
+  }
+
+  .system-intro {
+    font-size: clamp(0.45rem, 2vw, 0.6rem) !important;
+    line-height: 1.1 !important;
+  }
+
+  .action-hint {
+    font-size: clamp(0.4rem, 1.8vw, 0.55rem) !important;
+  }
+
+  .panel-header h3 {
+    font-size: clamp(0.8rem, 3.2vw, 1rem);
+    margin-bottom: clamp(2px, 0.5vh, 4px);
+  }
+
+  .system-intro {
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+    line-height: 1.1;
+    padding: clamp(1px, 0.2vw, 2px) clamp(1px, 0.3vw, 3px);
+  }
+
+  .action-hint {
+    font-size: clamp(0.5rem, 2vw, 0.65rem);
+  }
+
+  .connection-status {
+    width: clamp(4px, 0.8vw, 6px);
+    height: clamp(4px, 0.8vw, 6px);
+  }
+
+  .main-title {
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+  }
+
+  .health-report-btn,
+  .management-btn {
+    font-size: clamp(0.6rem, 2vw, 0.8rem);
+    padding: clamp(2px, 0.5vw, 4px) clamp(4px, 1vw, 8px);
+  }
 }
 </style>

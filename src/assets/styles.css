@@ -367,20 +367,22 @@ body::before {
 
 /* 按钮样式 - 响应式设计 */
 .btn {
-    padding: clamp(10px, 2vw, 12px) clamp(16px, 3vw, 20px);
+    padding: clamp(6px, 1.5vw, 12px) clamp(8px, 2vw, 20px);
     border: none;
-    border-radius: clamp(8px, 1.5vw, 12px);
+    border-radius: clamp(4px, 1vw, 12px);
     font-family: 'Orbitron', monospace;
-    font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+    font-size: clamp(0.6rem, 1.2vw, 0.85rem);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
-    letter-spacing: clamp(0.5px, 0.15vw, 1px);
+    letter-spacing: clamp(0.3px, 0.1vw, 1px);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .btn::before {
@@ -842,14 +844,33 @@ body::before {
     }
 
     .header {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-        padding: 10px 15px;
+        flex-direction: row !important;
+        gap: 5px !important;
+        text-align: left !important;
+        padding: 8px 10px !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
     }
 
     .title {
         font-size: 1.4rem;
+    }
+
+    /* 移动端按钮优化 */
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 18px;
+        font-size: 14px;
+        touch-action: manipulation; /* 优化触屏响应 */
+    }
+
+    .btn-small {
+        min-height: 40px;
+        min-width: 40px;
+        padding: 10px 14px;
+        font-size: 12px;
     }
 
     .robot-container {
@@ -905,5 +926,82 @@ body::before {
 
     .slider {
         width: 100%;
+    }
+}
+
+/* 手机端专门优化 */
+@media (max-width: 480px) {
+    /* 头部按钮优化 */
+    .header {
+        padding: 6px 8px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .nav-section {
+        gap: 4px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .header-controls,
+    .header-buttons {
+        flex: 0 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .btn {
+        padding: clamp(3px, 0.8vw, 6px) clamp(4px, 1vw, 8px) !important;
+        font-size: clamp(0.45rem, 0.8vw, 0.6rem) !important;
+        border-radius: clamp(2px, 0.5vw, 4px) !important;
+        letter-spacing: 0.1px !important;
+        min-width: auto !important;
+        max-width: none !important;
+        min-height: auto !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+    }
+
+    .btn-back {
+        padding: clamp(2px, 0.6vw, 4px) clamp(3px, 0.8vw, 6px) !important;
+        font-size: clamp(0.4rem, 0.7vw, 0.55rem) !important;
+        max-width: clamp(60px, 15vw, 80px) !important;
+    }
+
+    .header .title,
+    .page-title,
+    h1 {
+        font-size: clamp(0.8rem, 2vw, 1.1rem) !important;
+        letter-spacing: clamp(0.5px, 0.1vw, 1px) !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+        max-width: clamp(120px, 30vw, 200px) !important;
+    }
+
+    .header-buttons,
+    .header-controls {
+        gap: clamp(2px, 0.5vw, 4px) !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .header-buttons .btn {
+        padding: clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px) !important;
+        font-size: clamp(0.4rem, 0.7vw, 0.5rem) !important;
+        max-width: clamp(50px, 12vw, 70px) !important;
+    }
+
+    /* 确保按钮文字不换行 */
+    .btn * {
+        white-space: nowrap !important;
     }
 }

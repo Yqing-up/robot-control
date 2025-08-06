@@ -459,4 +459,153 @@ onMounted(() => {
 
 <style scoped>
 @import '../assets/imageAnalysis.css';
+
+/* 语音识别页面响应式设计 */
+@media (max-width: 1024px) {
+  .main-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    max-width: none;
+  }
+
+  .input-section,
+  .result-section,
+  .time-control-section,
+  .text-display-section {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 8px;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  .text-input {
+    min-height: 120px;
+    font-size: 16px; /* 防止iOS缩放 */
+    padding: 14px;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submit-btn,
+  .draft-btn,
+  .reset-btn,
+  .copy-btn,
+  .copy-btn-small {
+    min-height: 44px;
+    min-width: 44px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .time-presets {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .preset-btn {
+    min-height: 44px;
+    min-width: 44px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .time-slider {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .step-indicator {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .step-divider {
+    width: 2px;
+    height: 20px;
+    transform: rotate(90deg);
+  }
+
+  .voice-data-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    padding: 4px;
+  }
+
+  .input-section,
+  .result-section,
+  .time-control-section,
+  .text-display-section {
+    padding: 12px;
+  }
+
+  .text-input {
+    min-height: 100px;
+    font-size: 16px;
+    padding: 16px;
+  }
+
+  .submit-btn,
+  .draft-btn,
+  .reset-btn,
+  .copy-btn,
+  .copy-btn-small,
+  .preset-btn {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+
+  .time-slider-container {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .time-slider {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .step-indicator {
+    gap: 6px;
+  }
+
+  .step-text {
+    font-size: 12px;
+  }
+
+  .char-counter {
+    font-size: 12px;
+  }
+
+  .time-display {
+    font-size: 14px;
+  }
+}
 </style>

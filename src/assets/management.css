@@ -935,17 +935,71 @@
     }
 
     .direction-btn {
-        min-height: 40px;
-        min-width: 40px;
-        padding: 8px;
+        min-height: 44px;  /* 符合触屏标准 */
+        min-width: 44px;   /* 符合触屏标准 */
+        padding: 10px;
     }
 
     .direction-icon {
-        font-size: 14px;
+        font-size: 16px;
     }
 
     .direction-label {
-        font-size: 9px;
+        font-size: 11px;  /* 提高可读性 */
+    }
+
+    /* 单步移动按钮优化 */
+    .btn-step {
+        min-height: 48px;  /* 更大的触屏区域 */
+        min-width: 48px;
+        padding: 12px;
+        font-size: 12px;
+    }
+
+    .step-icon {
+        font-size: 16px;
+    }
+
+    .step-label {
+        font-size: 11px;
+    }
+
+    .single-step-buttons {
+        gap: 12px;  /* 增加按钮间距 */
+    }
+}
+
+/* 新增：极小屏幕适配 */
+@media (max-width: 480px) {
+    .management-main {
+        padding: 2px 1%;
+        width: 98%;
+        gap: 4px;
+    }
+
+    .video-display {
+        height: 250px !important;  /* 减小摄像头区域高度 */
+    }
+
+    .modules-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px;
+    }
+
+    .direction-btn {
+        min-height: 48px;
+        min-width: 48px;
+        padding: 12px 8px;
+    }
+
+    .btn-step {
+        min-height: 52px;
+        padding: 14px 10px;
+    }
+
+    .single-step-buttons {
+        grid-template-columns: 1fr;  /* 单列布局 */
+        gap: 8px;
     }
 }
 

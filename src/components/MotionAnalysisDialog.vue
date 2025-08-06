@@ -13,23 +13,23 @@
               <div class="loading-spinner"></div>
               <span>正在连接摄像头...</span>
             </div>
-            <img 
+            <img
               v-else
-              :src="getVideoFeed()" 
+              :src="getVideoFeed()"
               :key="visible"
-              class="camera-preview" 
+              class="camera-preview"
               @error="handleVideoError"
               @load="handleVideoLoad"
             />
           </div>
-      
-          
+
+
           <!-- 拍照功能模块 -->
           <div class="capture-module">
             <div class="detection-instruction">
               <p>请在摄像头前进行运动，系统将实时显示骨骼检测结果，并按设定间隔自动拍摄记录运动过程。</p>
             </div>
-            
+
             <div class="tab-content">
               <!-- 定时拍照 -->
               <div class="timer-photo-section">
@@ -69,7 +69,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="dialog-form">
           <div class="form-group">
             <label class="form-label">选择视频：</label>
@@ -156,7 +156,7 @@ watch(() => props.visible, v => {
     result.value = '';
     detectionOutput.value = '';
   } else {
-  
+
   }
 });
 
@@ -176,12 +176,12 @@ async function initializeCamera() {
     // 检查摄像头状态
     const status = await checkCameraStatus();
     console.log('摄像头状态:', status);
-    
+
     // 获取摄像头信息
     const info = await getCameraInfo();
     cameraInfo.value = info;
     console.log('摄像头信息:', info);
-    
+
     // 设置摄像头状态
     cameraActive.value = true;
     cameraStatus.value = '摄像头已连接';
@@ -237,7 +237,7 @@ async function takePhoto() {
     // 这里可以调用拍照API，暂时使用模拟拍照
     // 实际项目中需要后端提供拍照接口
     console.log('运动检测拍照功能 - 需要后端提供拍照API');
-    
+
     // 模拟拍照后刷新照片列表
     await loadPhotoList();
   } catch (error) {
@@ -286,7 +286,7 @@ function stopTimerPhoto() {
 function analyze() {
   // mock大模型返回
   result.value = `分析结果：针对"${prompt.value}"，建议保持正确姿势，注意安全。`;
-  
+
   // 模拟检测结果输出
   detectionOutput.value = `运动检测开始...
 检测到关键点：头部、肩膀、肘部、手腕、髋部、膝盖、脚踝
@@ -440,7 +440,19 @@ function analyze() {
   100% { transform: rotate(360deg); }
 }
 
-
+.camera-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: rgba(0, 153, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 153, 255, 0.2);
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
 
 .camera-status:hover {
   background: rgba(0, 153, 255, 0.15);
@@ -449,7 +461,7 @@ function analyze() {
 
 /* 拍照功能模块样式 */
 .capture-module {
-  
+
   background: rgba(26, 26, 26, 0.95);
   border: 1px solid rgba(0, 153, 255, 0.3);
   border-radius: 16px;
@@ -528,7 +540,7 @@ function analyze() {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #00ccff;
   border: 2px solid rgba(0, 153, 255, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -537,7 +549,7 @@ function analyze() {
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(0, 153, 255, 0.1), rgba(77, 166, 255, 0.15));
   border-color: rgba(0, 153, 255, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(0, 153, 255, 0.4),
@@ -552,7 +564,7 @@ function analyze() {
 
 .btn-primary:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -562,7 +574,7 @@ function analyze() {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #4caf50;
   border: 2px solid rgba(76, 175, 80, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(76, 175, 80, 0.2);
@@ -571,7 +583,7 @@ function analyze() {
 .btn-success:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(102, 187, 106, 0.15));
   border-color: rgba(76, 175, 80, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(76, 175, 80, 0.4),
@@ -586,7 +598,7 @@ function analyze() {
 
 .btn-success:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(76, 175, 80, 0.2);
@@ -596,7 +608,7 @@ function analyze() {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #f44336;
   border: 2px solid rgba(244, 67, 54, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(244, 67, 54, 0.2);
@@ -605,7 +617,7 @@ function analyze() {
 .btn-danger:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(255, 107, 107, 0.15));
   border-color: rgba(244, 67, 54, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(244, 67, 54, 0.4),
@@ -620,7 +632,7 @@ function analyze() {
 
 .btn-danger:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(244, 67, 54, 0.2);
@@ -878,7 +890,100 @@ function analyze() {
     min-width: 300px;
     width: 95vw;
     min-height: auto;
+    max-height: 90vh;
+    overflow-y: auto;
   }
+
+  .dialog-content.dialog-flex {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dialog-preview,
+  .dialog-form {
+    width: 100%;
+    max-width: none;
+    min-width: auto;
+  }
+
+  .camera-preview-box {
+    height: 200px;
+  }
+
+  .btn,
+  .btn-submit,
+  .form-select,
+  .form-input {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .form-select,
+  .form-input {
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+
+  .dialog-close {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+    font-size: 18px;
+    touch-action: manipulation;
+  }
+
+  .capture-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .capture-controls .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-box.large {
+    width: 98vw;
+    max-height: 95vh;
+    padding: 12px;
+  }
+
+  .camera-preview-box {
+    height: 150px;
+  }
+
+  .btn,
+  .btn-submit {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+
+  .form-select,
+  .form-input {
+    min-height: 48px;
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .dialog-close {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 14px;
+    font-size: 20px;
+  }
+
+  .detection-instruction p {
+    font-size: 14px;
+  }
+
+  .form-label {
+    font-size: 14px;
+  }
+
   .dialog-header {
     padding: 15px 20px 0 20px;
   }
@@ -888,19 +993,19 @@ function analyze() {
   .dialog-title {
     font-size: 1.2rem;
   }
-  
+
   .camera-preview {
     height: 240px;
   }
-  
+
   .video-loading {
     height: 240px;
   }
-  
+
   .timer-controls {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
 }
-</style> 
+</style>

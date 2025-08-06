@@ -11,10 +11,10 @@
               <div class="loading-spinner"></div>
               <span>正在连接摄像头...</span>
             </div>
-            <img 
+            <img
               v-else
-              :src="getVideoFeed()" 
-              class="camera-preview" 
+              :src="getVideoFeed()"
+              class="camera-preview"
               @error="handleVideoError"
               @load="handleVideoLoad"
             />
@@ -29,11 +29,11 @@
         <div class="function-module capture-module">
           <div class="module-header">
             <h3 class="module-title">
-              
+
               拍摄模块
             </h3>
           </div>
-          
+
           <!-- 拍照功能内容 -->
           <div class="tab-content">
             <!-- 手动拍照 -->
@@ -203,7 +203,7 @@ onMounted(() => {
   console.log('cameraApi:', cameraApi);
   console.log('apiTakePhoto:', apiTakePhoto);
   console.log('apiStartContinuousPhoto:', apiStartContinuousPhoto);
-  
+
   window.addEventListener('open-motion-dialog', () => showMotionDialog.value = true);
   window.addEventListener('open-tongue-dialog', () => showTongueDialog.value = true);
   initializeCamera();
@@ -215,13 +215,13 @@ onBeforeUnmount(() => {
   if (isContinuousPhotoActive.value) {
     stopContinuousPhoto();
   }
-  
+
   // 清理定时器
   if (photoCountTimer) {
     clearInterval(photoCountTimer);
     photoCountTimer = null;
   }
-  
+
   window.removeEventListener('open-motion-dialog', () => showMotionDialog.value = true);
   window.removeEventListener('open-tongue-dialog', () => showTongueDialog.value = true);
 });
@@ -232,12 +232,12 @@ async function initializeCamera() {
     console.log('开始初始化摄像头...');
     console.log('摄像头API基础URL:', '/api-cam');
     videoLoading.value = true;
-    
+
     // 调用API检查摄像头状态
     console.log('正在调用摄像头状态检查API...');
     const cameraStatusResult = await checkCameraStatus();
     console.log('摄像头状态API响应:', cameraStatusResult);
-    
+
     if (cameraStatusResult && cameraStatusResult.success) {
       cameraActive.value = true;
       cameraStatus.value = cameraStatusResult.message || '摄像头已连接';
@@ -249,7 +249,7 @@ async function initializeCamera() {
       cameraStatus.value = '摄像头状态未知，但允许尝试拍照';
       console.warn('摄像头状态检查失败，但允许尝试拍照:', cameraStatusResult);
     }
-    
+
     // 延迟一下再隐藏加载状态，给视频流一些时间加载
     setTimeout(() => {
       if (videoLoading.value) {
@@ -265,7 +265,7 @@ async function initializeCamera() {
       statusText: error.response?.statusText,
       config: error.config
     });
-    
+
     // 即使初始化失败，也允许尝试拍照
     cameraActive.value = true;
     cameraStatus.value = '摄像头初始化失败，但允许尝试拍照';
@@ -297,29 +297,29 @@ async function loadPhotoList() {
   try {
     const response = await getPhotoList();
     console.log('照片列表API响应:', response);
-    
+
     // 从Axios响应对象中提取数据
     const result = response.data || response;
     console.log('提取的照片数据:', result);
-    
+
     if (result && result.photos) {
       // 处理照片URL，确保使用正确的代理路径
       const processedPhotos = result.photos.map(photo => ({
         ...photo,
         // 将照片URL从 /api/photos/ 改为 /api-cam/photos/，使用摄像头代理
-        url: photo.url.startsWith('/api/photos/') 
-          ? photo.url.replace('/api/photos/', '/api-cam/photos/') 
+        url: photo.url.startsWith('/api/photos/')
+          ? photo.url.replace('/api/photos/', '/api-cam/photos/')
           : photo.url,
         // 处理下载URL
-        download_url: photo.download_url 
-          ? (photo.download_url.startsWith('/api/photos/') 
-              ? photo.download_url.replace('/api/photos/', '/api-cam/photos/') 
+        download_url: photo.download_url
+          ? (photo.download_url.startsWith('/api/photos/')
+              ? photo.download_url.replace('/api/photos/', '/api-cam/photos/')
               : photo.download_url)
-          : photo.url.startsWith('/api/photos/') 
-            ? photo.url.replace('/api/photos/', '/api-cam/photos/') 
+          : photo.url.startsWith('/api/photos/')
+            ? photo.url.replace('/api/photos/', '/api-cam/photos/')
             : photo.url
       }));
-      
+
       photos.value = processedPhotos;
       console.log('照片列表:', result);
       console.log('处理后的照片列表:', processedPhotos);
@@ -344,23 +344,23 @@ async function takePhoto(seconds = null) {
     console.log('cameraActive.value:', cameraActive.value);
     console.log('cameraStatus.value:', cameraStatus.value);
     console.log('倒计时参数:', seconds);
-    
+
     // 移除摄像头状态检查的阻止逻辑，允许尝试拍照
     console.log('开始拍照...');
     console.log('调用API: POST /photos/photo');
     console.log('摄像头状态:', cameraActive.value);
     console.log('API基础URL:', '/api-cam');
-    
+
     // 根据是否有倒计时参数调用不同的API
     const response = seconds ? await apiTakePhoto(seconds) : await apiTakePhoto();
     console.log('拍照API响应:', response);
     const result = response.data || response;
     console.log('提取的拍照数据:', result);
-    
+
     if (result && result.success) {
       console.log('拍照成功:', result.filename);
       alert(`拍照成功！文件名: ${result.filename}`);
-      
+
       // 拍照成功后刷新照片列表
       await loadPhotoList();
     } else {
@@ -377,7 +377,7 @@ async function takePhoto(seconds = null) {
       statusText: error.response?.statusText,
       config: error.config
     });
-    
+
     let errorMessage = '拍照失败，请重试';
     if (error.response?.status === 404) {
       errorMessage = '拍照接口不存在，请检查后端服务';
@@ -388,7 +388,7 @@ async function takePhoto(seconds = null) {
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }
-    
+
     alert(errorMessage);
   }
 }
@@ -396,48 +396,48 @@ async function takePhoto(seconds = null) {
 // 连续拍照功能
 async function startContinuousPhoto() {
   console.log('=== startContinuousPhoto函数被调用 ===');
-  
+
   // 移除摄像头状态检查的阻止逻辑，允许尝试连续拍照
-  
+
   try {
     console.log('开始连续拍照...');
     console.log('调用API: POST /photos/continuous');
     console.log('拍照间隔:', photoInterval.value);
     console.log('摄像头状态:', cameraActive.value);
     console.log('API基础URL:', '/api-cam');
-    
+
     const response = await apiStartContinuousPhoto(photoInterval.value);
     console.log('连续拍照API响应:', response);
     const result = response.data || response;
     console.log('提取的连续拍照数据:', result);
-    
+
     if (result && result.success) {
       console.log('连续拍照启动成功:', result.message);
       isContinuousPhotoActive.value = true;
       continuousPhotoCount.value = 0;
-      
+
       // 立即刷新一次照片列表
       await loadPhotoList();
-      
+
       // 启动定时器，定期刷新照片列表来更新计数和显示
       photoCountTimer = setInterval(async () => {
         try {
           console.log('连续拍照定时器触发，正在获取最新照片列表...');
           const photoListResult = await getPhotoList();
           console.log('获取到的照片列表结果:', photoListResult);
-          
+
           if (photoListResult && photoListResult.photos) {
             const oldCount = photos.value.length;
             const newCount = photoListResult.photos.length;
-            
+
             // 强制更新照片列表显示
             photos.value = [...photoListResult.photos];
             // 更新计数
             continuousPhotoCount.value = photoListResult.photos.length;
-            
+
             console.log(`连续拍照期间更新照片列表 - 旧数量: ${oldCount}, 新数量: ${newCount}`);
             console.log('当前照片列表内容:', photos.value);
-            
+
             // 如果有新照片，显示提示
             if (newCount > oldCount) {
               console.log(`发现 ${newCount - oldCount} 张新照片`);
@@ -452,7 +452,7 @@ async function startContinuousPhoto() {
           console.error('更新照片列表失败:', error);
         }
       }, 1000); // 每1秒更新一次，提高响应速度
-      
+
       alert(`连续拍照已启动！间隔: ${photoInterval.value}秒`);
     } else {
       const errorMsg = result?.message || '启动连续拍照失败，未知错误';
@@ -468,7 +468,7 @@ async function startContinuousPhoto() {
       statusText: error.response?.statusText,
       config: error.config
     });
-    
+
     let errorMessage = '启动连续拍照失败，请重试';
     if (error.response?.status === 404) {
       errorMessage = '连续拍照接口不存在，请检查后端服务';
@@ -479,7 +479,7 @@ async function startContinuousPhoto() {
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }
-    
+
     alert(errorMessage);
   }
 }
@@ -488,24 +488,24 @@ async function stopContinuousPhoto() {
   try {
     console.log('停止连续拍照...');
     console.log('调用API: DELETE /photos/continuous');
-    
+
     const response = await apiStopContinuousPhoto();
     console.log('停止连续拍照API响应:', response);
     const result = response.data || response;
     console.log('提取的停止连续拍照数据:', result);
-    
+
     if (result && result.success) {
       console.log('连续拍照停止成功:', result.message);
       isContinuousPhotoActive.value = false;
-      
+
       // 清理定时器
       if (photoCountTimer) {
         clearInterval(photoCountTimer);
         photoCountTimer = null;
       }
-      
+
       alert('连续拍照已停止');
-      
+
       // 停止后刷新照片列表
       await loadPhotoList();
     } else {
@@ -521,7 +521,7 @@ async function stopContinuousPhoto() {
       status: error.response?.status,
       statusText: error.response?.statusText
     });
-    
+
     let errorMessage = '停止连续拍照失败，请重试';
     if (error.response?.status === 404) {
       errorMessage = '连续拍照接口不存在，请检查后端服务';
@@ -532,7 +532,7 @@ async function stopContinuousPhoto() {
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }
-    
+
     alert(errorMessage);
   }
 }
@@ -581,7 +581,7 @@ async function deletePhoto(idx) {
       console.log('删除API响应:', response);
       const result = response.data || response;
       console.log('提取的删除数据:', result);
-      
+
       if (result.success) {
         console.log('删除成功:', result.message);
         // 从列表中移除
@@ -829,7 +829,7 @@ function handleImageError(event) {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #00ccff;
   border: 2px solid rgba(0, 153, 255, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -838,7 +838,7 @@ function handleImageError(event) {
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(0, 153, 255, 0.1), rgba(77, 166, 255, 0.15));
   border-color: rgba(0, 153, 255, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(0, 153, 255, 0.4),
@@ -853,7 +853,7 @@ function handleImageError(event) {
 
 .btn-primary:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -863,7 +863,7 @@ function handleImageError(event) {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #888;
   border: 2px solid rgba(136, 136, 136, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(136, 136, 136, 0.2);
@@ -872,7 +872,7 @@ function handleImageError(event) {
 .btn-secondary:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(136, 136, 136, 0.1), rgba(153, 153, 153, 0.15));
   border-color: rgba(136, 136, 136, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(136, 136, 136, 0.4);
@@ -886,7 +886,7 @@ function handleImageError(event) {
 
 .btn-secondary:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(136, 136, 136, 0.2);
@@ -896,7 +896,7 @@ function handleImageError(event) {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #4caf50;
   border: 2px solid rgba(76, 175, 80, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(76, 175, 80, 0.2);
@@ -905,7 +905,7 @@ function handleImageError(event) {
 .btn-success:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(102, 187, 106, 0.15));
   border-color: rgba(76, 175, 80, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(76, 175, 80, 0.4),
@@ -920,7 +920,7 @@ function handleImageError(event) {
 
 .btn-success:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(76, 175, 80, 0.2);
@@ -930,7 +930,7 @@ function handleImageError(event) {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #f44336;
   border: 2px solid rgba(244, 67, 54, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(244, 67, 54, 0.2);
@@ -939,7 +939,7 @@ function handleImageError(event) {
 .btn-danger:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(255, 107, 107, 0.15));
   border-color: rgba(244, 67, 54, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(244, 67, 54, 0.4),
@@ -954,7 +954,7 @@ function handleImageError(event) {
 
 .btn-danger:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(244, 67, 54, 0.2);
@@ -1291,22 +1291,42 @@ function handleImageError(event) {
   .camera-control-section {
     flex-direction: column;
     gap: 20px;
+    align-items: center;
+  }
+
+  .camera-preview-section {
+    width: 100%;
+    max-width: none;
+    padding: 20px;
+  }
+
+  .camera-preview-box {
+    width: 100%;
+    height: auto;
+    min-height: 300px;
   }
 
   .camera-preview {
     width: 100%;
-    max-width: 480px;
+    max-width: 100%;
     height: auto;
-    aspect-ratio: 4/3;
+    aspect-ratio: 16/9;
+    min-height: 300px;
   }
 
   .video-loading {
     width: 100%;
-    max-width: 480px;
-    height: auto;
-    aspect-ratio: 4/3;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
+  .function-module {
+    width: 100%;
+    max-width: none;
+  }
 
   .module-header {
     flex-direction: column;
@@ -1340,6 +1360,90 @@ function handleImageError(event) {
 
   .photo-controls {
     flex-direction: column;
+  }
+}
+
+/* 手机端优化 */
+@media (max-width: 480px) {
+  .vision-system-main {
+    padding: 8px 4px;
+    margin-top: 70px;
+    min-height: calc(100vh - 70px);
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .camera-control-section {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .camera-preview-section {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .camera-preview-box {
+    width: 100%;
+    height: auto;
+    min-height: 250px;
+  }
+
+  .camera-preview {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    min-height: 250px;
+  }
+
+  .video-loading {
+    width: 100%;
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .function-module {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .module-title {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 14px 18px;
+  }
+
+  .capture-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .capture-controls .btn {
+    width: 100%;
+  }
+
+  .module-header {
+    margin-bottom: 12px;
+  }
+
+  .photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .media-list-section {
+    width: 100%;
   }
 }
 </style>

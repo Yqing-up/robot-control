@@ -90,8 +90,8 @@
     max-width: none;
     margin: 0 auto;
     margin-top: 80px;
-    height: calc(100vh - 80px);
-    overflow: hidden;
+    min-height: calc(100vh - 80px);
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -1265,6 +1265,178 @@
 
     .history-empty {
         font-size: 22px;
+    }
+
+    /* 移动端按钮触屏优化 */
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .btn-success,
+    .voice-btn,
+    .preset-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 16px;
+        font-size: 14px;
+        touch-action: manipulation;
+    }
+
+    .btn-small {
+        min-height: 40px;
+        min-width: 40px;
+        padding: 10px 14px;
+        font-size: 12px;
+        touch-action: manipulation;
+    }
+
+    .voice-input,
+    .form-control {
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 16px; /* 防止iOS缩放 */
+        touch-action: manipulation;
+    }
+
+    .slider-container input[type="range"] {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+}
+
+/* 极小屏幕优化 */
+@media (max-width: 480px) {
+    /* 头部响应式优化 */
+    .header {
+        padding: 6px 8px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .nav-section {
+        gap: 4px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .header-controls,
+    .header-buttons {
+        flex: 0 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: clamp(2px, 0.5vw, 4px) !important;
+    }
+
+    .header .title,
+    .page-title,
+    h1 {
+        font-size: clamp(0.8rem, 2vw, 1.1rem) !important;
+        letter-spacing: clamp(0.5px, 0.1vw, 1px) !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+        max-width: clamp(120px, 30vw, 200px) !important;
+    }
+
+    .header-buttons .btn {
+        padding: clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px) !important;
+        font-size: clamp(0.4rem, 0.7vw, 0.5rem) !important;
+        max-width: clamp(50px, 12vw, 70px) !important;
+        white-space: nowrap !important;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .btn-success,
+    .voice-btn,
+    .preset-btn {
+        min-height: 48px;
+        min-width: 48px;
+        padding: 14px 18px;
+        font-size: 16px;
+        touch-action: manipulation;
+    }
+
+    .btn-small {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 16px;
+        font-size: 14px;
+        touch-action: manipulation;
+    }
+
+    .voice-input,
+    .form-control {
+        min-height: 48px;
+        padding: 14px 18px;
+        font-size: 16px;
+        touch-action: manipulation;
+    }
+
+    .slider-container input[type="range"] {
+        min-height: 48px;
+        touch-action: manipulation;
+    }
+
+    .voice-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .voice-controls .btn {
+        width: 100%;
+    }
+
+    /* 手机端布局修复 */
+    .voice-main {
+        margin-top: 70px !important;
+        min-height: calc(100vh - 70px) !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        padding: 8px 4px !important;
+    }
+
+    .voice-layout-container {
+        flex-direction: column !important;
+        gap: 12px !important;
+        overflow: visible !important;
+    }
+
+    .voice-left-section,
+    .voice-right-section {
+        min-width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        overflow: visible !important;
+        min-height: auto !important;
+    }
+
+    .voice-library-section {
+        min-height: auto !important;
+        overflow: visible !important;
+    }
+
+    .voice-list {
+        max-height: 400px !important;
+        overflow-y: auto !important;
+    }
+
+    .history-section {
+        min-height: auto !important;
+        overflow: visible !important;
+    }
+
+    .history-list {
+        max-height: 300px !important;
+        overflow-y: auto !important;
     }
 }
 

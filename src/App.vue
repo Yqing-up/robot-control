@@ -15,4 +15,5 @@ import { RouterView } from 'vue-router'
 @import './assets/brain-system.css';
 @import './assets/voice-system.css';
 @import './assets/arm-system.css';
+@import './assets/responsive-utils.css';
 </style>

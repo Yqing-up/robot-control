@@ -13,22 +13,22 @@
               <div class="loading-spinner"></div>
               <span>正在连接摄像头...</span>
             </div>
-            <img 
+            <img
               v-else
-              :src="getVideoFeed()" 
-              class="camera-preview" 
+              :src="getVideoFeed()"
+              class="camera-preview"
               @error="handleVideoError"
               @load="handleVideoLoad"
             />
           </div>
-          
+
           <!-- 拍照功能模块 -->
           <div class="capture-module">
             <div class="detection-instruction">
               <p>请在自然光下伸出舌头，保持3秒进行拍摄。建议设置倒计时以便调整姿势。</p>
             </div>
             <div class="divider"></div>
-            
+
             <div class="tab-content">
               <!-- 手动拍照 -->
               <div class="photo-controls">
@@ -52,14 +52,14 @@
             </div>
           </div>
         </div>
-        
+
         <div class="dialog-form">
           <!-- 照片库选择区域 -->
           <div class="form-group">
             <label class="form-label">选择照片：</label>
             <div class="photo-selector">
               <div class="photo-dropdown-container">
-                <div 
+                <div
                   class="photo-dropdown-trigger"
                   @click="togglePhotoDropdown"
                   :class="{ 'active': isPhotoDropdownOpen }"
@@ -74,20 +74,20 @@
                   </div>
                   <span class="dropdown-arrow">▼</span>
                 </div>
-                
+
                 <div v-if="isPhotoDropdownOpen" class="photo-dropdown">
                   <div v-if="photoLoading" class="photo-loading">
                     <div class="loading-spinner"></div>
                     <span>正在加载照片...</span>
                   </div>
-                  
+
                   <div v-else-if="photoData.length === 0" class="photo-empty">
                     <span>暂无照片数据</span>
                   </div>
-                  
+
                   <div v-else class="photo-dropdown-list">
-                    <div 
-                      v-for="(photo, index) in sortedPhotoData" 
+                    <div
+                      v-for="(photo, index) in sortedPhotoData"
                       :key="index"
                       class="photo-dropdown-item"
                       :class="{ 'selected': selectedPhoto && selectedPhoto.url === photo.url }"
@@ -104,36 +104,36 @@
               </div>
             </div>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">提示词：</label>
             <input v-model="prompt" placeholder="如：请分析舌苔健康状况" class="form-input" />
           </div>
-          
-          <button 
-            class="btn-submit" 
-            @click="analyze" 
+
+          <button
+            class="btn-submit"
+            @click="analyze"
             :disabled="!selectedPhoto || !prompt || analysisLoading"
           >
             {{ analysisLoading ? '检测中...' : '提交检测' }}
           </button>
-          
+
           <div v-if="result" class="analysis-result">
             <h4 class="result-title">检测结果：</h4>
             <div class="result-content">{{ result }}</div>
           </div>
-          
+
           <div class="detection-results">
             <h4 class="result-title">检测结果：</h4>
-            <textarea 
-              v-model="detectionOutput" 
-              class="detection-output" 
+            <textarea
+              v-model="detectionOutput"
+              class="detection-output"
               placeholder="舌苔检测开始...
 检测到舌苔颜色：淡红色
 舌苔厚度：适中
 舌苔分布：均匀
 舌苔质地：正常
-建议：继续保持良好的口腔卫生习惯" 
+建议：继续保持良好的口腔卫生习惯"
               readonly
             ></textarea>
           </div>
@@ -145,10 +145,10 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { cameraApi } from '../api/cameraApi';
-import { 
-  getRecentPhotoData, 
-  analyzeTongueData, 
-  validateTongueInput, 
+import {
+  getRecentPhotoData,
+  analyzeTongueData,
+  validateTongueInput,
   formatPhotoDataForDisplay,
   extractPhotoUrls,
   formatTongueAnalysisResult
@@ -223,7 +223,7 @@ onMounted(() => {
   initializeCamera();
   loadPhotoList();
   loadPhotoData();
-  
+
   // 添加点击外部关闭下拉框的事件监听
   document.addEventListener('click', handleClickOutside);
 });
@@ -234,7 +234,7 @@ onBeforeUnmount(() => {
     clearInterval(countdownTimer);
     countdownTimer = null;
   }
-  
+
   // 移除事件监听
   document.removeEventListener('click', handleClickOutside);
 });
@@ -254,7 +254,7 @@ async function initializeCamera() {
     cameraActive.value = true;
     cameraStatus.value = '摄像头已连接';
     videoLoading.value = true; // 开始加载视频流
-    
+
     // 延迟一下再隐藏加载状态，给视频流一些时间加载
     setTimeout(() => {
       if (videoLoading.value) {
@@ -308,7 +308,7 @@ async function takePhoto() {
   if (photoInterval.value > 0) {
     isTimerPhotoActive.value = true;
     timerCountdown.value = photoInterval.value;
-    
+
     // 开始倒计时
     countdownTimer = setInterval(() => {
       timerCountdown.value--;
@@ -332,11 +332,11 @@ async function executePhoto() {
     console.log('舌苔检测开始拍照...');
     const result = await apiTakePhoto();
     console.log('拍照结果:', result);
-    
+
     if (result.success) {
       console.log('舌苔检测拍照成功:', result.filename);
       alert(`舌苔检测拍照成功！文件名: ${result.filename}`);
-      
+
       // 拍照成功后刷新照片列表
       await loadPhotoList();
     } else {
@@ -354,9 +354,9 @@ async function loadPhotoData() {
   try {
     photoLoading.value = true;
     console.log('📥 开始加载照片库数据...');
-    
+
     const result = await cameraApi.getPhotoList();
-    
+
     if (result && result.data) {
       // 适配返回数据结构
       photoData.value = Array.isArray(result.data.photos) ? result.data.photos : result.data;
@@ -419,7 +419,7 @@ async function analyze() {
 
     // 调用舌苔检测API
     const result = await analyzeTongueData(photoUrls, prompt.value);
-    
+
     if (result.success) {
       console.log('✅ 舌苔检测成功');
       const formattedResult = formatTongueAnalysisResult(result.data);
@@ -681,7 +681,7 @@ async function analyze() {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
   color: #00ccff;
   border: 2px solid rgba(0, 153, 255, 0.4);
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -690,7 +690,7 @@ async function analyze() {
 .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, rgba(0, 153, 255, 0.1), rgba(77, 166, 255, 0.15));
   border-color: rgba(0, 153, 255, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(0, 153, 255, 0.4),
@@ -705,7 +705,7 @@ async function analyze() {
 
 .btn-primary:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -1249,7 +1249,100 @@ async function analyze() {
     min-width: 300px;
     width: 95vw;
     min-height: auto;
+    max-height: 90vh;
+    overflow-y: auto;
   }
+
+  .dialog-content.dialog-flex {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dialog-preview,
+  .dialog-form {
+    width: 100%;
+    max-width: none;
+    min-width: auto;
+  }
+
+  .camera-preview-box {
+    height: 200px;
+  }
+
+  .btn,
+  .btn-submit,
+  .form-select,
+  .form-input {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .form-select,
+  .form-input {
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+
+  .dialog-close {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+    font-size: 18px;
+    touch-action: manipulation;
+  }
+
+  .capture-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .capture-controls .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-box.large {
+    width: 98vw;
+    max-height: 95vh;
+    padding: 12px;
+  }
+
+  .camera-preview-box {
+    height: 150px;
+  }
+
+  .btn,
+  .btn-submit {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+
+  .form-select,
+  .form-input {
+    min-height: 48px;
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .dialog-close {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 14px;
+    font-size: 20px;
+  }
+
+  .detection-instruction p {
+    font-size: 14px;
+  }
+
+  .form-label {
+    font-size: 14px;
+  }
+
   .dialog-header {
     padding: 15px 20px 0 20px;
   }
@@ -1259,50 +1352,50 @@ async function analyze() {
   .dialog-title {
     font-size: 1.2rem;
   }
-  
+
   .camera-preview {
     height: 240px;
   }
-  
+
   .video-loading {
     height: 240px;
   }
-  
+
   .photo-controls {
     flex-direction: column;
   }
-  
+
   .photo-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     max-height: 200px;
   }
-  
+
   .photo-selector-header {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .time-range-select {
     max-width: none;
   }
-  
+
   .photo-dropdown-trigger {
     min-height: 50px;
   }
-  
+
   .selected-photo-display {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  
+
   .photo-dropdown-item {
     padding: 8px;
   }
-  
+
   .photo-dropdown-thumbnail {
     width: 40px;
     height: 40px;
   }
 }
-</style> 
+</style>

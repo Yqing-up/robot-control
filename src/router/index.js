@@ -59,6 +59,11 @@ const router = createRouter({
       name: 'voice-recognition',
       component: () => import('../views/VoiceRecognitionView.vue'),
     },
+    {
+      path: '/responsive-test',
+      name: 'responsive-test',
+      component: () => import('../views/ResponsiveTestView.vue'),
+    },
   ],
 })
 

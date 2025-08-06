@@ -12,7 +12,6 @@
           <button class="btn btn-small" @click="initializeCamera" :disabled="cameraLoading">
             {{ cameraLoading ? '连接中...' : '刷新摄像头' }}
           </button>
-          <button class="btn btn-small" @click="resetSystem">重置系统</button>
           <button class="btn btn-small" @click="exportMovementData">导出数据</button>
         </div>
       </div>

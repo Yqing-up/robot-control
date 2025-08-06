@@ -553,5 +553,125 @@ onMounted(() => {
 
 <style scoped>
 @import '../assets/imageAnalysis.css';
+
+/* 图片分析页面响应式设计 */
+@media (max-width: 1024px) {
+  .main-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+    max-width: none;
+  }
+
+  .input-section,
+  .result-section,
+  .image-section {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 8px;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  .text-input {
+    min-height: 120px;
+    font-size: 16px; /* 防止iOS缩放 */
+    padding: 14px;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submit-btn,
+  .draft-btn,
+  .reset-btn,
+  .copy-btn {
+    min-height: 44px;
+    min-width: 44px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .step-indicator {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .step-divider {
+    width: 2px;
+    height: 20px;
+    transform: rotate(90deg);
+  }
+
+  .current-images-gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .image-modal .modal-content {
+    width: 95vw;
+    height: 90vh;
+    margin: 5vh auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    padding: 4px;
+  }
+
+  .input-section,
+  .result-section,
+  .image-section {
+    padding: 12px;
+  }
+
+  .text-input {
+    min-height: 100px;
+    font-size: 16px;
+    padding: 16px;
+  }
+
+  .submit-btn,
+  .draft-btn,
+  .reset-btn,
+  .copy-btn {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+
+  .current-images-gallery {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .step-indicator {
+    gap: 6px;
+  }
+
+  .step-text {
+    font-size: 12px;
+  }
+
+  .char-counter {
+    font-size: 12px;
+  }
+}
 </style>
 

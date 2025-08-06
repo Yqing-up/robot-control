@@ -10,7 +10,9 @@
   border-radius: 6px;
   padding: 10px 18px;
   margin: 0 8px;
-  box-shadow: 
+  min-height: 44px;
+  min-width: 44px;
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -21,6 +23,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  touch-action: manipulation;
 }
 
 .header-action-btn::before {
@@ -37,7 +40,7 @@
 .header-action-btn:hover {
   background: linear-gradient(135deg, rgba(0, 153, 255, 0.1), rgba(77, 166, 255, 0.15));
   border-color: rgba(0, 153, 255, 0.6);
-  box-shadow: 
+  box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 1px rgba(0, 153, 255, 0.4),
@@ -52,7 +55,7 @@
 
 .header-action-btn:active {
   transform: translateY(0px);
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 0 1px rgba(0, 153, 255, 0.2);
@@ -64,8 +67,8 @@
     max-width: none;
     margin: 0 auto;
     margin-top: 80px;
-    height: calc(100vh - 80px);
-    overflow: hidden;
+    min-height: calc(100vh - 80px);
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -615,6 +618,190 @@
     .monitoring-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 8px;
+    }
+}
+
+/* 移动端响应式设计 */
+@media (max-width: 768px) {
+    .brain-main {
+        padding: 4px;
+        margin-top: 70px;
+    }
+
+    .header-action-btn {
+        padding: 8px 12px;
+        margin: 0 4px;
+        font-size: 0.9rem;
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .brain-layout-container {
+        gap: 8px;
+    }
+
+    .control-section,
+    .communication-section,
+    .decision-section,
+    .monitoring-section {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+
+    .section-header h3 {
+        font-size: 16px;
+    }
+
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px 14px;
+        font-size: 12px;
+    }
+
+    .btn-mini {
+        min-height: 36px;
+        min-width: 36px;
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+
+    .monitoring-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .monitor-value {
+        font-size: 20px;
+    }
+
+    .connection-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .connection-actions .btn {
+        width: 100%;
+    }
+}
+
+/* 极小屏幕优化 */
+@media (max-width: 480px) {
+    /* 头部响应式优化 */
+    .header {
+        padding: 6px 8px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .nav-section {
+        gap: 4px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .header-controls,
+    .header-buttons {
+        flex: 0 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: clamp(2px, 0.5vw, 4px) !important;
+    }
+
+    .header .title,
+    .page-title,
+    h1 {
+        font-size: clamp(0.8rem, 2vw, 1.1rem) !important;
+        letter-spacing: clamp(0.5px, 0.1vw, 1px) !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+        max-width: clamp(120px, 30vw, 200px) !important;
+    }
+
+    .header-buttons .btn {
+        padding: clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px) !important;
+        font-size: clamp(0.4rem, 0.7vw, 0.5rem) !important;
+        max-width: clamp(50px, 12vw, 70px) !important;
+        white-space: nowrap !important;
+    }
+
+    .brain-main {
+        padding: 2px;
+    }
+
+    .header-action-btn {
+        padding: 6px 10px;
+        margin: 0 2px;
+        font-size: 0.8rem;
+        min-height: 48px;
+    }
+
+    .control-section,
+    .communication-section,
+    .decision-section,
+    .monitoring-section {
+        padding: 6px;
+    }
+
+    .monitoring-grid {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .decision-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .decision-actions .btn {
+        width: 100%;
+    }
+
+    .input-sources,
+    .processing-results {
+        gap: 6px;
+    }
+
+    .source-item,
+    .result-item {
+        padding: 6px;
+    }
+
+    /* 手机端布局修复 */
+    .brain-main {
+        margin-top: 70px !important;
+        min-height: calc(100vh - 70px) !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        padding: 8px 4px !important;
+    }
+
+    .brain-layout-container {
+        flex-direction: column !important;
+        gap: 12px !important;
+        overflow: visible !important;
+    }
+
+    .brain-left-section,
+    .brain-right-section {
+        min-width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        overflow: visible !important;
+    }
+
+    .control-section,
+    .communication-section,
+    .decision-section,
+    .monitoring-section {
+        overflow: visible !important;
     }
 }
 

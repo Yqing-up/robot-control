@@ -49,11 +49,11 @@
 .leg-main {
     width: 100% !important;
     margin-top: 70px !important;
-    height: calc(100vh - 70px) !important;
+    min-height: calc(100vh - 70px) !important;
     padding: 15px !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
     box-sizing: border-box !important;
 }
 
@@ -763,11 +763,38 @@
 /* 手机 480px及以下 */
 @media (max-width: 480px) {
     .header {
-        padding: 6px 0.5% !important;
+        padding: 6px 8px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .nav-section {
+        gap: 4px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .header-controls,
+    .header-buttons {
+        flex: 0 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: clamp(2px, 0.5vw, 4px) !important;
     }
 
     .title {
-        font-size: 1rem !important;
+        font-size: clamp(0.8rem, 2vw, 1.1rem) !important;
+        letter-spacing: clamp(0.5px, 0.1vw, 1px) !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+        max-width: clamp(120px, 30vw, 200px) !important;
     }
 
     .leg-main {
@@ -797,8 +824,10 @@
     }
 
     .header-buttons .btn {
-        padding: 4px 6px !important;
-        font-size: 9px !important;
+        padding: clamp(2px, 0.5vw, 4px) clamp(3px, 0.7vw, 6px) !important;
+        font-size: clamp(0.4rem, 0.7vw, 0.5rem) !important;
+        max-width: clamp(50px, 12vw, 70px) !important;
+        white-space: nowrap !important;
     }
 
     .direction-pad-extended {
@@ -885,5 +914,48 @@
         min-height: 120px !important;
         flex: none !important;
         height: auto !important;
+    }
+
+    /* 手机端布局修复 */
+    .leg-main {
+        margin-top: 60px !important;
+        min-height: calc(100vh - 60px) !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        padding: 8px !important;
+    }
+
+    .leg-layout-container {
+        flex-direction: column !important;
+        gap: 12px !important;
+        overflow: visible !important;
+    }
+
+    .leg-left-section,
+    .leg-right-section {
+        min-width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: auto !important;
+    }
+
+    .robot-control-center {
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .control-layout {
+        overflow: visible !important;
+    }
+
+    .camera-section {
+        flex: none !important;
+        min-height: 200px !important;
+    }
+
+    .video-display {
+        min-height: 150px !important;
     }
 }

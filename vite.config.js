@@ -14,6 +14,9 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0', // 绑定到所有网络接口
+    port: 5173,      // 指定端口
+    strictPort: true, // 如果端口被占用则失败而不是尝试下一个端口
     proxy: {
       // 临时修复：捕获错误的 /api-sim 请求并重定向到仿真服务器
       '/api-sim': {
