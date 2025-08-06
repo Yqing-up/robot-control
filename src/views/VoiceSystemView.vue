@@ -947,6 +947,16 @@ const initializeTTS = async () => {
 onMounted(async () => {
   console.log('🚀 语音系统组件已挂载')
 
+  // 检查字体加载状态
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+      if (!document.documentElement.classList.contains('font-loaded')) {
+        document.documentElement.classList.add('font-loaded');
+        console.log('✅ 语音系统：Orbitron 字体加载完成');
+      }
+    });
+  }
+
   try {
     // 初始化TTS功能
     await initializeTTS()
@@ -995,6 +1005,12 @@ onUnmounted(() => {
   padding: 8px 12px;
   margin-bottom: 6px;
   transition: all 0.3s ease;
+  font-family: 'Microsoft YaHei', sans-serif;
+}
+
+/* 字体加载完成后的播放历史样式 */
+.font-loaded .history-item {
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .history-item:hover {
@@ -1014,6 +1030,13 @@ onUnmounted(() => {
   font-size: 15px;
   margin-bottom: 4px;
   word-wrap: break-word;
+  font-family: 'Microsoft YaHei', sans-serif;
+  transition: font-family 0.3s ease;
+}
+
+/* 字体加载完成后的历史内容样式 */
+.font-loaded .history-content {
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .history-time {

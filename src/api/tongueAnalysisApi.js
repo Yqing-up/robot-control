@@ -132,13 +132,15 @@ export const analyzeTongueData = async (photoUrls, userPrompt) => {
         // 如果URL是相对路径，构建完整URL
         if (photoUrl.startsWith('/api/')) {
           // 使用摄像头API的目标服务器地址
-          photoUrl = `http://192.168.0.119:5001${photoUrl}`
+          const upperHost = import.meta.env.VITE_ROBOT_UPPER_HOST;
+          photoUrl = `${upperHost}${photoUrl}`
           console.log(`📎 添加第${pictureFileList.length + 1}张照片: ${photoFile.filename} -> ${photoUrl}`)
         } else if (photoUrl.startsWith('http')) {
           // 如果是完整URL，检查是否需要修改域名
           if (photoUrl.includes('blog.u2829437.nyat.app')) {
             // 替换为正确的服务器地址
-            photoUrl = photoUrl.replace('https://blog.u2829437.nyat.app:25855', 'http://192.168.0.119:5001')
+            const upperHost = import.meta.env.VITE_ROBOT_UPPER_HOST;
+            photoUrl = photoUrl.replace('https://blog.u2829437.nyat.app:25855', upperHost)
             console.log(`📎 添加第${pictureFileList.length + 1}张照片: ${photoFile.filename} -> ${photoUrl}`)
           } else {
             console.log(`📎 添加第${pictureFileList.length + 1}张照片: ${photoFile.filename} -> ${photoUrl}`)
@@ -197,7 +199,7 @@ export const analyzeTongueData = async (photoUrls, userPrompt) => {
       console.error('   状态文本:', response.statusText)
       console.error('   响应内容:', errorText)
       console.error('   请求URL:', '/v1/workflows/run')
-      console.error('   目标服务器:', 'http://192.168.0.103')
+      console.error('   目标服务器:', import.meta.env.VITE_ROBOT_SIMULATION_HOST)
       console.error('   API密钥:', TONGUE_ANALYSIS_API_KEY)
       console.error('   请求数据:', JSON.stringify(requestData, null, 2))
       console.error('   照片文件数量:', pictureFileList.length)

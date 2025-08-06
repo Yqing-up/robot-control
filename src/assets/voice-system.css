@@ -368,6 +368,13 @@
     font-weight: 600;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     letter-spacing: 0.5px;
+    font-family: 'Microsoft YaHei', sans-serif;
+    transition: font-family 0.3s ease;
+}
+
+/* 字体加载完成后的section标题样式 */
+.font-loaded .section-header h3 {
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 /* 语音库统计 - 添加语音按钮移到最右边 */
@@ -489,6 +496,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-family: 'Microsoft YaHei', sans-serif;
+    transition: font-family 0.3s ease;
+}
+
+/* 字体加载完成后的语音标题样式 */
+.font-loaded .voice-title {
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .voice-meta {
@@ -528,6 +542,13 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    font-family: 'Microsoft YaHei', sans-serif;
+    transition: font-family 0.3s ease;
+}
+
+/* 字体加载完成后的语音内容样式 */
+.font-loaded .voice-content {
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 /* 语音设置 - 紧凑布局 */

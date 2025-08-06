@@ -180,10 +180,10 @@ function openImageAnalysis() {
   router.push('/image-analysis');
 }
 function openMotionDialog() {
-  window.dispatchEvent(new Event('open-motion-dialog'));
+  router.push('/motion-analysis');
 }
 function openTongueDialog() {
-  window.dispatchEvent(new Event('open-tongue-dialog'));
+  router.push('/tongue-analysis');
 }
 </script>
 

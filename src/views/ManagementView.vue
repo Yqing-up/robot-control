@@ -306,15 +306,26 @@
                         <span class="direction-label">右转</span>
                       </button>
                     </div>
-                    <button
-                      class="direction-btn backward"
-                      :class="{ active: currentDirection === 'backward' }"
-                      @click="handleExecuteMovement('backward')"
-                      :disabled="isExecutingMovement"
-                    >
-                      <span class="direction-icon">↓</span>
-                      <span class="direction-label">后退</span>
-                    </button>
+                    <div class="direction-bottom-row">
+                      <button
+                        class="direction-btn march"
+                        :class="{ active: currentDirection === 'march' }"
+                        @click="handleExecuteMovement('march')"
+                        :disabled="isExecutingMovement"
+                      >
+                        <span class="direction-icon">⬆⬇</span>
+                        <span class="direction-label">踏步</span>
+                      </button>
+                      <button
+                        class="direction-btn backward"
+                        :class="{ active: currentDirection === 'backward' }"
+                        @click="handleExecuteMovement('backward')"
+                        :disabled="isExecutingMovement"
+                      >
+                        <span class="direction-icon">↓</span>
+                        <span class="direction-label">后退</span>
+                      </button>
+                    </div>
                   </div>
 
                   <!-- 右移按钮 -->
@@ -330,18 +341,58 @@
                 </div>
               </div>
 
-              <!-- 移动状态显示 -->
-              <div class="movement-status-panel">
-                <h4>移动状态</h4>
-                <div class="status-display">
-                  <div class="status-item">
-                    <span class="status-label">当前动作:</span>
-                    <span class="status-value">{{ currentMovement }}</span>
-                  </div>
-                  <div class="status-item">
-                    <span class="status-label">位置信息:</span>
-                    <span class="status-value">X: {{ position.x }}, Y: {{ position.y }}</span>
-                  </div>
+              <!-- 单步移动控制 -->
+              <div class="single-step-panel">
+                <h4>单步移动控制</h4>
+                <div class="single-step-buttons">
+                  <button
+                    class="btn btn-step forward-step"
+                    @click="executeSingleStep('forward')"
+                    :disabled="isExecutingSingleStep"
+                  >
+                    <span class="step-icon">↑</span>
+                    <span class="step-label">前进一步</span>
+                  </button>
+                  <button
+                    class="btn btn-step backward-step"
+                    @click="executeSingleStep('backward')"
+                    :disabled="isExecutingSingleStep"
+                  >
+                    <span class="step-icon">↓</span>
+                    <span class="step-label">后退一步</span>
+                  </button>
+                  <button
+                    class="btn btn-step left-turn-step"
+                    @click="executeSingleStep('turn_left')"
+                    :disabled="isExecutingSingleStep"
+                  >
+                    <span class="step-icon">↺</span>
+                    <span class="step-label">左转一下</span>
+                  </button>
+                  <button
+                    class="btn btn-step right-turn-step"
+                    @click="executeSingleStep('turn_right')"
+                    :disabled="isExecutingSingleStep"
+                  >
+                    <span class="step-icon">↻</span>
+                    <span class="step-label">右转一下</span>
+                  </button>
+                  <button
+                    class="btn btn-step left-move-step"
+                    @click="executeSingleStep('left')"
+                    :disabled="isExecutingSingleStep"
+                  >
+                    <span class="step-icon">←</span>
+                    <span class="step-label">左移一步</span>
+                  </button>
+                  <button
+                    class="btn btn-step right-move-step"
+                    @click="executeSingleStep('right')"
+                    :disabled="isExecutingSingleStep"
+                  >
+                    <span class="step-icon">→</span>
+                    <span class="step-label">右移一步</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1005,6 +1056,9 @@ const currentMovement = ref('静止')
 const currentDirection = ref('stop')
 const position = reactive({ x: 0, y: 0 })
 
+// 单步移动控制相关
+const isExecutingSingleStep = ref(false)
+
 // 基础方法
 const goBack = () => {
   router.push('/')
@@ -1136,6 +1190,7 @@ const handleExecuteMovement = async (direction) => {
       } else if (direction === 'left' || direction === 'right') {
         executionTime = 1500
       }
+      // 踏步动作和其他移动动作一样，使用默认的2000ms执行时间
 
       setTimeout(() => {
         isExecutingMovement.value = false
@@ -1180,6 +1235,92 @@ const updatePosition = (direction) => {
     case 'right-move':
       position.x += step
       break
+  }
+}
+
+// 执行单步移动
+const executeSingleStep = async (stepType) => {
+  if (isExecutingSingleStep.value) {
+    console.log('⚠️ 单步移动正在执行中，请等待完成')
+    return
+  }
+
+  isExecutingSingleStep.value = true
+
+  try {
+    console.log(`🦵 执行单步移动: ${stepType}`)
+
+    // 构建API URL - 使用Vite代理
+    const baseUrl = '/api-move'  // 使用Vite代理，避免CORS问题
+    let endpoint = ''
+
+    switch (stepType) {
+      case 'forward':
+        endpoint = '/robot_movement/forward'
+        break
+      case 'backward':
+        endpoint = '/robot_movement/backward'
+        break
+      case 'turn_left':
+        endpoint = '/robot_movement/turn_left'
+        break
+      case 'turn_right':
+        endpoint = '/robot_movement/turn_right'
+        break
+      case 'left':
+        endpoint = '/robot_movement/left'
+        break
+      case 'right':
+        endpoint = '/robot_movement/right'
+        break
+      default:
+        throw new Error(`未知的移动类型: ${stepType}`)
+    }
+
+    const url = baseUrl + endpoint
+    console.log(`📡 发送单步移动请求到: ${url}`)
+
+    // 发送HTTP请求
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 5000
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log(`✅ 单步移动 ${stepType} 执行成功:`, result)
+
+    // 显示成功消息
+    const actionNames = {
+      'forward': '前进一步',
+      'backward': '后退一步',
+      'turn_left': '左转一下',
+      'turn_right': '右转一下',
+      'left': '左移一步',
+      'right': '右移一步'
+    }
+
+    alert(`${actionNames[stepType]} 执行成功！`)
+
+  } catch (error) {
+    console.error(`❌ 单步移动 ${stepType} 执行失败:`, error)
+
+    let errorMessage = `单步移动失败: ${error.message}`
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      errorMessage = '网络连接失败，请检查机器人是否在线'
+    } else if (error.message.includes('timeout')) {
+      errorMessage = '请求超时，请检查网络连接'
+    }
+
+    alert(errorMessage)
+  } finally {
+    isExecutingSingleStep.value = false
   }
 }
 

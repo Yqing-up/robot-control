@@ -460,7 +460,7 @@
               type="text"
               v-model="visionStreamUrl"
               class="form-input"
-              placeholder="http://192.168.0.103:8080/live/demo"
+              :placeholder="getVisionStreamUrl().replace('.m3u8', '')"
             >
           </div>
           <div class="form-group">
@@ -539,7 +539,13 @@ const executionNotification = ref({
 
 // 视觉流相关（最简实现）
 const isVisionConnected = ref(false)
-const visionStreamUrl = ref('http://192.168.0.103:8080/live/demo.m3u8')
+// 使用仿真系统的环境变量配置视觉流地址
+const getVisionStreamUrl = () => {
+  const simulationHost = import.meta.env.VITE_ROBOT_SIMULATION_HOST
+  const baseUrl = simulationHost.replace(':5001', ':8080')
+  return `${baseUrl}/live/demo.m3u8`
+}
+const visionStreamUrl = ref(getVisionStreamUrl())
 const visionVideo = ref(null)
 let hls = null
 // 移除自动追帧定时器
@@ -794,7 +800,7 @@ const handleSimulationModeChange = async () => {
     showExecutionNotification(
       'warning',
       '仿真服务器不可用',
-      `仿真机器人服务器 (192.168.0.103:5001) 无法连接，将保持真实机器人模式`,
+      `仿真机器人服务器无法连接，将保持真实机器人模式`,
       8000
     )
     // 强制保持真实机器人模式
@@ -805,7 +811,7 @@ const handleSimulationModeChange = async () => {
     showExecutionNotification(
       'warning',
       '真实机器人不可用',
-      `真实机器人服务器 (192.168.0.115:5001) 无法连接，将保持仿真机器人模式`,
+      `真实机器人服务器无法连接，将保持仿真机器人模式`,
       8000
     )
     // 强制保持仿真机器人模式

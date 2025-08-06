@@ -413,6 +413,7 @@ export const movementApi = {
       case 'right-move': endpoint = '/robot_movement/continuous_walk/right'; break
       case 'left': endpoint = '/robot_movement/continuous_walk/turn_left'; break
       case 'right': endpoint = '/robot_movement/continuous_walk/turn_right'; break
+      case 'march': endpoint = '/robot_movement/continuous_walk/march_in_place'; break
       case 'stop': endpoint = '/robot_movement/cancel'; break
       default: return Promise.resolve({ success: false, error: '未知方向' })
     }
@@ -463,6 +464,7 @@ export const movementApi = {
       'right-move': '右移',
       'left': '左转',
       'right': '右转',
+      'march': '踏步',
       'stop': '停止'
     }
     return labels[direction] || '未知动作'

@@ -90,7 +90,7 @@ export const analyzeVoiceData = async (voiceText, userRequirement) => {
       console.error('   状态文本:', response.statusText)
       console.error('   响应内容:', errorText)
       console.error('   请求URL:', '/v1/workflows/run')
-      console.error('   目标服务器:', 'http://192.168.0.103')
+      console.error('   目标服务器:', import.meta.env.VITE_ROBOT_SIMULATION_HOST)
       console.error('   API密钥:', WORKFLOW_API_KEY)
       console.error('   请求数据:', JSON.stringify(analysisData, null, 2))
 

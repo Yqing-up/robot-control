@@ -2,10 +2,8 @@
   <div class="photo-upload-control">
     <!-- 页面标题 -->
     <header class="page-header">
-      <div class="nav-section">
-        <button class="btn btn-back" @click="goBack">← 返回</button>
-        <h1 class="page-title">智能语音分析</h1>
-      </div>
+      <button class="btn btn-back" @click="goBack">← 返回</button>
+      <h1 class="page-title">智能语音分析</h1>
     </header>
 
     <!-- 主要内容区域 -->
@@ -459,7 +457,6 @@ onMounted(() => {
 
 <style scoped>
 @import '../assets/imageAnalysis.css';
-
 /* 语音识别页面响应式设计 */
 @media (max-width: 1024px) {
   .main-container {

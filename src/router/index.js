@@ -64,6 +64,16 @@ const router = createRouter({
       name: 'responsive-test',
       component: () => import('../views/ResponsiveTestView.vue'),
     },
+    {
+      path: '/motion-analysis',
+      name: 'motion-analysis',
+      component: () => import('../components/MotionAnalysisDialog.vue'),
+    },
+    {
+      path: '/tongue-analysis',
+      name: 'tongue-analysis',
+      component: () => import('../components/TongueAnalysisDialog.vue'),
+    },
   ],
 })
 
