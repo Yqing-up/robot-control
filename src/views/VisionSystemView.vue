@@ -133,8 +133,8 @@
       </section>
 
       <!-- 弹窗组件 -->
-      <MotionAnalysisDialog :visible="showMotionDialog" @close="showMotionDialog=false" />
-      <TongueAnalysisDialog :visible="showTongueDialog" @close="showTongueDialog=false" />
+      <!-- <MotionAnalysisDialog :visible="showMotionDialog" @close="showMotionDialog=false" />
+      <TongueAnalysisDialog :visible="showTongueDialog" @close="showTongueDialog=false" /> -->
 
       <!-- 预览弹窗 -->
       <div v-if="showPreview" class="preview-modal" @click="closePreview">

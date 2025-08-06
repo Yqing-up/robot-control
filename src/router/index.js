@@ -59,6 +59,16 @@ const router = createRouter({
       name: 'voice-recognition',
       component: () => import('../views/VoiceRecognitionView.vue'),
     },
+    {
+      path: '/motion-analysis',
+      name: 'motion-analysis',
+      component: () => import('../components/MotionAnalysisDialog.vue'),
+    },
+    {
+      path: '/tongue-analysis',
+      name: 'tongue-analysis',
+      component: () => import('../components/TongueAnalysisDialog.vue'),
+    },
   ],
 })
 

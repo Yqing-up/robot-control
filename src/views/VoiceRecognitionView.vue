@@ -2,10 +2,8 @@
   <div class="photo-upload-control">
     <!-- 页面标题 -->
     <header class="page-header">
-      <div class="nav-section">
-        <button class="btn btn-back" @click="goBack">← 返回</button>
-        <h1 class="page-title">智能语音分析</h1>
-      </div>
+      <button class="btn btn-back" @click="goBack">← 返回</button>
+      <h1 class="page-title">智能语音分析</h1>
     </header>
 
     <!-- 主要内容区域 -->
@@ -459,4 +457,54 @@ onMounted(() => {
 
 <style scoped>
 @import '../assets/imageAnalysis.css';
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5vw 1.5vw;
+  border-bottom: 2px solid transparent;
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1000;
+  box-sizing: border-box;
+  position: relative;
+  margin-bottom: 1vw;
+  margin-top: 0;
+}
+.page-title {
+  color: #0099ff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00ccff, #0099ff, #ffffff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  text-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
+  user-select: none;
+  margin: 0;
+  margin-left: auto;
+}
+.btn-back {
+  background: rgba(108, 117, 125, 0.3);
+  border: 1px solid rgba(108, 117, 125, 0.5);
+  border-radius: 6px;
+  padding: 8px 16px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-back:hover {
+  background: rgba(108, 117, 125, 0.5);
+  border-color: rgba(108, 117, 125, 0.7);
+  transform: translateY(-1px);
+}
 </style>
