@@ -8,13 +8,13 @@ export default defineConfig(({ command, mode }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd(), '')
   
-  // 从环境变量获取服务器地址，提供默认值作为后备
-  const ROBOT_LOWER_HOST = env.VITE_ROBOT_LOWER_HOST 
-  const ROBOT_SIMULATION_HOST = env.VITE_ROBOT_SIMULATION_HOST || 'http://192.168.0.103:5001'
+  // 从环境变量获取服务器地址
+  const ROBOT_LOWER_HOST = env.VITE_ROBOT_LOWER_HOST
+  const ROBOT_SIMULATION_HOST = env.VITE_ROBOT_SIMULATION_HOST
   const ROBOT_UPPER_HOST = env.VITE_ROBOT_UPPER_HOST
   
   // TTS语音系统服务器选择
-  const TTS_USE_SERVER = env.VITE_TTS_USE_SERVER || 'upper'
+  const TTS_USE_SERVER = env.VITE_TTS_USE_SERVER
   const TTS_TARGET_HOST = TTS_USE_SERVER === 'lower' ? ROBOT_LOWER_HOST : ROBOT_UPPER_HOST
 
   console.log(`🎤 TTS语音系统配置: 使用${TTS_USE_SERVER === 'lower' ? '下位机' : '上位机'} -> ${TTS_TARGET_HOST}`)
@@ -248,7 +248,7 @@ export default defineConfig(({ command, mode }) => {
           },
         },
         '/v1': {
-          target: 'http://192.168.0.103',
+          target: ROBOT_SIMULATION_HOST.replace(':5001', ''),
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path,
@@ -257,7 +257,7 @@ export default defineConfig(({ command, mode }) => {
               console.log('工作流v1代理错误:', err);
             });
             proxy.on('proxyReq', (proxyReq, req, res) => {
-              console.log('工作流v1代理请求 -> 目标服务器:', req.method, req.url, '->', 'http://192.168.0.103' + req.url);
+              console.log('工作流v1代理请求 -> 目标服务器:', req.method, req.url, '->', options.target + req.url);
             });
             proxy.on('proxyRes', (proxyRes, req, res) => {
               console.log('工作流v1代理响应 <- 目标服务器:', proxyRes.statusCode, req.url);

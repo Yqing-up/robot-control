@@ -1,5 +1,6 @@
 import { realRobotApi } from './realRobotApi.js';
 import { simulationRobotApi } from './simulationRobotApi.js';
+import { API_CONFIG } from '../config/api.js';
 
 // 机器人模式管理
 let currentMode = 'real'; // 'real' 或 'simulation'
@@ -19,7 +20,7 @@ export const setRobotMode = (mode) => {
   currentMode = mode;
 
   console.log(`🔄 机器人模式切换: ${oldMode} -> ${mode}`);
-  console.log(`📡 当前使用: ${mode === 'real' ? '真实机器人 (192.168.0.115:5001)' : '仿真机器人 (192.168.0.103:5001)'}`);
+  console.log(`📡 当前使用: ${mode === 'real' ? `真实机器人 (${API_CONFIG.ROBOT_CONFIG.REAL_ROBOT_TARGET})` : `仿真机器人 (${API_CONFIG.ROBOT_CONFIG.SIMULATION_ROBOT_TARGET})`}`);
 
   return currentMode;
 };
@@ -43,8 +44,8 @@ export const robotApi = {
   // 获取当前模式的服务器地址
   getCurrentServerAddress: () => {
     return currentMode === 'real'
-      ? 'http://192.168.0.115:5001/api'
-      : 'http://192.168.0.103:5001/api';
+      ? `${API_CONFIG.ROBOT_CONFIG.REAL_ROBOT_TARGET}/api`
+      : `${API_CONFIG.ROBOT_CONFIG.SIMULATION_ROBOT_TARGET}/api`;
   },
 
   // 动作相关接口
