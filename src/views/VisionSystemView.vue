@@ -132,9 +132,7 @@
         </div>
       </section>
 
-      <!-- 弹窗组件 -->
-      <!-- <MotionAnalysisDialog :visible="showMotionDialog" @close="showMotionDialog=false" />
-      <TongueAnalysisDialog :visible="showTongueDialog" @close="showTongueDialog=false" /> -->
+      <!-- 注意：MotionAnalysisDialog 和 TongueAnalysisDialog 现在是独立的页面组件，通过路由访问 -->
 
       <!-- 预览弹窗 -->
       <div v-if="showPreview" class="preview-modal" @click="closePreview">
@@ -149,8 +147,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import Navbar from '../components/Navbar.vue';
-import MotionAnalysisDialog from '../components/MotionAnalysisDialog.vue';
-import TongueAnalysisDialog from '../components/TongueAnalysisDialog.vue';
 import { cameraApi } from '../api/cameraApi';
 
 const {
@@ -193,9 +189,7 @@ let photoCountTimer = null;
 const showPreview = ref(false);
 const previewUrl = ref('');
 
-// 弹窗相关
-const showMotionDialog = ref(false);
-const showTongueDialog = ref(false);
+// 注意：运动检测和舌苔检测现在是独立页面，通过路由访问
 
 // 生命周期
 onMounted(() => {
@@ -204,8 +198,7 @@ onMounted(() => {
   console.log('apiTakePhoto:', apiTakePhoto);
   console.log('apiStartContinuousPhoto:', apiStartContinuousPhoto);
 
-  window.addEventListener('open-motion-dialog', () => showMotionDialog.value = true);
-  window.addEventListener('open-tongue-dialog', () => showTongueDialog.value = true);
+  // 运动检测和舌苔检测现在通过路由访问，不需要事件监听器
   initializeCamera();
   loadPhotoList();
 });
@@ -222,8 +215,7 @@ onBeforeUnmount(() => {
     photoCountTimer = null;
   }
 
-  window.removeEventListener('open-motion-dialog', () => showMotionDialog.value = true);
-  window.removeEventListener('open-tongue-dialog', () => showTongueDialog.value = true);
+  // 不再需要清理对话框事件监听器
 });
 
 // 摄像头控制
