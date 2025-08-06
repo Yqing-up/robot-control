@@ -26,13 +26,13 @@ cp .env.example .env
 
 ```bash
 # 机器人下位机 (真实机器人硬件控制)
-VITE_ROBOT_LOWER_HOST=http://192.168.0.117:5001
+VITE_ROBOT_LOWER_HOST=http://192.168.0.118:5001
 
 # 仿真系统 (机器人仿真环境)  
 VITE_ROBOT_SIMULATION_HOST=http://192.168.0.103:5001
 
 # 机器人上位机 (摄像头、语音等服务)
-VITE_ROBOT_UPPER_HOST=http://192.168.0.119:5001
+VITE_ROBOT_UPPER_HOST=http://192.168.0.120:5001
 ```
 
 ### 启动开发服务器
@@ -56,9 +56,9 @@ npm run lint
 
 | 环境变量 | 服务器类型 | 默认地址 | 功能说明 |
 |---------|-----------|----------|----------|
-| `VITE_ROBOT_LOWER_HOST` | 机器人下位机 | `http://192.168.0.117:5001` | 真实机器人硬件控制，包括运动控制、传感器数据 |
+| `VITE_ROBOT_LOWER_HOST` | 机器人下位机 | `http://192.168.0.118:5001` | 真实机器人硬件控制，包括运动控制、传感器数据 |
 | `VITE_ROBOT_SIMULATION_HOST` | 仿真系统 | `http://192.168.0.103:5001` | 机器人仿真环境，用于测试和开发 |
-| `VITE_ROBOT_UPPER_HOST` | 机器人上位机 | `http://192.168.0.119:5001` | 高级服务，包括摄像头、语音识别、AI分析 |
+| `VITE_ROBOT_UPPER_HOST` | 机器人上位机 | `http://192.168.0.120:5001` | 高级服务，包括摄像头、语音识别、AI分析 |
 
 ### API 代理映射
 
