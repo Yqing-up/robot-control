@@ -34,7 +34,7 @@
                 <p><strong>最后调用:</strong> {{ lastApiCall ? new Date(lastApiCall).toLocaleString() : '未调用' }}</p>
                 <p><strong>检查清单:</strong></p>
                 <ul>
-                  <li>✓ 确认服务器 192.168.0.116:5001 运行正常</li>
+                  <li>✓ 确认上位机服务器运行正常</li>
                   <li>✓ 验证 /api/asr 路径配置正确</li>
                   <li>✓ 检查所有接口都使用HTTP协议</li>
                   <li>✓ 确认CORS跨域设置正确</li>
@@ -459,7 +459,7 @@ const callAPI = async (endpoint, method = 'GET', data = null) => {
         errorMessage = `服务器内部错误 (500): 后端服务器出现问题，请检查服务器日志。API端点: ${endpoint}`
         console.error('🔧 500错误调试信息:')
         console.error('📍 请求端点:', endpoint)
-        console.error('📍 服务器地址: http://192.168.0.116:5001')
+        console.error('📍 服务器地址: 使用环境变量配置的上位机地址')
         console.error('📍 建议检查: 1) 服务器是否运行 2) API路由是否正确 3) 服务器日志')
       } else if (response.status === 404) {
         errorMessage = `API端点不存在 (404): ${endpoint}，请检查服务器路由配置`

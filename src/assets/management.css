@@ -645,11 +645,15 @@
     grid-template-areas:
         ". forward ."
         "left stop right"
-        ". backward .";
+        "march backward .";
     gap: 8px;
 }
 
 .direction-middle-row {
+    display: contents;
+}
+
+.direction-bottom-row {
     display: contents;
 }
 
@@ -678,6 +682,7 @@
 .center-controls .direction-btn.stop { grid-area: stop; }
 .center-controls .direction-btn.right { grid-area: right; }
 .center-controls .direction-btn.backward { grid-area: backward; }
+.center-controls .direction-btn.march { grid-area: march; }
 
 .direction-btn:hover:not(:disabled) {
     background: linear-gradient(135deg, rgba(0, 102, 255, 0.3) 0%, rgba(0, 20, 40, 0.6) 100%);
@@ -707,6 +712,17 @@
     border-color: rgba(255, 0, 0, 0.8);
 }
 
+.direction-btn.march {
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.3) 0%, rgba(40, 25, 0, 0.6) 100%);
+    border-color: rgba(255, 165, 0, 0.5);
+}
+
+.direction-btn.march:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.4) 0%, rgba(40, 25, 0, 0.8) 100%);
+    border-color: rgba(255, 165, 0, 0.8);
+    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
+}
+
 .direction-icon {
     font-size: 16px;
 }
@@ -716,29 +732,91 @@
     font-weight: 500;
 }
 
-/* 状态显示面板 */
-.status-display {
+/* 单步移动控制面板 */
+.single-step-panel {
+    background: rgba(0, 20, 40, 0.4);
+    border: 1px solid rgba(0, 102, 255, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.single-step-panel h4 {
+    color: #4da6ff;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    text-align: center;
+}
+
+.single-step-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.btn-step {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 20, 40, 0.6) 100%);
+    border: 1px solid rgba(0, 102, 255, 0.4);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-}
-
-.status-item {
-    display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    min-height: 50px;
+    font-size: 11px;
 }
 
-.status-label {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.8);
-    min-width: 70px;
+.btn-step:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.4) 0%, rgba(0, 20, 40, 0.8) 100%);
+    border-color: rgba(0, 102, 255, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
 }
 
-.status-value {
-    font-size: 11px;
-    color: #ffffff;
+.btn-step:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.step-icon {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.step-label {
+    font-size: 10px;
     font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* 不同类型按钮的特殊样式 */
+.forward-step:hover:not(:disabled) {
+    border-color: rgba(0, 255, 0, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+}
+
+.backward-step:hover:not(:disabled) {
+    border-color: rgba(255, 165, 0, 0.6);
+    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
+}
+
+.left-turn-step:hover:not(:disabled),
+.left-move-step:hover:not(:disabled) {
+    border-color: rgba(255, 0, 255, 0.6);
+    box-shadow: 0 4px 12px rgba(255, 0, 255, 0.3);
+}
+
+.right-turn-step:hover:not(:disabled),
+.right-move-step:hover:not(:disabled) {
+    border-color: rgba(0, 255, 255, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
 }
 
 /* 对话框样式 */
