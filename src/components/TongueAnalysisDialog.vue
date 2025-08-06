@@ -15,10 +15,10 @@
               <div class="loading-spinner"></div>
               <span>正在连接摄像头...</span>
             </div>
-            <img 
+            <img
               v-else
-              :src="getVideoFeed()" 
-              class="camera-preview" 
+              :src="getVideoFeed()"
+              class="camera-preview"
               @error="handleVideoError"
               @load="handleVideoLoad"
             />
@@ -58,7 +58,7 @@
           <div class="param-group">
             <div class="photo-selector">
               <div class="photo-dropdown-container">
-                <div 
+                <div
                   class="photo-dropdown-trigger"
                   @click="togglePhotoDropdown"
                   :class="{ 'active': isPhotoDropdownOpen }"
@@ -82,8 +82,8 @@
                     <span>暂无照片数据</span>
                   </div>
                   <div v-else class="photo-dropdown-list">
-                    <div 
-                      v-for="(photo, index) in sortedPhotoData" 
+                    <div
+                      v-for="(photo, index) in sortedPhotoData"
                       :key="index"
                       class="photo-dropdown-item"
                       :class="{ 'selected': selectedPhoto && selectedPhoto.url === photo.url }"
@@ -100,9 +100,9 @@
               </div>
             </div>
             <input v-model="prompt" placeholder="如：请分析舌苔健康状况" class="form-input" />
-            <button 
-              class="btn-submit submit-btn" 
-              @click="analyze" 
+            <button
+              class="btn-submit submit-btn"
+              @click="analyze"
               :disabled="!selectedPhoto || !prompt || analysisLoading"
             >
               {{ analysisLoading ? '检测中...' : '提交检测' }}
@@ -119,9 +119,9 @@
           </div>
           <div class="detection-results">
             <h4 class="result-title">检测结果：</h4>
-            <textarea 
-              v-model="detectionOutput" 
-              class="detection-output" 
+            <textarea
+              v-model="detectionOutput"
+              class="detection-output"
               readonly
             ></textarea>
           </div>
@@ -134,10 +134,10 @@
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { cameraApi } from '../api/cameraApi';
-import { 
-  getRecentPhotoData, 
-  analyzeTongueData, 
-  validateTongueInput, 
+import {
+  getRecentPhotoData,
+  analyzeTongueData,
+  validateTongueInput,
   formatPhotoDataForDisplay,
   extractPhotoUrls,
   formatTongueAnalysisResult
@@ -406,4 +406,186 @@ async function analyze() {
   font-size: 15px;
   resize: vertical;
 }
-</style> 
+
+/* 照片选择器样式 */
+.photo-selector {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.photo-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.photo-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #4a90e2;
+  border-radius: 8px;
+  background: #101a28;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 50px;
+  box-sizing: border-box;
+}
+
+.photo-dropdown-trigger:hover {
+  border-color: #64b5f6;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+}
+
+.photo-dropdown-trigger.active {
+  border-color: #64b5f6;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+}
+
+.selected-photo-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0; /* 防止flex子元素溢出 */
+}
+
+.selected-photo-thumbnail {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #4a90e2;
+  flex-shrink: 0; /* 防止缩略图被压缩 */
+}
+
+.selected-photo-name {
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-photo-date {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.placeholder-text {
+  color: #aaa;
+  font-style: italic;
+}
+
+.dropdown-arrow {
+  color: #4a90e2;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.photo-dropdown-trigger.active .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.photo-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #101a28;
+  border: 1px solid #4a90e2;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.photo-dropdown-list {
+  padding: 8px 0;
+}
+
+.photo-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 60px;
+  box-sizing: border-box;
+}
+
+.photo-dropdown-item:hover {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.photo-dropdown-item.selected {
+  background: rgba(74, 144, 226, 0.2);
+}
+
+.photo-dropdown-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #4a90e2;
+  flex-shrink: 0; /* 防止缩略图被压缩 */
+}
+
+.photo-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0; /* 防止flex子元素溢出 */
+}
+
+.photo-dropdown-name {
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-dropdown-date {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-loading, .photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #aaa;
+  font-style: italic;
+}
+
+.photo-loading .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(74, 144, 226, 0.3);
+  border-top: 2px solid #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
