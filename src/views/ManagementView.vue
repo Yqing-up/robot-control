@@ -18,68 +18,113 @@
     <main class="management-main">
       <!-- 第一层：机器人画面区域 -->
       <section class="camera-layer">
-        <div class="camera-section">
+        <div class="camera-section-row" style="display: flex; gap: 32px; align-items: flex-start;">
           <!-- 视频显示区域 -->
-          <div class="video-display" style="height: 500px !important; max-width: 900px !important; width: 100% !important; margin: 0 auto !important;">
-            <!-- 视频模式 -->
-            <video
-              v-if="!useFallbackImage"
-              ref="cameraVideo"
-              class="camera-stream"
-              style="object-fit: contain !important; width: 100% !important; height: 100% !important;"
-              :src="cameraStreamUrl"
-              autoplay
-              muted
-              playsinline
-              controls
-              preload="none"
-              @loadstart="onVideoLoadStart"
-              @loadeddata="onVideoLoaded"
-              @play="onVideoPlay"
-              @pause="onVideoPause"
-              @ended="onVideoEnded"
-              @error="onVideoError"
-              @canplay="onVideoCanPlay"
-              @waiting="onVideoWaiting"
-            >
-              <div class="video-placeholder">
-                <div class="placeholder-icon">📹</div>
-                <div class="placeholder-text">摄像头画面</div>
-                <div class="placeholder-status">{{ cameraStatus }}</div>
-              </div>
-            </video>
-
-            <!-- 图片模式（MJPEG流备用方案） -->
-            <img
-              v-else
-              ref="cameraImage"
-              class="camera-stream"
-              style="object-fit: contain !important; width: 100% !important; height: 100% !important;"
-              :src="cameraStreamUrl"
-              @load="onImageLoad"
-              @error="onImageError"
-              alt="摄像头画面"
-            />
-            <div v-if="!cameraConnected && !cameraStreamUrl" class="video-overlay">
-              <div class="overlay-content">
-                <div class="overlay-icon">📹</div>
-                <div class="overlay-text">摄像头画面</div>
-                <div class="overlay-status">{{ cameraStatus }}</div>
+          <div class="camera-section" style="flex: 1; min-width: 0;">
+            <div class="video-display" style="height: 500px !important; max-width: 900px !important; width: 100% !important; margin: 0 auto !important;">
+              <!-- 视频模式 -->
+              <video
+                v-if="!useFallbackImage"
+                ref="cameraVideo"
+                class="camera-stream"
+                style="object-fit: contain !important; width: 100% !important; height: 100% !important;"
+                :src="cameraStreamUrl"
+                autoplay
+                muted
+                playsinline
+                controls
+                preload="none"
+                @loadstart="onVideoLoadStart"
+                @loadeddata="onVideoLoaded"
+                @play="onVideoPlay"
+                @pause="onVideoPause"
+                @ended="onVideoEnded"
+                @error="onVideoError"
+                @canplay="onVideoCanPlay"
+                @waiting="onVideoWaiting"
+              >
+                <div class="video-placeholder">
+                  <div class="placeholder-icon">📹</div>
+                  <div class="placeholder-text">摄像头画面</div>
+                  <div class="placeholder-status">{{ cameraStatus }}</div>
+                </div>
+              </video>
+              <!-- 图片模式（MJPEG流备用方案） -->
+              <img
+                v-else
+                ref="cameraImage"
+                class="camera-stream"
+                style="object-fit: contain !important; width: 100% !important; height: 100% !important;"
+                :src="cameraStreamUrl"
+                @load="onImageLoad"
+                @error="onImageError"
+                alt="摄像头画面"
+              />
+              <div v-if="!cameraConnected && !cameraStreamUrl" class="video-overlay">
+                <div class="overlay-content">
+                  <div class="overlay-icon">📹</div>
+                  <div class="overlay-text">摄像头画面</div>
+                  <div class="overlay-status">{{ cameraStatus }}</div>
+                </div>
               </div>
             </div>
+            <!-- 摄像头控制按钮 -->
+            <div class="camera-controls">
+              <button class="camera-btn" @click="handleInitializeCamera" :disabled="cameraLoading">
+                {{ cameraLoading ? '连接中...' : '刷新摄像头' }}
+              </button>
+              <button class="camera-btn" @click="handleToggleCamera" :disabled="cameraLoading">
+                {{ cameraConnected ? '断开摄像头' : '连接摄像头' }}
+              </button>
+              <button class="camera-btn" @click="handleToggleFullscreen" :disabled="!cameraConnected">
+                {{ isFullscreen ? '🔍 退出全屏' : '🔍 全屏' }}
+              </button>
+            </div>
           </div>
-
-          <!-- 摄像头控制按钮 -->
-          <div class="camera-controls">
-            <button class="camera-btn" @click="handleInitializeCamera" :disabled="cameraLoading">
-              {{ cameraLoading ? '连接中...' : '刷新摄像头' }}
-            </button>
-            <button class="camera-btn" @click="handleToggleCamera" :disabled="cameraLoading">
-              {{ cameraConnected ? '断开摄像头' : '连接摄像头' }}
-            </button>
-            <button class="camera-btn" @click="handleToggleFullscreen" :disabled="!cameraConnected">
-              {{ isFullscreen ? '🔍 退出全屏' : '🔍 全屏' }}
-            </button>
+          <!-- 头部控制操作盘 -->
+          <div class="head-control-section">
+            <div class="section-header">
+              <h3>头部控制操作盘</h3>
+            </div>
+            <div class="direction-section">
+              <div class="direction-pad">
+                <div></div>
+                <button class="direction-btn" @click="moveHead('up')">
+                  <span class="arrow">▲</span>
+                  <span class="label">上</span>
+                </button>
+                <div></div>
+                <button class="direction-btn" @click="moveHead('left')">
+                  <span class="arrow">◀</span>
+                  <span class="label">左</span>
+                </button>
+                <button class="direction-btn" @click="moveHead('reset')">
+                  <span class="arrow">●</span>
+                  <span class="label">复位</span>
+                </button>
+                <button class="direction-btn" @click="moveHead('right')">
+                  <span class="arrow">▶</span>
+                  <span class="label">右</span>
+                </button>
+                <div></div>
+                <button class="direction-btn" @click="moveHead('down')">
+                  <span class="arrow">▼</span>
+                  <span class="label">下</span>
+                </button>
+                <div></div>
+              </div>
+              <div class="func-btn-row">
+                <button class="direction-btn emergency" @click="moveHead('stop')">
+                  <span class="stop-icon">■</span>
+                  <span class="label">停止</span>
+                </button>
+                <button class="direction-btn" @click="fetchHeadStatus">
+                  <span class="arrow">ℹ️</span>
+                  <span class="label">状态</span>
+                </button>
+              </div>
+              <div class="head-status-text">{{ headStatusText }}</div>
+            </div>
           </div>
         </div>
       </section>
@@ -485,6 +530,7 @@ import { voiceApi } from '../api/voiceApi.js'
 import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
 import { realRobotApi } from '../api/realRobotApi.js'
+import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopHead, getHeadStatus } from '../api/simulationHeadApi'
 // 其它API如有需要可继续补充
 
 const router = useRouter()
@@ -1059,6 +1105,32 @@ const position = reactive({ x: 0, y: 0 })
 // 单步移动控制相关
 const isExecutingSingleStep = ref(false)
 
+// 头部控制相关
+const headStatusText = ref('')
+const moveHead = async (direction) => {
+  headStatusText.value = '操作中...'
+  try {
+    if (direction === 'up') await moveHeadUp()
+    else if (direction === 'down') await moveHeadDown()
+    else if (direction === 'left') await moveHeadLeft()
+    else if (direction === 'right') await moveHeadRight()
+    else if (direction === 'reset') await resetHead()
+    else if (direction === 'stop') await stopHead()
+    headStatusText.value = '操作成功'
+  } catch (e) {
+    headStatusText.value = '操作失败'
+  }
+}
+const fetchHeadStatus = async () => {
+  headStatusText.value = '获取中...'
+  try {
+    const res = await getHeadStatus()
+    headStatusText.value = res?.data ? JSON.stringify(res.data) : '无数据'
+  } catch (e) {
+    headStatusText.value = '获取失败'
+  }
+}
+
 // 基础方法
 const goBack = () => {
   router.push('/')
@@ -1512,4 +1584,166 @@ onUnmounted(() => {
 
 <style scoped>
 @import '../assets/management.css';
+.direction-btn {
+  background: linear-gradient(145deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%);
+  border: 2px solid rgba(0, 102, 255, 0.4);
+  border-radius: 16px;
+  color: #4da6ff;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 55px;
+  min-width: 70px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 102, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  font-size: 18px;
+}
+.direction-btn .arrow {
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px currentColor;
+}
+.direction-btn .label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-align: center;
+}
+.direction-btn.emergency {
+  background: linear-gradient(145deg, rgba(255, 0, 0, 0.25) 0%, rgba(255, 0, 0, 0.15) 100%);
+  border-color: rgba(255, 0, 0, 0.6);
+  color: #ff6666;
+}
+.direction-btn .stop-icon {
+  font-size: 20px;
+  color: #ff6666;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+.head-control-section {
+  width: 340px;
+  min-width: 260px;
+  height: 500px;
+  background: linear-gradient(135deg, #232b3a 60%, #1a2233 100%);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1.5px 0 #1976d2 inset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #1976d2;
+  margin: 0;
+  padding: 0 10px;
+  transition: box-shadow 0.3s;
+}
+.head-control-section:hover {
+  box-shadow: 0 8px 32px rgba(0,102,255,0.22), 0 2px 0 #1976d2 inset;
+}
+.section-header {
+  margin-bottom: 12px;
+}
+.section-header h3 {
+  color: #4da6ff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-shadow: 0 0 15px rgba(0, 153, 255, 0.2);
+  margin: 0;
+}
+.direction-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.direction-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  grid-template-rows: repeat(3, 70px);
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.func-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 10px;
+}
+.head-status-text {
+  margin-top: 8px;
+  color: #ffeb3b;
+  font-size: 14px;
+  min-height: 20px;
+}
+@media (max-width: 900px) {
+  .camera-section-row {
+    flex-direction: column;
+    gap: 18px;
+    align-items: stretch;
+  }
+  .head-control-section {
+    width: 100%;
+    min-width: 0;
+    height: 340px;
+    margin: 0 auto;
+    margin-bottom: 12px;
+    padding: 0 4vw;
+  }
+  .direction-pad {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 6px;
+  }
+}
+@media (max-width: 600px) {
+  .head-control-section {
+    min-height: 160px;
+    height: auto;
+    border-radius: 8px;
+    padding: 0 1vw 10px 1vw;
+    min-width: 0;
+    width: 100%;
+  }
+  .section-header h3 {
+    font-size: 15px;
+  }
+  .direction-section {
+    padding: 0 2vw;
+  }
+  .direction-pad {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2vw;
+    margin-bottom: 4px;
+    min-height: 90px;
+    height: auto;
+    padding: 6px 0;
+  }
+  .direction-btn {
+    min-width: 10vw;
+    min-height: 10vw;
+    max-width: 16vw;
+    max-height: 16vw;
+    font-size: 4vw;
+    border-radius: 5vw;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .func-btn-row {
+    gap: 4vw;
+    margin-top: 2vw;
+  }
+  .head-status-text {
+    font-size: 12px;
+    min-height: 14px;
+    margin-top: 2px;
+  }
+}
 </style>
