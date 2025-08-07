@@ -158,7 +158,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { robotApi } from '../api/robotApi'
+import { robotApi, setRobotMode } from '../api/robotApi'
 import { voiceApi } from '../api/voiceApi'
 import { recordingApi } from '../api/recordingApi'
 import { cameraApi } from '../api/cameraApi'
@@ -411,6 +411,10 @@ const initializeChatService = () => {
 onMounted(async () => {
   console.log('🚀 远程交互页面已挂载')
 
+  // 确保使用真实机器人模式
+  setRobotMode('real')
+  console.log('🤖 远程交互页面强制使用真实机器人模式')
+
   // 初始化各个服务
   initializeVideo()
   await connectActionService()
@@ -626,6 +630,9 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   padding: 1.5rem;
   border: 1px solid rgba(0, 153, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 600px;
 }
 
 .loading-state {
@@ -649,6 +656,12 @@ onBeforeUnmount(() => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.actions-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 .actions-grid {
@@ -763,6 +776,30 @@ onBeforeUnmount(() => {
 .btn-refresh:hover, .btn-reconnect:hover {
   background: rgba(0, 153, 255, 0.3);
   transform: translateY(-1px);
+}
+
+/* 自定义滚动条样式 */
+.actions-list::-webkit-scrollbar,
+.chat-history::-webkit-scrollbar {
+  width: 8px;
+}
+
+.actions-list::-webkit-scrollbar-track,
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(26, 26, 46, 0.3);
+  border-radius: 4px;
+}
+
+.actions-list::-webkit-scrollbar-thumb,
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(0, 153, 255, 0.3);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.actions-list::-webkit-scrollbar-thumb:hover,
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 153, 255, 0.5);
 }
 
 /* 对话交互区域 */
