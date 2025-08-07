@@ -74,6 +74,11 @@ const router = createRouter({
       name: 'tongue-analysis',
       component: () => import('../components/TongueAnalysisDialog.vue'),
     },
+    {
+      path: '/remote-interaction',
+      name: 'remote-interaction',
+      component: () => import('../views/RemoteInteractionView.vue'),
+    },
   ],
 })
 

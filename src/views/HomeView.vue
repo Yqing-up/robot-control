@@ -2,6 +2,7 @@
   <div class="container">
     <div class="main-title">机器人控制中心</div>
     <div class="top-buttons">
+      <div class="remote-interaction-btn" @click="goRemoteInteraction">远程交互</div>
       <div class="health-report-btn" @click="goHealthReport">健康报告</div>
       <div class="management-btn" @click="goManagement">综合管理</div>
     </div>
@@ -135,6 +136,9 @@ function goArmSystem() {
 }
 function goVoiceSystem() {
   router.push('/voice-system');
+}
+function goRemoteInteraction() {
+  router.push('/remote-interaction');
 }
 function goHealthReport() {
   router.push('/report');
@@ -697,6 +701,7 @@ body::before {
   gap: 12px;
 }
 
+.remote-interaction-btn,
 .health-report-btn,
 .management-btn {
   font-size: clamp(0.8rem, 2.5vw, 1.2rem);
@@ -719,6 +724,7 @@ body::before {
 
 /* 综合管理按钮使用与健康报告相同的样式 */
 
+.remote-interaction-btn:hover,
 .health-report-btn:hover,
 .management-btn:hover {
   text-shadow: 0 0 20px rgba(0, 153, 255, 0.6);
@@ -847,6 +853,7 @@ body::before {
     gap: 8px;
   }
 
+  .remote-interaction-btn,
   .health-report-btn,
   .management-btn {
     font-size: clamp(0.8rem, 2vw, 1.1rem);
@@ -965,6 +972,7 @@ body::before {
     gap: 6px;
   }
 
+  .remote-interaction-btn,
   .health-report-btn,
   .management-btn {
     font-size: clamp(0.7rem, 1.8vw, 0.9rem);
@@ -1075,6 +1083,7 @@ body::before {
     font-size: clamp(0.8rem, 2.5vw, 1rem);
   }
 
+  .remote-interaction-btn,
   .health-report-btn,
   .management-btn {
     font-size: clamp(0.6rem, 2vw, 0.8rem);
