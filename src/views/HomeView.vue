@@ -11,42 +11,42 @@
       <div class="robot-section">
         <div class="side-panel left-panel">
           <!-- 左侧三个系统 -->
-        <div class="control-panel brain-panel" data-part="brain" @click="goBrainSystem">
-          <div class="panel-header">
-            <h3>大脑系统</h3>
-            <div class="connection-status online"></div>
-          </div>
-          <div class="panel-description">
-            <p class="system-intro">智能决策中心，负责处理信息和控制逻辑运算</p>
+          <div class="control-panel brain-panel" data-part="brain" @click="goBrainSystem">
+            <div class="panel-header">
+              <h3>大脑系统</h3>
+              <div class="connection-status online"></div>
+            </div>
+            <div class="panel-description">
+              <p class="system-intro">智能决策中心，负责处理信息和控制逻辑运算</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入大脑系统 →</span>
               </div>
             </div>
           </div>
           <div class="control-panel eyes-panel" data-part="eyes" @click="goVisionSystem">
-          <div class="panel-header">
-            <h3>视觉系统</h3>
-            <div class="connection-status online"></div>
-          </div>
-          <div class="panel-description">
-            <p class="system-intro">高清图像采集，实现环境感知和目标识别</p>
-            <div class="panel-action">
+            <div class="panel-header">
+              <h3>视觉系统</h3>
+              <div class="connection-status online"></div>
+            </div>
+            <div class="panel-description">
+              <p class="system-intro">高清图像采集，实现环境感知和目标识别</p>
+              <div class="panel-action">
                 <span class="action-hint">点击进入视觉系统 →</span>
-          </div>
+              </div>
             </div>
           </div>
           <div class="control-panel arms-panel" data-part="arms" @click="goArmSystem">
-          <div class="panel-header">
-            <h3>上肢系统</h3>
-            <div class="connection-status online"></div>
-          </div>
-          <div class="panel-description">
-            <p class="system-intro">精密动作执行，提供灵活操作和力量控制</p>
-            <div class="panel-action">
-              <span class="action-hint">点击进入上肢系统 →</span>
+            <div class="panel-header">
+              <h3>上肢系统</h3>
+              <div class="connection-status online"></div>
+            </div>
+            <div class="panel-description">
+              <p class="system-intro">精密动作执行，提供灵活操作和力量控制</p>
+              <div class="panel-action">
+                <span class="action-hint">点击进入上肢系统 →</span>
+              </div>
             </div>
           </div>
-        </div>
         </div>
         <div class="robot-container">
           <img :src="robotImg" alt="机器人" class="robot-image" id="robotImage" />
@@ -66,26 +66,26 @@
             </div>
           </div>
           <div class="control-panel mouth-panel" data-part="mouth" @click="goVoiceSystem">
-          <div class="panel-header">
-            <h3>语音系统</h3>
-            <div class="connection-status online"></div>
-          </div>
-          <div class="panel-description">
-            <p class="system-intro">智能语音合成，支持多语言和情感表达</p>
-            <div class="panel-action">
-              <span class="action-hint">点击进入语音系统 →</span>
+            <div class="panel-header">
+              <h3>语音系统</h3>
+              <div class="connection-status online"></div>
+            </div>
+            <div class="panel-description">
+              <p class="system-intro">智能语音合成，支持多语言和情感表达</p>
+              <div class="panel-action">
+                <span class="action-hint">点击进入语音系统 →</span>
+              </div>
             </div>
           </div>
-        </div>
           <div class="control-panel legs-panel" data-part="legs" @click="goLegSystem">
-          <div class="panel-header">
-            <h3>下肢系统</h3>
-            <div class="connection-status online"></div>
-          </div>
-          <div class="panel-description">
-            <p class="system-intro">稳定运动控制，实现平衡行走和地形适应</p>
-            <div class="panel-action">
-              <span class="action-hint">点击进入下肢系统 →</span>
+            <div class="panel-header">
+              <h3>下肢系统</h3>
+              <div class="connection-status online"></div>
+            </div>
+            <div class="panel-description">
+              <p class="system-intro">稳定运动控制，实现平衡行走和地形适应</p>
+              <div class="panel-action">
+                <span class="action-hint">点击进入下肢系统 →</span>
               </div>
             </div>
           </div>
@@ -310,19 +310,21 @@ body::before {
 }
 
 .left-panel {
-  align-items: flex-end;
+  align-items: stretch;
   position: absolute;
   left: clamp(20px, 4vw, 60px);
   top: 50%;
   transform: translateY(-50%);
+  z-index: 100;
 }
 
 .right-panel {
-  align-items: flex-start;
+  align-items: stretch;
   position: absolute;
   right: clamp(50px, 8vw, 120px);
   top: 50%;
   transform: translateY(-50%);
+  z-index: 100;
 }
 .robot-container {
   display: flex;
@@ -334,7 +336,7 @@ body::before {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  z-index: 5;
   transition: all 0.3s ease;
 }
 
@@ -346,7 +348,7 @@ body::before {
         drop-shadow(0 0 40px rgba(0, 153, 255, 0.4))
         drop-shadow(0 0 80px rgba(77, 166, 255, 0.2))
         drop-shadow(0 0 120px rgba(255, 255, 255, 0.1));
-    z-index: 10;
+    z-index: 5;
     transition: filter 0.3s ease;
 }
 
@@ -370,7 +372,7 @@ body::before {
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  z-index: 10;
+  z-index: 100;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -813,12 +815,12 @@ body::before {
 
   .left-panel {
     order: 1;
-    align-items: flex-end !important;
+    align-items: stretch !important;
   }
 
   .right-panel {
     order: 3;
-    align-items: flex-start !important;
+    align-items: stretch !important;
   }
 
   .robot-container {
@@ -889,12 +891,12 @@ body::before {
 
   .left-panel {
     order: 1;
-    align-items: flex-end !important;
+    align-items: stretch !important;
   }
 
   .right-panel {
     order: 3;
-    align-items: flex-start !important;
+    align-items: stretch !important;
   }
 
   .robot-container {
@@ -1008,12 +1010,12 @@ body::before {
 
   .left-panel {
     order: 1;
-    align-items: flex-end !important;
+    align-items: stretch !important;
   }
 
   .right-panel {
     order: 3;
-    align-items: flex-start !important;
+    align-items: stretch !important;
   }
 
   .robot-container {

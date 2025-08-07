@@ -254,7 +254,7 @@ const submitButtonText = computed(() => {
 
 // 方法
 const goBack = () => {
-  router.push('/voice-system')
+  router.push('/audio-system')
 }
 
 const handleInputChange = () => {

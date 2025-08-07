@@ -8,7 +8,6 @@
       </div>
       <div class="header-controls">
         <div class="header-buttons">
-          <button class="btn btn-small voice-recognition-btn" @click="openVoiceRecognition">智能语音识别</button>
           <button class="btn btn-small" @click="exportVoiceData">导出语音库</button>
         </div>
       </div>
@@ -368,10 +367,7 @@ const goBack = () => {
   router.push('/')
 }
 
-const openVoiceRecognition = () => {
-  console.log('跳转到智能语音识别页面')
-  router.push('/voice-recognition')
-}
+
 
 // 工具函数替代 systemUtils
 function getCategoryName(category) {
@@ -1078,45 +1074,5 @@ onUnmounted(() => {
   font-style: italic;
 }
 
-/* 智能语音识别按钮样式 */
-.voice-recognition-btn {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #00ccff;
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.9));
-  border: 2px solid rgba(0, 153, 255, 0.4);
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
 
-.voice-recognition-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 153, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.voice-recognition-btn:hover {
-  color: #ffffff;
-  border-color: rgba(0, 153, 255, 0.8);
-  box-shadow: 0 0 20px rgba(0, 153, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.voice-recognition-btn:hover::before {
-  left: 100%;
-}
-
-.voice-recognition-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 0 10px rgba(0, 153, 255, 0.5);
-}
 </style>

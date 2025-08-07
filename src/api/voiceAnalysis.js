@@ -4,6 +4,7 @@
 
 // API基础配置
 const API_BASE_URL = '/api'
+const RECORDING_API_BASE_URL = '/api-rec'  // 录音相关接口使用专用代理
 // 听觉（语音分析）API密钥
 const WORKFLOW_API_KEY = 'app-h6jzZoq3N4iLNrS2dWbCFe74'
 
@@ -14,7 +15,7 @@ const WORKFLOW_API_KEY = 'app-h6jzZoq3N4iLNrS2dWbCFe74'
  */
 export const getRecentVoiceData = async (minutes) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/asr/recent?minutes=${minutes}`, {
+    const response = await fetch(`${RECORDING_API_BASE_URL}/asr/recent?minutes=${minutes}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

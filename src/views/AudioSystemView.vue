@@ -8,6 +8,7 @@
       </div>
       <div class="header-controls">
         <div class="header-buttons">
+          <button class="btn" @click="openVoiceRecognition">智能语音识别</button>
           <button class="btn" @click="exportAudioData">导出音频数据</button>
         </div>
       </div>
@@ -1272,6 +1273,11 @@ const initSpeechRecognition = () => {
 // 方法
 const goBack = () => {
   router.push('/')
+}
+
+const openVoiceRecognition = () => {
+  console.log('跳转到智能语音识别页面')
+  router.push('/voice-recognition')
 }
 
 // 测试API连接

@@ -57,23 +57,20 @@
               :key="action.name"
               class="action-item"
               :class="{ 'selected': selectedAction === action.name }"
+              @click="toggleActionSelection(action.name)"
             >
               <div class="action-checkbox">
-                <input
-                  type="radio"
-                  :id="action.name"
-                  :value="action.name"
-                  v-model="selectedAction"
-                  name="selectedAction"
-                />
-                <label :for="action.name" class="action-label">
+                <div class="action-indicator" :class="{ 'selected': selectedAction === action.name }">
+                  <span class="indicator-icon">{{ selectedAction === action.name ? '✓' : '○' }}</span>
+                </div>
+                <div class="action-label">
                   <span class="action-name">{{ action.display_name || action.name }}</span>
                   <span class="action-description" v-if="action.description">{{ action.description }}</span>
-                </label>
+                </div>
               </div>
               <button
                 class="btn-execute-action"
-                @click="executeAction(action.name)"
+                @click.stop="executeAction(action.name)"
                 :disabled="actionExecuting"
               >
                 {{ actionExecuting ? '执行中...' : '执行动作' }}
@@ -148,6 +145,9 @@
             <span class="status-info">
               ✓ 已选择动作: {{ getActionDisplayName(selectedAction) }}
             </span>
+            <span class="status-hint">
+              (再次点击可取消选择)
+            </span>
           </div>
         </div>
       </div>
@@ -187,6 +187,9 @@ const chatHistory = ref([])
 const userInput = ref('')
 const messageSending = ref(false)
 const chatHistoryRef = ref(null)
+
+// ASR相关
+const isRecordingActive = ref(false)
 
 // 定时器
 let asrPollingTimer = null
@@ -245,6 +248,20 @@ const fetchActions = async () => {
     availableActions.value = []
   } finally {
     actionsLoading.value = false
+  }
+}
+
+// 切换动作选择状态
+const toggleActionSelection = (actionName) => {
+  console.log('🔄 toggleActionSelection 被调用:', actionName, '当前选择:', selectedAction.value)
+  if (selectedAction.value === actionName) {
+    // 如果当前已选中，则取消选择
+    selectedAction.value = ''
+    console.log('🔄 取消选择动作:', actionName)
+  } else {
+    // 如果未选中，则选择该动作
+    selectedAction.value = actionName
+    console.log('✅ 选择动作:', actionName)
   }
 }
 
@@ -370,21 +387,64 @@ const formatTime = (timestamp) => {
   })
 }
 
-// ASR语音识别轮询
+// 检查ASR录音状态（只在页面加载时调用一次）
+const checkAsrStatus = async () => {
+  try {
+    console.log('🎤 检查ASR录音状态...')
+    const statusResponse = await recordingApi.getStatus()
+    console.log('🎤 ASR状态检查:', statusResponse)
+
+    // 检查录音是否正在进行
+    let isRecording = false
+    if (statusResponse && statusResponse.data) {
+      // 处理不同的状态响应格式
+      isRecording = statusResponse.data.is_recording ||
+                   statusResponse.data.recording ||
+                   statusResponse.data.status === 'recording' ||
+                   statusResponse.data.status === 'active'
+    } else if (statusResponse && statusResponse.success) {
+      isRecording = statusResponse.is_recording ||
+                   statusResponse.recording ||
+                   statusResponse.status === 'recording' ||
+                   statusResponse.status === 'active'
+    }
+
+    isRecordingActive.value = isRecording
+    console.log(`🎤 录音状态: ${isRecording ? '进行中' : '未开始'}`)
+
+    return isRecording
+  } catch (error) {
+    console.error('❌ 检查ASR状态失败:', error)
+    isRecordingActive.value = false
+    return false
+  }
+}
+
+// ASR语音识别轮询（简化版，只获取语音转文本）
 const startAsrPolling = () => {
   asrPollingTimer = setInterval(async () => {
     try {
-      const response = await recordingApi.getRecentRecords(1) // 获取最近1分钟的记录
+      // 只有在录音激活时才获取语音转文本
+      if (isRecordingActive.value) {
+        console.log('🎤 录音进行中，获取语音转文本...')
+        const response = await recordingApi.getRecentRecords(1) // 获取最近1分钟的记录
 
-      if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
-        // 获取最新的语音识别结果
-        const latestRecord = response.data[response.data.length - 1]
-        if (latestRecord && latestRecord.text && latestRecord.text.trim()) {
-          // 检查是否是新的语音记录（避免重复）
-          const lastRobotMessage = chatHistory.value.filter(m => m.type === 'robot').pop()
-          if (!lastRobotMessage || lastRobotMessage.text !== latestRecord.text.trim()) {
-            addChatMessage('robot', latestRecord.text.trim())
+        if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+          // 获取最新的语音识别结果
+          const latestRecord = response.data[response.data.length - 1]
+          if (latestRecord && latestRecord.text && latestRecord.text.trim()) {
+            // 检查是否是新的语音记录（避免重复）
+            const lastRobotMessage = chatHistory.value.filter(m => m.type === 'robot').pop()
+            if (!lastRobotMessage || lastRobotMessage.text !== latestRecord.text.trim()) {
+              addChatMessage('robot', latestRecord.text.trim())
+            }
           }
+        }
+      } else {
+        // 录音未激活时，偶尔检查一次状态（每10秒检查一次）
+        if (Date.now() % 10000 < 1000) {
+          console.log('🎤 定期检查录音状态...')
+          await checkAsrStatus()
         }
       }
     } catch (error) {
@@ -401,9 +461,15 @@ const stopAsrPolling = () => {
 }
 
 // 初始化聊天服务
-const initializeChatService = () => {
+const initializeChatService = async () => {
   chatConnected.value = true
+
+  // 页面加载时检查一次ASR状态
+  await checkAsrStatus()
+
+  // 启动ASR轮询
   startAsrPolling()
+
   addChatMessage('robot', '远程交互系统已启动，可以开始对话了！')
 }
 
@@ -418,7 +484,7 @@ onMounted(async () => {
   // 初始化各个服务
   initializeVideo()
   await connectActionService()
-  initializeChatService()
+  await initializeChatService()
 })
 
 onBeforeUnmount(() => {
@@ -551,23 +617,7 @@ onBeforeUnmount(() => {
 }
 
 .video-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 1rem;
-  font-size: 0.9rem;
-}
-
-.status-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #ff4444;
-  transition: background-color 0.3s ease;
-}
-
-.status-indicator.connected {
-  background: #44ff44;
+  display: none;
 }
 
 /* 控制区域 */
@@ -598,30 +648,7 @@ onBeforeUnmount(() => {
 }
 
 .connection-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: rgba(255, 68, 68, 0.1);
-  border: 1px solid rgba(255, 68, 68, 0.3);
-}
-
-.connection-status.connected {
-  background: rgba(68, 255, 68, 0.1);
-  border-color: rgba(68, 255, 68, 0.3);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff4444;
-}
-
-.connection-status.connected .status-dot {
-  background: #44ff44;
+  display: none;
 }
 
 /* 动作控制区域 */
@@ -679,6 +706,8 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   border: 1px solid rgba(0, 153, 255, 0.1);
   transition: all 0.3s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
 .action-item:hover {
@@ -687,8 +716,9 @@ onBeforeUnmount(() => {
 }
 
 .action-item.selected {
-  border-color: rgba(0, 153, 255, 0.5);
-  background: rgba(0, 153, 255, 0.1);
+  border-color: rgba(0, 153, 255, 0.8);
+  background: rgba(0, 153, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 153, 255, 0.3);
 }
 
 .action-checkbox {
@@ -698,17 +728,33 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 
-.action-checkbox input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #0099ff;
+.action-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 153, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.action-indicator.selected {
+  border-color: #0099ff;
+  background: rgba(0, 153, 255, 0.1);
+}
+
+.indicator-icon {
+  font-size: 14px;
+  color: #0099ff;
+  font-weight: bold;
 }
 
 .action-label {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  cursor: pointer;
   flex: 1;
 }
 
@@ -849,12 +895,15 @@ onBeforeUnmount(() => {
 }
 
 .message-content {
-  flex: 1;
+  flex: 0 1 auto;
   max-width: 70%;
+  min-width: fit-content;
 }
 
 .user-message .message-content {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .message-text {
@@ -864,6 +913,9 @@ onBeforeUnmount(() => {
   color: #fff;
   line-height: 1.4;
   word-wrap: break-word;
+  display: inline-block;
+  max-width: 100%;
+  width: fit-content;
 }
 
 .user-message .message-text {
@@ -946,6 +998,12 @@ onBeforeUnmount(() => {
   color: #0099ff;
 }
 
+.status-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: 8px;
+}
+
 /* 响应式设计 */
 @media (max-width: 1024px) {
   .control-section {
@@ -1025,6 +1083,7 @@ onBeforeUnmount(() => {
 
   .message-content {
     max-width: 85%;
+    min-width: fit-content;
   }
 }
 </style>
