@@ -4,13 +4,13 @@
     <header class="header">
       <div class="nav-section">
         <button class="btn btn-back" @click="goBack">← 返回主页</button>
-        <h1 class="title">大脑系统控制中心</h1>
+        <h1 class="title">头部系统控制中心</h1>
       </div>
       <div class="header-controls">
         <div class="header-buttons">
           <button class="btn btn-small header-action-btn" @click="resetSystem">重置系统</button>
           <button class="btn btn-small header-action-btn" @click="exportDecisionData">导出数据</button>
-        </div>
+    </div>
       </div>
     </header>
 
@@ -19,6 +19,16 @@
       <div class="brain-layout-container">
         <!-- 左侧控制区 -->
         <div class="brain-left-section">
+          <!-- 新增：视频流区域 -->
+          <section class="video-section">
+            <div class="section-header">
+              <h3>实时视频流</h3>
+            </div>
+            <div class="video-stream-box">
+              <img :src="getVideoFeed()" class="camera-preview" @error="onVideoError" @load="onVideoLoad" />
+              <div v-if="videoLoading" class="video-loading">视频加载中...</div>
+            </div>
+          </section>
           <!-- 信息处理模块 -->
           <section class="control-section">
             <div class="section-header">
@@ -92,6 +102,51 @@
 
         <!-- 右侧决策区 -->
         <div class="brain-right-section">
+          <!-- 新增：头部控制操作盘 -->
+          <section class="head-control-section">
+            <div class="section-header">
+              <h3>头部控制操作盘</h3>
+            </div>
+            <div class="direction-section">
+              <div class="direction-pad">
+                <div></div>
+                <button class="direction-btn" @click="moveHead('up')">
+                  <span class="arrow">▲</span>
+                  <span class="label">上</span>
+                </button>
+                <div></div>
+                <button class="direction-btn" @click="moveHead('left')">
+                  <span class="arrow">◀</span>
+                  <span class="label">左</span>
+                </button>
+                <button class="direction-btn" @click="moveHead('reset')">
+                  <span class="arrow">●</span>
+                  <span class="label">复位</span>
+                </button>
+                <button class="direction-btn" @click="moveHead('right')">
+                  <span class="arrow">▶</span>
+                  <span class="label">右</span>
+                </button>
+                <div></div>
+                <button class="direction-btn" @click="moveHead('down')">
+                  <span class="arrow">▼</span>
+                  <span class="label">下</span>
+                </button>
+                <div></div>
+              </div>
+              <div class="func-btn-row">
+                <button class="direction-btn emergency" @click="moveHead('stop')">
+                  <span class="stop-icon">■</span>
+                  <span class="label">停止</span>
+                </button>
+                <button class="direction-btn" @click="fetchHeadStatus">
+                  <span class="arrow">ℹ️</span>
+                  <span class="label">状态</span>
+                </button>
+              </div>
+              <div class="head-status-text">{{ headStatusText }}</div>
+            </div>
+          </section>
           <!-- 决策逻辑界面 -->
           <section class="decision-section">
             <div class="section-header">
@@ -139,9 +194,9 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </section>
+          </div>
+        </div>
+      </section>
 
           <!-- 系统监控 -->
           <section class="monitoring-section">
@@ -180,9 +235,9 @@
                 <div class="monitor-bar">
                   <div class="bar-fill" :style="{ width: systemMetrics.temperature + '%' }"></div>
                 </div>
-              </div>
-            </div>
-          </section>
+          </div>
+        </div>
+      </section>
         </div>
       </div>
     </main>
@@ -192,6 +247,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { cameraApi } from '../api/cameraApi'
+import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopHead, getHeadStatus } from '../api/simulationHeadApi'
 
 const router = useRouter()
 
@@ -246,6 +303,44 @@ const systemMetrics = reactive({
   decisionSpeed: 150,
   temperature: 38
 })
+
+// 视频流相关
+const videoLoading = ref(true)
+const getVideoFeed = () => {
+  videoLoading.value = false
+  return cameraApi.getRawVideoFeed()
+}
+const onVideoError = () => {
+  videoLoading.value = false
+}
+const onVideoLoad = () => {
+  videoLoading.value = false
+}
+// 头部控制相关
+const headStatusText = ref('')
+const moveHead = async (direction) => {
+  headStatusText.value = '操作中...'
+  try {
+    if (direction === 'up') await moveHeadUp()
+    else if (direction === 'down') await moveHeadDown()
+    else if (direction === 'left') await moveHeadLeft()
+    else if (direction === 'right') await moveHeadRight()
+    else if (direction === 'reset') await resetHead()
+    else if (direction === 'stop') await stopHead()
+    headStatusText.value = '操作成功'
+  } catch (e) {
+    headStatusText.value = '操作失败'
+  }
+}
+const fetchHeadStatus = async () => {
+  headStatusText.value = '获取中...'
+  try {
+    const res = await getHeadStatus()
+    headStatusText.value = res?.data ? JSON.stringify(res.data) : '无数据'
+  } catch (e) {
+    headStatusText.value = '获取失败'
+  }
+}
 
 // 方法
 const goBack = () => {
@@ -433,5 +528,148 @@ onUnmounted(() => {
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
   text-shadow: 0 0 15px rgba(0, 153, 255, 0.2);
+}
+.head-control-section {
+  margin-bottom: 24px;
+  background: #232b3a;
+  border-radius: 10px;
+  padding: 18px 20px 12px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.head-control-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.head-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.head-btn {
+  min-width: 56px;
+  min-height: 36px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.head-btn:hover {
+  background: #1565c0;
+}
+.head-status-text {
+  margin-top: 8px;
+  color: #ffeb3b;
+  font-size: 14px;
+  min-height: 20px;
+}
+.video-section {
+  margin-bottom: 24px;
+  background: #232b3a;
+  border-radius: 10px;
+  padding: 18px 20px 12px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.video-stream-box {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.camera-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: #222;
+}
+.video-loading {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(0,0,0,0.4);
+  font-size: 18px;
+  z-index: 2;
+}
+.direction-section {
+  width: 100%;
+  height: 380px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.direction-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  grid-template-rows: repeat(3, 70px);
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.direction-btn {
+  background: linear-gradient(145deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%);
+  border: 2px solid rgba(0, 102, 255, 0.4);
+  border-radius: 16px;
+  color: #4da6ff;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 55px;
+  min-width: 70px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 102, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  font-size: 18px;
+}
+.direction-btn .arrow {
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px currentColor;
+}
+.direction-btn .label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-align: center;
+}
+.direction-btn.emergency {
+  background: linear-gradient(145deg, rgba(255, 0, 0, 0.25) 0%, rgba(255, 0, 0, 0.15) 100%);
+  border-color: rgba(255, 0, 0, 0.6);
+  color: #ff6666;
+}
+.direction-btn .stop-icon {
+  font-size: 20px;
+  color: #ff6666;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+.func-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 10px;
 }
 </style>

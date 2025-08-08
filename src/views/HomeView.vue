@@ -13,13 +13,13 @@
           <!-- 左侧三个系统 -->
           <div class="control-panel brain-panel" data-part="brain" @click="goBrainSystem">
             <div class="panel-header">
-              <h3>大脑系统</h3>
+              <h3>头部系统</h3>
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
               <p class="system-intro">智能决策中心，负责处理信息和控制逻辑运算</p>
               <div class="panel-action">
-                <span class="action-hint">点击进入大脑系统 →</span>
+                <span class="action-hint">点击进入头部系统 →</span>
               </div>
             </div>
           </div>

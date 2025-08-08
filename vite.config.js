@@ -286,6 +286,24 @@ export default defineConfig(({ command, mode }) => {
             });
           },
         },
+        // 新增：头部控制接口代理
+        '/robot-head': {
+          target: ROBOT_SIMULATION_HOST, // 不要加 /api
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/robot-head/, '/api'),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('头部控制接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('头部控制接口代理请求 -> 仿真机器人:', req.method, req.url, '->', options.target + req.url);
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('头部控制接口代理响应 <- 仿真机器人:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
       }
     }
   }
