@@ -336,8 +336,13 @@ const systemUtils = {
 const router = useRouter()
 
 // 从API模块导入配置用于模板显示
-const API_BASE_URL = API_CONFIG.BASE_URL
-const API_ENDPOINTS = API_CONFIG.ENDPOINTS
+const API_BASE_URL = API_CONFIG.RECORDING_BASE_URL
+const API_ENDPOINTS = {
+  start: '/asr/start',
+  stop: '/asr/stop',
+  status: '/asr/status',
+  recent: '/asr/recent'
+}
 
 // 响应式数据
 const isRecording = ref(false)
@@ -1971,29 +1976,38 @@ const saveInterval = ref(null)
 
 onMounted(async () => {
   console.log('听觉系统组件已挂载')
-  loadFromLocalStorage()
-  initializeAudioVisualization()
 
-  // 确保canvas尺寸正确
-  setTimeout(resizeCanvas, 100)
-
-  // 添加窗口大小变化监听器
-  window.addEventListener('resize', handleResize)
-
-  // 定期保存数据
-  saveInterval.value = setInterval(saveToLocalStorage, 30000)
-
-  // 请求麦克风权限用于音频可视化
-  console.log('🎤 请求麦克风权限用于音频可视化...')
   try {
-    await requestMicrophonePermission()
-    console.log('✅ 麦克风权限已获取，音频可视化已准备就绪')
-  } catch (error) {
-    console.warn('⚠️ 麦克风权限获取失败，音频可视化将不可用:', error)
-  }
+    loadFromLocalStorage()
+    initializeAudioVisualization()
 
-  // 初始化API连接
-  initializeAPI()
+    // 确保canvas尺寸正确
+    setTimeout(resizeCanvas, 100)
+
+    // 添加窗口大小变化监听器
+    window.addEventListener('resize', handleResize)
+
+    // 定期保存数据
+    saveInterval.value = setInterval(saveToLocalStorage, 30000)
+
+    // 请求麦克风权限用于音频可视化
+    console.log('🎤 请求麦克风权限用于音频可视化...')
+    try {
+      await requestMicrophonePermission()
+      console.log('✅ 麦克风权限已获取，音频可视化已准备就绪')
+    } catch (error) {
+      console.warn('⚠️ 麦克风权限获取失败，音频可视化将不可用:', error)
+    }
+
+    // 初始化API连接
+    await initializeAPI()
+
+    console.log('✅ 听觉系统组件初始化完成')
+  } catch (error) {
+    console.error('❌ 听觉系统组件初始化失败:', error)
+    statusText.value = '系统初始化失败，请刷新页面重试'
+    connectionStatus.value = 'error'
+  }
 })
 
 onUnmounted(() => {

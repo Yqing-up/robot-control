@@ -5,7 +5,7 @@ const getTTSTargetHost = () => {
   const ttsUseServer = import.meta.env.VITE_TTS_USE_SERVER;
   const lowerHost = import.meta.env.VITE_ROBOT_LOWER_HOST;
   const upperHost = import.meta.env.VITE_ROBOT_UPPER_HOST;
-  
+
   return ttsUseServer === 'lower' ? lowerHost : upperHost;
 };
 
@@ -28,6 +28,9 @@ export const API_CONFIG = {
 
   // 录音相关接口 - 使用独立的代理前缀
   RECORDING_BASE_URL: '/api-rec',
+
+  // 音频流相关接口 - 使用独立的代理前缀
+  AUDIO_STREAM_BASE_URL: '/api-audio-stream',
 
   // 保留原有的通用BASE_URL，用于其他接口
   BASE_URL: '/api',

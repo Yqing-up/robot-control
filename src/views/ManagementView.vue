@@ -99,6 +99,7 @@
               <!-- 语音库统计 -->
               <div class="library-stats">
                 <span>共 {{ voiceLibrary.length }} 条语音</span>
+                <button class="btn btn-small btn-secondary" @click="handleOpenChatDialog">💬 交互</button>
                 <button class="btn btn-small btn-primary" @click="handleShowAddDialog">+ 添加语音</button>
               </div>
 
@@ -475,6 +476,64 @@
         </div>
       </div>
     </div>
+
+    <!-- 聊天对话框 -->
+    <div v-if="showChatDialog" class="dialog-overlay" @click="handleCloseChatDialog">
+      <div class="chat-dialog-content" @click.stop>
+        <div class="dialog-header">
+          <h3>💬 机器人交互聊天</h3>
+          <button class="dialog-close" @click="handleCloseChatDialog">×</button>
+        </div>
+        <div class="chat-dialog-body">
+          <!-- 聊天消息区域 -->
+          <div class="chat-messages" ref="chatMessagesContainer">
+            <div
+              v-for="message in chatMessages"
+              :key="message.id"
+              class="chat-message"
+              :class="{ 'user-message': message.type === 'human', 'robot-message': message.type === 'robot' }"
+            >
+              <div class="message-avatar">
+                {{ message.type === 'human' ? '👤' : '🤖' }}
+              </div>
+              <div class="message-content">
+                <div class="message-text">{{ message.text }}</div>
+                <div class="message-time">{{ formatTime(message.created_at) }}</div>
+              </div>
+            </div>
+            <div v-if="chatLoading" class="chat-message robot-message">
+              <div class="message-avatar">🤖</div>
+              <div class="message-content">
+                <div class="message-text typing-indicator">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 输入区域 -->
+          <div class="chat-input-area">
+            <div class="chat-input-container">
+              <input
+                type="text"
+                v-model="chatInputText"
+                placeholder="输入消息与机器人聊天..."
+                class="chat-input"
+                @keyup.enter="handleSendMessage"
+                :disabled="chatLoading"
+              >
+              <button
+                class="btn btn-primary chat-send-btn"
+                @click="handleSendMessage"
+                :disabled="chatLoading || !chatInputText.trim()"
+              >
+                发送
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -485,6 +544,7 @@ import { voiceApi } from '../api/voiceApi.js'
 import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
 import { realRobotApi } from '../api/realRobotApi.js'
+import { chatApi } from '../api/chatApi.js'
 // 其它API如有需要可继续补充
 
 const router = useRouter()
@@ -606,6 +666,15 @@ const voiceLibrary = ref([
 ])
 const searchText = ref('')
 const selectedCategory = ref('')
+
+// 聊天相关数据
+const showChatDialog = ref(false)
+const chatMessages = ref([])
+const chatInputText = ref('')
+const chatLoading = ref(false)
+const chatMessagesContainer = ref(null)
+const chatPollingTimer = ref(null)
+const lastMessageId = ref(null)
 
 
 
@@ -1166,6 +1235,192 @@ const handleSaveVoiceData = async () => {
   }
 }
 
+// 聊天相关方法
+const handleOpenChatDialog = async () => {
+  console.log('💬 打开聊天对话框')
+  showChatDialog.value = true
+  await loadChatHistory(true) // 初始加载
+  startChatPolling() // 启动轮询
+}
+
+const handleCloseChatDialog = () => {
+  console.log('💬 关闭聊天对话框')
+  showChatDialog.value = false
+  stopChatPolling() // 停止轮询
+}
+
+const loadChatHistory = async (isInitialLoad = true) => {
+  try {
+    if (isInitialLoad) {
+      console.log('📚 初始加载聊天历史记录...')
+    }
+
+    const result = await chatApi.getChatHistory()
+
+    if (result && result.success && result.data && result.data.messages) {
+      if (isInitialLoad) {
+        // 初始加载：清空当前历史记录并加载所有消息
+        chatMessages.value = []
+
+        // 按时间顺序排序（最早的在前面）
+        const sortedMessages = result.data.messages.sort((a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+
+        chatMessages.value = sortedMessages.map(msg => ({
+          id: msg.id,
+          message_id: msg.message_id,
+          text: msg.text,
+          type: msg.type, // 'human' 或 'robot'
+          created_at: msg.created_at
+        }))
+
+        // 记录最新消息的ID
+        if (sortedMessages.length > 0) {
+          lastMessageId.value = Math.max(...sortedMessages.map(msg => msg.id))
+          console.log('📝 记录最新消息ID:', lastMessageId.value)
+        }
+
+        console.log('✅ 聊天历史记录初始加载成功，共', chatMessages.value.length, '条消息')
+      } else {
+        // 轮询更新：只添加新消息
+        const allMessages = result.data.messages
+        const newMessages = allMessages.filter(msg =>
+          !lastMessageId.value || msg.id > lastMessageId.value
+        )
+
+        if (newMessages.length > 0) {
+          console.log('🆕 发现', newMessages.length, '条新消息')
+
+          // 按时间顺序排序新消息
+          const sortedNewMessages = newMessages.sort((a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          )
+
+          // 直接添加所有新消息，不做复杂检查
+          sortedNewMessages.forEach(msg => {
+            console.log('➕ 立即显示新消息到管理页面:', msg.type, msg.text, 'ID:', msg.id)
+
+            // 直接添加，让用户立即看到
+            chatMessages.value.push({
+              id: msg.id,
+              message_id: msg.message_id,
+              text: msg.text,
+              type: msg.type,
+              created_at: msg.created_at
+            })
+          })
+
+          // 更新最新消息ID
+          lastMessageId.value = Math.max(...newMessages.map(msg => msg.id))
+          console.log('📝 更新最新消息ID:', lastMessageId.value)
+        }
+      }
+
+      // 滚动到底部
+      setTimeout(() => {
+        scrollToBottom()
+      }, 100)
+    } else {
+      if (isInitialLoad) {
+        console.log('ℹ️ 没有聊天历史记录')
+        chatMessages.value = []
+      }
+    }
+  } catch (error) {
+    console.error('❌ 加载聊天历史记录失败:', error)
+    if (isInitialLoad) {
+      chatMessages.value = []
+    }
+  }
+}
+
+const handleSendMessage = async () => {
+  if (!chatInputText.value.trim() || chatLoading.value) {
+    return
+  }
+
+  const userMessage = chatInputText.value.trim()
+  chatInputText.value = ''
+
+  try {
+    chatLoading.value = true
+    console.log('💬 发送消息给机器人:', userMessage)
+
+    // 使用robot/send接口，这个接口会同时记录人类消息和生成机器人回复
+    const result = await chatApi.sendMessage(userMessage)
+
+    if (result && result.success) {
+      console.log('✅ 消息发送成功，等待轮询显示')
+      // 轮询会自动获取并显示消息
+    } else {
+      throw new Error(result?.message || '发送消息失败')
+    }
+  } catch (error) {
+    console.error('❌ 发送消息失败:', error)
+
+    // 只有在真正失败时才添加错误消息
+    const errorMsg = {
+      id: Date.now(),
+      text: `抱歉，发送消息失败：${error.message}`,
+      type: 'robot',
+      created_at: new Date().toISOString()
+    }
+    chatMessages.value.push(errorMsg)
+
+    // 滚动到底部
+    setTimeout(() => {
+      scrollToBottom()
+    }, 50)
+  } finally {
+    chatLoading.value = false
+  }
+}
+
+const scrollToBottom = () => {
+  if (chatMessagesContainer.value) {
+    chatMessagesContainer.value.scrollTop = chatMessagesContainer.value.scrollHeight
+  }
+}
+
+const formatTime = (timeString) => {
+  try {
+    const date = new Date(timeString)
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    return ''
+  }
+}
+
+// 开始聊天轮询
+const startChatPolling = () => {
+  if (chatPollingTimer.value) {
+    clearInterval(chatPollingTimer.value)
+  }
+
+  chatPollingTimer.value = setInterval(async () => {
+    try {
+      await loadChatHistory(false) // 增量更新
+    } catch (error) {
+      console.warn('⚠️ 聊天轮询失败:', error.message)
+    }
+  }, 1000) // 每秒轮询一次
+
+  console.log('🔄 聊天轮询已启动，每秒检查新消息')
+}
+
+// 停止聊天轮询
+const stopChatPolling = () => {
+  if (chatPollingTimer.value) {
+    clearInterval(chatPollingTimer.value)
+    chatPollingTimer.value = null
+    console.log('⏹️ 聊天轮询已停止')
+  }
+}
+
 // 移动控制相关方法
 const handleExecuteMovement = async (direction) => {
   if (isExecutingMovement.value && direction !== 'stop') return
@@ -1447,21 +1702,6 @@ const getActionCategoryName = (category) => {
   return movementApi.getActionCategoryName(category)
 }
 
-const formatTime = (dateString) => {
-  if (!dateString) return ''
-  try {
-    const date = new Date(dateString)
-    return date.toLocaleString('zh-CN', {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  } catch (error) {
-    return ''
-  }
-}
-
 // 生命周期钩子
 onMounted(async () => {
   console.log('🚀 综合管理页面已加载，开始初始化...')
@@ -1505,6 +1745,9 @@ onUnmounted(() => {
   if ('speechSynthesis' in window) {
     speechSynthesis.cancel()
   }
+
+  // 停止聊天轮询
+  stopChatPolling()
 
   console.log('综合管理页面已卸载')
 })

@@ -232,6 +232,25 @@ export default defineConfig(({ command, mode }) => {
           },
         },
 
+        // 音频流相关接口代理
+        '/api-audio-stream': {
+          target: 'http://192.168.0.120:5001/api',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-audio-stream/, ''),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.log('🎵 音频流接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('🎵 音频流接口代理请求 -> 目标服务器:', req.method, req.url, '->', options.target + req.url.replace(/^\/api-audio-stream/, ''));
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('🎵 音频流接口代理响应 <- 目标服务器:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
         // 保留原有的通用API代理，用于其他接口
         '/api': {
           target: ROBOT_UPPER_HOST,
