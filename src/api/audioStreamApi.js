@@ -105,15 +105,19 @@ export const audioStreamApi = {
   createSocketIOConnection: () => {
     console.log('🎵 创建Socket.IO连接到 /microphone 命名空间');
 
+    // 使用环境变量配置的上位机地址
+    const upperHost = import.meta.env.VITE_ROBOT_UPPER_HOST;
+    const socketUrl = `${upperHost}/microphone`;
+    
     // 使用全局的io对象
-    const socket = window.io('http://192.168.0.120:5001/microphone', {
+    const socket = window.io(socketUrl, {
       transports: ['websocket', 'polling'],
       timeout: 10000,
       forceNew: true
     });
 
     console.log('🎵 Socket.IO连接详情:', {
-      URL: 'http://192.168.0.120:5001/microphone',
+      URL: socketUrl,
       传输方式: ['websocket', 'polling'],
       超时时间: '10秒'
     });
