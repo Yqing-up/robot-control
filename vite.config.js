@@ -234,7 +234,7 @@ export default defineConfig(({ command, mode }) => {
 
         // 音频流相关接口代理
         '/api-audio-stream': {
-          target: 'http://192.168.0.120:5001/api',
+          target: `${ROBOT_UPPER_HOST}/api`,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api-audio-stream/, ''),
