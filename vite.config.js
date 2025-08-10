@@ -288,7 +288,7 @@ export default defineConfig(({ command, mode }) => {
         },
         // 新增：头部控制接口代理
         '/robot-head': {
-          target: ROBOT_SIMULATION_HOST, // 不要加 /api
+          target: ROBOT_LOWER_HOST, // 不要加 /api
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/robot-head/, '/api'),

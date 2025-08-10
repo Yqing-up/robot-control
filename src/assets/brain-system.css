@@ -134,6 +134,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 400px; /* 确保决策区域有足够的高度 */
 }
 
 .monitoring-section {
@@ -378,7 +379,8 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 12px;
-    flex-shrink: 0;
+    flex: 0 0 auto; /* 改为自动高度，不占用过多空间 */
+    max-height: 120px; /* 限制最大高度 */
 }
 
 .current-decision h4 {
@@ -437,10 +439,11 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 12px;
-    flex: 1;
+    flex: 1; /* 占用剩余所有空间 */
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 300px; /* 设置最小高度，确保有足够空间 */
 }
 
 .decision-history h4 {
@@ -461,9 +464,10 @@
 .history-item {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
-    padding: 8px;
+    padding: 12px; /* 增加内边距 */
     border-left: 3px solid #0066ff;
     flex-shrink: 0;
+    min-height: 80px; /* 设置最小高度 */
 }
 
 .history-header {
@@ -497,14 +501,16 @@
 
 .history-content {
     color: #cccccc;
-    font-size: 13px;
-    margin-bottom: 5px;
+    font-size: 14px; /* 增大字体 */
+    line-height: 1.5; /* 增加行高 */
+    margin-bottom: 8px; /* 增加底部间距 */
 }
 
 .history-result {
     color: #4da6ff;
-    font-size: 12px;
+    font-size: 13px; /* 增大字体 */
     font-style: italic;
+    line-height: 1.4; /* 增加行高 */
 }
 
 /* 系统监控 */

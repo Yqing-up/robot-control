@@ -38,7 +38,7 @@
                 <span>{{ processingStatusText }}</span>
               </div>
             </div>
-            
+
             <div class="info-processing">
               <!-- 输入信息区域 -->
               <div class="input-panel">
@@ -77,7 +77,7 @@
               <h3>系统通信协调</h3>
               <button class="btn btn-small" @click="refreshConnections">刷新连接</button>
             </div>
-            
+
             <div class="system-connections">
               <div class="connection-item" v-for="system in connectedSystems" :key="system.id">
                 <div class="connection-header">
@@ -203,35 +203,35 @@
             <div class="section-header">
               <h3>系统监控</h3>
             </div>
-            
+
             <div class="monitoring-grid">
               <div class="monitor-item">
                 <div class="monitor-label">CPU使用率</div>
-                <div class="monitor-value">{{ systemMetrics.cpu }}%</div>
+                <div class="monitor-value">{{ formatToTwoDecimals(systemMetrics.cpu) }}%</div>
                 <div class="monitor-bar">
                   <div class="bar-fill" :style="{ width: systemMetrics.cpu + '%' }"></div>
                 </div>
               </div>
-              
+
               <div class="monitor-item">
                 <div class="monitor-label">内存使用</div>
-                <div class="monitor-value">{{ systemMetrics.memory }}%</div>
+                <div class="monitor-value">{{ formatToTwoDecimals(systemMetrics.memory) }}%</div>
                 <div class="monitor-bar">
                   <div class="bar-fill" :style="{ width: systemMetrics.memory + '%' }"></div>
                 </div>
               </div>
-              
+
               <div class="monitor-item">
                 <div class="monitor-label">决策速度</div>
-                <div class="monitor-value">{{ systemMetrics.decisionSpeed }}ms</div>
+                <div class="monitor-value">{{ formatToTwoDecimals(systemMetrics.decisionSpeed) }}ms</div>
                 <div class="monitor-bar">
                   <div class="bar-fill" :style="{ width: Math.min(systemMetrics.decisionSpeed / 10, 100) + '%' }"></div>
                 </div>
               </div>
-              
+
               <div class="monitor-item">
                 <div class="monitor-label">系统温度</div>
-                <div class="monitor-value">{{ systemMetrics.temperature }}°C</div>
+                <div class="monitor-value">{{ formatToTwoDecimals(systemMetrics.temperature) }}°C</div>
                 <div class="monitor-bar">
                   <div class="bar-fill" :style="{ width: systemMetrics.temperature + '%' }"></div>
                 </div>
@@ -293,16 +293,28 @@ const currentDecision = reactive({
 const decisionHistory = ref([
   { id: 1, timestamp: Date.now() - 300000, text: '检测到障碍物，执行避障程序', status: 'completed', result: '成功避开障碍物' },
   { id: 2, timestamp: Date.now() - 600000, text: '电池电量低于20%，寻找充电站', status: 'completed', result: '已找到充电站并完成充电' },
-  { id: 3, timestamp: Date.now() - 900000, text: '接收到语音指令，准备执行任务', status: 'completed', result: '任务执行完成' }
+  { id: 3, timestamp: Date.now() - 900000, text: '接收到语音指令，准备执行任务', status: 'completed', result: '任务执行完成' },
+  { id: 4, timestamp: Date.now() - 1200000, text: '环境温度异常，启动散热系统', status: 'completed', result: '温度已恢复正常' },
+  { id: 5, timestamp: Date.now() - 1500000, text: '检测到人员接近，切换到交互模式', status: 'completed', result: '成功切换到交互模式' },
+  { id: 6, timestamp: Date.now() - 1800000, text: '网络连接不稳定，尝试重新连接', status: 'completed', result: '网络连接已恢复' },
+  { id: 7, timestamp: Date.now() - 2100000, text: '执行定时巡检任务', status: 'completed', result: '巡检任务完成，系统正常' },
+  { id: 8, timestamp: Date.now() - 2400000, text: '接收到紧急停止指令', status: 'completed', result: '已安全停止所有运动' },
+  { id: 9, timestamp: Date.now() - 2700000, text: '开始充电程序', status: 'completed', result: '充电完成，电量100%' },
+  { id: 10, timestamp: Date.now() - 3000000, text: '系统自检完成', status: 'completed', result: '所有系统运行正常' }
 ])
 
 // 系统指标
 const systemMetrics = reactive({
-  cpu: 45,
-  memory: 62,
-  decisionSpeed: 150,
-  temperature: 38
+  cpu: 45.444,
+  memory: 62.789,
+  decisionSpeed: 150.123,
+  temperature: 38.567
 })
+
+// 格式化数字为两位小数
+const formatToTwoDecimals = (value) => {
+  return Number(value).toFixed(2)
+}
 
 // 视频流相关
 const videoLoading = ref(true)
@@ -350,7 +362,7 @@ const goBack = () => {
 const resetSystem = () => {
   processingStatus.value = 'resetting'
   processingStatusText.value = '系统重置中...'
-  
+
   setTimeout(() => {
     processingStatus.value = 'idle'
     processingStatusText.value = '系统就绪'
@@ -366,7 +378,7 @@ const exportDecisionData = () => {
     systemMetrics: systemMetrics,
     timestamp: new Date().toISOString()
   }
-  
+
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -381,7 +393,7 @@ const refreshConnections = () => {
     if (system.status === 'disconnected') {
       system.status = 'connecting'
       system.statusText = '重新连接中...'
-      
+
       setTimeout(() => {
         system.status = 'connected'
         system.statusText = '已连接'
@@ -410,7 +422,7 @@ const resetConnection = (systemId) => {
   if (system) {
     system.status = 'connecting'
     system.statusText = '重新连接中...'
-    
+
     setTimeout(() => {
       system.status = 'connected'
       system.statusText = '已连接'
@@ -432,14 +444,14 @@ const executeDecision = () => {
       status: 'executing',
       result: null
     }
-    
+
     decisionHistory.value.unshift(newDecision)
-    
+
     setTimeout(() => {
       newDecision.status = 'completed'
       newDecision.result = '执行成功'
     }, 2000)
-    
+
     currentDecision.text = ''
     currentDecision.priority = 'normal'
   }
@@ -472,7 +484,7 @@ const generateDecision = () => {
       { text: '建议优化系统资源分配', priority: 'normal' },
       { text: '检测到通信延迟，建议检查网络连接', priority: 'high' }
     ]
-    
+
     const randomDecision = decisions[Math.floor(Math.random() * decisions.length)]
     currentDecision.text = randomDecision.text
     currentDecision.priority = randomDecision.priority
@@ -494,10 +506,10 @@ let metricsInterval
 
 onMounted(() => {
   console.log('大脑系统组件已挂载')
-  
+
   // 定期生成决策
   decisionInterval = setInterval(generateDecision, 10000)
-  
+
   // 定期更新系统指标
   metricsInterval = setInterval(updateMetrics, 3000)
 })
