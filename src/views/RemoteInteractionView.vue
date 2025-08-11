@@ -128,6 +128,23 @@
               </div>
               <h2 class="panel-title">对话交互</h2>
             </div>
+            <!-- Tab标签样式的模式切换 -->
+            <div class="mode-tabs">
+              <button
+                class="mode-tab"
+                :class="{ 'active': !isRobotManagementMode }"
+                @click="switchToInteractionMode"
+              >
+                跟爸聊天
+              </button>
+              <button
+                class="mode-tab"
+                :class="{ 'active': isRobotManagementMode }"
+                @click="switchToRobotMode"
+              >
+                指挥机器人
+              </button>
+            </div>
           </div>
 
           <div class="panel-content chat-content">
@@ -142,12 +159,20 @@
                 <div class="message-avatar-modern">
                   <div class="avatar-circle" :class="message.type">
                     <svg v-if="message.type === 'human'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
+                      <path d="M12 14c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/>
                     </svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <circle cx="12" cy="12" r="9" stroke-width="1"/>
+                      <circle cx="12" cy="12" r="6" stroke-width="0.5"/>
+                      <circle cx="12" cy="12" r="3" stroke-width="0.5"/>
+                      <path d="M12 3v2m0 14v2m9-9h-2m-14 0h2"/>
+                      <path d="M18.36 5.64l-1.41 1.41m-9.9 9.9l-1.41 1.41m12.72 0l-1.41-1.41m-9.9-9.9l-1.41-1.41"/>
+                      <circle cx="9" cy="9" r="1" fill="currentColor"/>
+                      <circle cx="15" cy="15" r="1" fill="currentColor"/>
+                      <path d="M12 8v8m-4-4h8"/>
+                      <polygon points="12,6 14,8 12,10 10,8" fill="currentColor"/>
+                      <polygon points="12,14 14,16 12,18 10,16" fill="currentColor"/>
                     </svg>
                   </div>
                 </div>
@@ -202,7 +227,7 @@
                   <button
                     class="btn-send-modern"
                     @click="sendMessage"
-                    :disabled="!chatConnected || !userInput.trim() || messageSending"
+                    :disabled="!chatConnected || (!userInput.trim() && !selectedAction) || messageSending"
                   >
                     <svg v-if="!messageSending" class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <line x1="22" y1="2" x2="11" y2="13"/>
@@ -370,7 +395,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { robotApi, setRobotMode } from '../api/robotApi'
 import { voiceApi } from '../api/voiceApi'
@@ -378,12 +403,90 @@ import { recordingApi } from '../api/recordingApi'
 import { cameraApi } from '../api/cameraApi'
 import { audioStreamApi } from '../api/audioStreamApi'
 import { chatApi } from '../api/chatApi'
+import { logger } from '../utils/logger'
+// 移除跨页面同步导入
 
 const router = useRouter()
 
 // 页面导航
 const goBack = () => {
   router.back()
+}
+
+// 切换到交互模式（跟爸聊天）
+const switchToInteractionMode = async () => {
+  if (!isRobotManagementMode.value) return // 已经是交互模式，无需切换
+
+  console.log('🔄 切换到交互模式（跟爸聊天）')
+
+  // 停止当前轮询
+  stopChatPolling()
+
+  // 切换到交互模式
+  isRobotManagementMode.value = false
+
+  console.log('✅ 已切换到:', currentModeDisplayName.value)
+
+  // 清空当前消息
+  chatHistory.value = []
+  lastMessageId.value = null
+  lastMessageCount.value = 0
+
+  // 重新加载聊天历史记录
+  await loadChatHistory(true)
+
+  // 重新启动轮询
+  startChatPolling()
+}
+
+// 切换到机器人模式（指挥机器人）
+const switchToRobotMode = async () => {
+  if (isRobotManagementMode.value) return // 已经是机器人模式，无需切换
+
+  console.log('🔄 切换到机器人模式（指挥机器人）')
+
+  // 停止当前轮询
+  stopChatPolling()
+
+  // 切换到机器人模式
+  isRobotManagementMode.value = true
+
+  console.log('✅ 已切换到:', currentModeDisplayName.value)
+
+  // 清空当前消息
+  chatHistory.value = []
+  lastMessageId.value = null
+  lastMessageCount.value = 0
+
+  // 重新加载聊天历史记录
+  await loadChatHistory(true)
+
+  // 重新启动轮询
+  startChatPolling()
+}
+
+// 保留原有的切换函数（向后兼容）
+const toggleChatMode = async () => {
+  console.log('🔄 切换聊天模式，当前模式:', currentModeDisplayName.value)
+
+  // 停止当前轮询
+  stopChatPolling()
+
+  // 切换模式（本地状态）
+  isRobotManagementMode.value = !isRobotManagementMode.value
+
+  console.log('✅ 已切换到:', currentModeDisplayName.value)
+
+  // 清空当前消息
+  chatHistory.value = []
+  lastMessageId.value = null
+  lastMessageCount.value = 0
+
+  // 重新加载聊天历史记录
+  await loadChatHistory(true)
+
+  // 重新启动轮询
+  startChatPolling()
 }
 
 // 紧急停止功能
@@ -408,7 +511,7 @@ const emergencyStop = async () => {
 
     console.log('✅ 紧急停止执行完成')
   } catch (error) {
-    console.error('❌ 紧急停止失败:', error)
+    logger.error('❌ 紧急停止失败:', error)
     addChatMessage('robot', '❌ 紧急停止执行失败，请手动检查设备状态')
   }
 }
@@ -416,8 +519,12 @@ const emergencyStop = async () => {
 // 自动调整输入框高度
 const autoResize = (event) => {
   const textarea = event.target
+  const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
+  const maxHeight = lineHeight * 3 // 三行文字的高度
+
   textarea.style.height = 'auto'
-  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'
+  const newHeight = Math.min(textarea.scrollHeight, maxHeight)
+  textarea.style.height = newHeight + 'px'
 }
 
 // 视频相关
@@ -442,6 +549,12 @@ const lastMessageId = ref(null)
 const lastMessageCount = ref(0)
 const showActionDropdown = ref(false)
 
+// 聊天模式状态（本地独立状态）
+const isRobotManagementMode = ref(false) // false: 人机交互模式, true: 机器人管理模式
+const currentModeDisplayName = computed(() => {
+  return isRobotManagementMode.value ? '指挥机器人' : '跟爸聊天'
+})
+
 // 托管相关
 const showHostingDialog = ref(false)
 const hostingRequirements = ref('')
@@ -461,6 +574,15 @@ const audioStreamEnabled = ref(true) // 启用音频流功能（需要服务器�
 // 定时器
 let asrPollingTimer = null
 
+// 移除模式变化监听器
+
+// 事件处理函数
+const handleDocumentClick = (event) => {
+  if (showActionDropdown.value && !event.target.closest('.action-dropdown') && !event.target.closest('.btn-action-select')) {
+    showActionDropdown.value = false
+  }
+}
+
 // 初始化视频流
 const initializeVideo = () => {
   try {
@@ -468,14 +590,14 @@ const initializeVideo = () => {
     videoError.value = false
     console.log('📹 初始化视频流:', videoFeedUrl.value)
   } catch (error) {
-    console.error('❌ 视频流初始化失败:', error)
+    logger.error('❌ 视频流初始化失败:', error)
     videoError.value = true
   }
 }
 
 // 视频事件处理
 const handleVideoError = () => {
-  console.error('❌ 视频流加载失败')
+  logger.error('❌ 视频流加载失败')
   videoError.value = true
 }
 
@@ -541,11 +663,11 @@ const executeAction = async (actionName) => {
     const response = await robotApi.executeAction(actionName)
     console.log('✅ 动作执行响应:', response)
 
-    // 添加到聊天历史
-    addChatMessage('robot', `正在执行动作: ${getActionDisplayName(actionName)}`)
+    // 不再添加动作执行消息到聊天历史
 
   } catch (error) {
     console.error('❌ 动作执行失败:', error)
+    // 只在真正失败时才显示错误消息
     addChatMessage('robot', `动作执行失败: ${error.message}`)
   } finally {
     actionExecuting.value = false
@@ -574,13 +696,13 @@ const toggleActionDropdown = () => {
 // 选择动作
 const selectAction = (action) => {
   selectedAction.value = action.name
-  userInput.value = `执行动作: ${action.display_name || action.name}`
   showActionDropdown.value = false
 }
 
 // 发送消息
 const sendMessage = async () => {
-  if (!userInput.value.trim() || messageSending.value) return
+  // 检查是否有文字输入或选择了动作
+  if ((!userInput.value.trim() && !selectedAction.value) || messageSending.value) return
 
   try {
     messageSending.value = true
@@ -589,39 +711,64 @@ const sendMessage = async () => {
     // 清空输入框
     userInput.value = ''
 
-    // 发送消息到聊天API
-    console.log('💬 发送消息到聊天API:', message)
-    const response = await chatApi.sendHumanMessage(message)
+    // 只有当有文字消息时才发送到聊天API
+    let response = { success: true } // 默认成功，用于只有动作的情况
+
+    if (message) {
+      // 根据当前模式调用不同的API发送消息
+      console.log('💬 发送消息到聊天API (模式:', currentModeDisplayName.value, '):', message)
+      response = isRobotManagementMode.value
+        ? await chatApi.sendHumanMessageToHumanRobotChat(message)
+        : await chatApi.sendHumanMessage(message)
+    } else {
+      console.log('🎬 只执行动作，不发送文字消息')
+    }
 
     if (response && response.success) {
-      console.log('✅ 人类消息发送成功，等待轮询显示')
-
-      // 调用TTS语音合成，让机器人说出用户的消息
-      try {
-        console.log('🎤 开始TTS语音合成:', message)
-        const ttsResponse = await voiceApi.synthesizeText(message, {
-          voice_id: 'zh-CN',
-          speed: 1.0,
-          pitch: 1.0,
-          volume: 1.0
-        })
-
-        if (ttsResponse && ttsResponse.success) {
-          console.log('✅ TTS语音合成成功')
-        } else if (ttsResponse && ttsResponse.timeout) {
-          console.log('⏰ TTS语音合成超时，但请求已发送')
-        } else {
-          console.warn('⚠️ TTS语音合成失败:', ttsResponse?.message)
-        }
-      } catch (ttsError) {
-        console.error('❌ TTS语音合成错误:', ttsError.message)
-        // TTS失败不影响消息发送流程
+      if (message) {
+        console.log('✅ 人类消息发送成功，等待轮询显示')
       }
 
-      // 可选：执行选中的动作（如果有）
+      // 并行执行TTS语音合成和动作，让它们同时进行
+      const promises = []
+
+      // 只有当有文字消息时才添加TTS语音合成任务
+      if (message) {
+        promises.push(
+          (async () => {
+            try {
+              console.log('🎤 开始TTS语音合成:', message)
+              const ttsResponse = await voiceApi.synthesizeText(message, {
+                voice_id: 'zh-CN',
+                speed: 1.0,
+                pitch: 1.0,
+                volume: 1.0
+              })
+
+              if (ttsResponse && ttsResponse.success) {
+                console.log('✅ TTS语音合成成功')
+              } else if (ttsResponse && ttsResponse.timeout) {
+                console.log('⏰ TTS语音合成超时，但请求已发送')
+              } else {
+                console.warn('⚠️ TTS语音合成失败:', ttsResponse?.message)
+              }
+            } catch (ttsError) {
+              console.error('❌ TTS语音合成错误:', ttsError.message)
+              // TTS失败不影响消息发送流程
+            }
+          })()
+        )
+      }
+
+      // 添加动作执行任务（如果有选中的动作）
       if (selectedAction.value) {
-        await executeSelectedAction()
+        promises.push(executeSelectedAction())
       }
+
+      // 并行执行所有任务，不等待完成
+      Promise.allSettled(promises).then(results => {
+        console.log('🎭 语音和动作并行执行完成:', results)
+      })
 
       // 轮询会自动获取并显示消息
     } else {
@@ -629,7 +776,7 @@ const sendMessage = async () => {
     }
 
   } catch (error) {
-    console.error('❌ 发送消息失败:', error)
+    logger.error('❌ 发送消息失败:', error)
     // 只有在真正失败时才添加错误消息
     addChatMessage('robot', `发送失败: ${error.message}`)
   } finally {
@@ -658,12 +805,13 @@ const executeSelectedAction = async () => {
   try {
     console.log('🎬 执行选中的动作:', selectedAction.value)
     await robotApi.executeAction(selectedAction.value)
-    addChatMessage('robot', `同时执行动作: ${getActionDisplayName(selectedAction.value)}`)
+    // 不再添加动作执行消息到聊天历史
 
     // 执行后清除选择
     selectedAction.value = ''
   } catch (error) {
     console.error('❌ 执行选中动作失败:', error)
+    // 只在真正失败时才显示错误消息
     addChatMessage('robot', `动作执行失败: ${error.message}`)
   }
 }
@@ -695,7 +843,10 @@ const loadChatHistory = async (isInitialLoad = true) => {
       console.log('📚 初始加载聊天历史记录...')
     }
 
-    const result = await chatApi.getChatHistory(1000) // 获取最近1000条消息
+    // 根据当前模式调用不同的API
+    const result = isRobotManagementMode.value
+      ? await chatApi.getHumanRobotChatHistory(1000)
+      : await chatApi.getChatHistory(1000) // 获取最近1000条消息
 
     if (result && result.success && result.data && result.data.messages) {
       if (isInitialLoad) {
@@ -708,12 +859,15 @@ const loadChatHistory = async (isInitialLoad = true) => {
         )
 
         sortedMessages.forEach(msg => {
-          addChatMessage(
-            msg.type, // 'human' 或 'robot'
-            msg.text,
-            new Date(msg.created_at).getTime(),
-            msg.id
-          )
+          // 过滤掉包含"执行动作:"、"同时执行动作:"、"正在执行动作:"的消息
+          if (!msg.text.includes('执行动作:')) {
+            addChatMessage(
+              msg.type, // 'human' 或 'robot'
+              msg.text,
+              new Date(msg.created_at).getTime(),
+              msg.id
+            )
+          }
         })
 
         // 记录最新消息的ID和消息总数
@@ -743,20 +897,25 @@ const loadChatHistory = async (isInitialLoad = true) => {
           const newMessages = sortedAllMessages.slice(lastMessageCount.value)
           console.log('🆕 新消息详情:', newMessages.map(msg => `${msg.type}: ${msg.text} (ID: ${msg.id})`))
 
-          // 直接添加所有新消息
+          // 直接添加所有新消息（过滤掉动作执行消息）
           newMessages.forEach(msg => {
             console.log('➕ 立即显示新消息:', msg.type, msg.text, 'ID:', msg.id)
 
-            // 直接添加到聊天历史，让用户立即看到
-            const message = {
-              type: msg.type,
-              text: msg.text,
-              timestamp: new Date(msg.created_at).getTime(),
-              id: msg.id
-            }
+            // 过滤掉包含"执行动作:"、"同时执行动作:"、"正在执行动作:"的消息
+            if (!msg.text.includes('执行动作:')) {
+              // 直接添加到聊天历史，让用户立即看到
+              const message = {
+                type: msg.type,
+                text: msg.text,
+                timestamp: new Date(msg.created_at).getTime(),
+                id: msg.id
+              }
 
-            chatHistory.value.push(message)
-            console.log('✅ 消息已添加到界面，当前总消息数:', chatHistory.value.length)
+              chatHistory.value.push(message)
+              console.log('✅ 消息已添加到界面，当前总消息数:', chatHistory.value.length)
+            } else {
+              console.log('🚫 过滤掉动作执行消息:', msg.text)
+            }
           })
 
           // 滚动到底部
@@ -795,14 +954,14 @@ const startChatPolling = () => {
 
   chatPollingTimer.value = setInterval(async () => {
     try {
-      console.log('🔄 执行聊天轮询检查...')
+      logger.debug('🔄 执行聊天轮询检查...')
       await loadChatHistory(false) // 增量更新
     } catch (error) {
-      console.warn('⚠️ 聊天轮询失败:', error.message)
+      logger.warn('⚠️ 聊天轮询失败:', error.message)
     }
   }, 2000) // 改为每2秒轮询一次，减少服务器压力
 
-  console.log('🔄 聊天轮询已启动，每2秒检查新消息')
+  logger.debug('🔄 聊天轮询已启动，每2秒检查新消息')
 }
 
 // 停止聊天轮询
@@ -810,7 +969,7 @@ const stopChatPolling = () => {
   if (chatPollingTimer.value) {
     clearInterval(chatPollingTimer.value)
     chatPollingTimer.value = null
-    console.log('⏹️ 聊天轮询已停止')
+    logger.debug('⏹️ 聊天轮询已停止')
   }
 }
 
@@ -1263,11 +1422,11 @@ const initializeChatService = async () => {
 
 // 生命周期
 onMounted(async () => {
-  console.log('🚀 远程交互页面已挂载')
+  logger.lifecycle('RemoteInteractionView', 'onMounted', '页面已挂载')
 
   // 确保使用真实机器人模式
   setRobotMode('real')
-  console.log('🤖 远程交互页面强制使用真实机器人模式')
+  logger.info('🤖 远程交互页面强制使用真实机器人模式')
 
   // 页面刷新时清理所有活跃的音频流
   await cleanupAllAudioStreams()
@@ -1278,23 +1437,34 @@ onMounted(async () => {
   await initializeChatService()
 
   // 添加点击外部关闭下拉菜单的事件监听
-  document.addEventListener('click', (event) => {
-    if (showActionDropdown.value && !event.target.closest('.action-dropdown') && !event.target.closest('.btn-action-select')) {
-      showActionDropdown.value = false
-    }
-  })
+  document.addEventListener('click', handleDocumentClick)
+
+  // 移除跨页面模式监听
 })
 
 onBeforeUnmount(async () => {
-  console.log('🔄 远程交互页面即将卸载')
+  logger.lifecycle('RemoteInteractionView', 'onBeforeUnmount', '开始清理资源')
 
   // 停止聊天轮询
   stopChatPolling()
 
-  // stopAsrPolling() // 已注释，改用聊天API
+  // 清理ASR轮询定时器（如果存在）
+  if (asrPollingTimer) {
+    clearInterval(asrPollingTimer)
+    asrPollingTimer = null
+    logger.debug('✅ ASR轮询定时器已清理')
+  }
 
-  // 清理音频流资源
+  // 清理音频流资源和WebSocket连接
   await cleanupAllAudioStreams()
+
+  // 移除事件监听器
+  document.removeEventListener('click', handleDocumentClick)
+  logger.debug('✅ 事件监听器已清理')
+
+  // 移除模式变化监听器清理
+
+  logger.lifecycle('RemoteInteractionView', 'onBeforeUnmount', '资源清理完成')
 })
 </script>
 
@@ -1372,7 +1542,7 @@ onBeforeUnmount(async () => {
   gap: 1.5rem; /* 进一步减少左右区域间距，让对话框更宽 */
   max-width: 1800px; /* 进一步增加最大宽度 */
   margin: 0 auto;
-  height: calc(100vh - 120px); /* 增加可用高度 */
+  height: calc(100vh - 100px); /* 进一步增加可用高度 */
   padding: 0 1rem; /* 添加左右内边距，更好地利用屏幕空间 */
 }
 
@@ -1628,6 +1798,64 @@ onBeforeUnmount(async () => {
   border-radius: 20px 20px 0 0;
 }
 
+/* Tab标签样式的模式切换 */
+.mode-tabs {
+  display: flex;
+  background: rgba(16, 26, 40, 0.8);
+  border-radius: 10px;
+  padding: 4px;
+  border: 1px solid rgba(0, 153, 255, 0.2);
+  overflow: hidden;
+}
+
+.mode-tab {
+  flex: 1;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  border-radius: 6px;
+  position: relative;
+  min-width: 0;
+}
+
+.mode-tab:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 153, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.mode-tab.active {
+  background: linear-gradient(135deg, rgba(0, 153, 255, 0.2), rgba(0, 204, 255, 0.15));
+  color: #00ccff;
+  border: 1px solid rgba(0, 153, 255, 0.4);
+  box-shadow:
+    0 2px 8px rgba(0, 153, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(0);
+}
+
+.mode-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #0099ff, #00ccff);
+  border-radius: 6px 6px 0 0;
+}
+
+.btn-mode-switch.active:hover {
+  background: rgba(0, 255, 127, 0.2);
+  border-color: rgba(0, 255, 127, 0.5);
+}
+
 .panel-title-group {
   display: flex;
   align-items: center;
@@ -1700,13 +1928,13 @@ onBeforeUnmount(async () => {
 }
 
 .expanded-panel {
-  min-height: 800px; /* 增加对话面板的最小高度 */
+  min-height: 850px; /* 适度增加对话面板的最小高度 */
   width: 100%;
   max-width: none;
 }
 
 .expanded-panel .panel-content {
-  min-height: 700px; /* 增加面板内容的最小高度 */
+  min-height: 750px; /* 适度增加面板内容的最小高度 */
   display: flex;
   flex-direction: column;
 }
@@ -1714,7 +1942,7 @@ onBeforeUnmount(async () => {
 
 
 .expanded-panel .chat-history-modern {
-  max-height: 550px; /* 增加对话历史区域的最大高度 */
+  max-height: 600px; /* 适度增加对话历史区域的最大高度 */
 }
 
 
@@ -2140,7 +2368,7 @@ onBeforeUnmount(async () => {
 
 .chat-input-section {
   position: absolute;
-  bottom: 1rem;
+  bottom: 1.5rem; /* 增加底部间距，从1rem改为1.5rem */
   left: 1rem;
   right: 1rem;
   background: inherit;
@@ -2232,8 +2460,17 @@ onBeforeUnmount(async () => {
   resize: none;
   outline: none;
   min-height: 20px;
-  max-height: 120px;
+  max-height: 4.5em; /* 三行文字的高度：1.5em * 3 = 4.5em */
   line-height: 1.5;
+  overflow-y: auto; /* 允许垂直滚动 */
+  /* 隐藏滚动条 - 兼容所有主流浏览器 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 和 Edge */
+}
+
+/* 隐藏 Webkit 浏览器（Chrome、Safari、新版Edge）的滚动条 */
+.chat-input-modern::-webkit-scrollbar {
+  display: none;
 }
 
 .chat-input-modern::placeholder {
@@ -2858,13 +3095,15 @@ onBeforeUnmount(async () => {
 
 /* 隐藏对话历史滚动条，保留模态框滚动条 */
 .chat-history-modern::-webkit-scrollbar {
-  width: 0px; /* 隐藏滚动条 */
-  background: transparent; /* 可选：使背景透明 */
+  width: 0px !important; /* 隐藏滚动条 */
+  background: transparent !important; /* 可选：使背景透明 */
+  display: none !important; /* 强制隐藏 */
 }
 
 .chat-history-modern {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 和 Edge */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE 和 Edge */
+  overflow-y: auto !important; /* 确保可以滚动但不显示滚动条 */
 }
 
 /* 保留模态框的滚动条样式 */
@@ -3593,13 +3832,15 @@ onBeforeUnmount(async () => {
 
 /* 隐藏对话历史滚动条 */
 .chat-history::-webkit-scrollbar {
-  width: 0px; /* 隐藏滚动条 */
-  background: transparent;
+  width: 0px !important; /* 隐藏滚动条 */
+  background: transparent !important;
+  display: none !important; /* 强制隐藏 */
 }
 
 .chat-history {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 和 Edge */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE 和 Edge */
+  overflow-y: auto !important; /* 确保可以滚动但不显示滚动条 */
 }
 
 /* 对话交互区域 */
