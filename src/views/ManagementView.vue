@@ -144,7 +144,7 @@
               <!-- 语音库统计 -->
               <div class="library-stats">
                 <span>共 {{ voiceLibrary.length }} 条语音</span>
-                <button class="btn btn-small btn-secondary" @click="handleOpenChatDialog">💬 交互</button>
+                <button class="btn btn-small btn-secondary" @click="handleNavigateToChatPage">💬 交互</button>
                 <button class="btn btn-small btn-primary" @click="handleShowAddDialog">+ 添加语音</button>
               </div>
 
@@ -579,6 +579,8 @@
         </div>
       </div>
     </div>
+
+
   </div>
 </template>
 
@@ -590,6 +592,7 @@ import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
 import { realRobotApi } from '../api/realRobotApi.js'
 import { chatApi } from '../api/chatApi.js'
+
 import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopHead, getHeadStatus } from '../api/simulationHeadApi'
 // 其它API如有需要可继续补充
 
@@ -721,6 +724,8 @@ const chatLoading = ref(false)
 const chatMessagesContainer = ref(null)
 const chatPollingTimer = ref(null)
 const lastMessageId = ref(null)
+
+
 
 
 
@@ -1308,6 +1313,11 @@ const handleSaveVoiceData = async () => {
 }
 
 // 聊天相关方法
+const handleNavigateToChatPage = () => {
+  console.log('💬 导航到聊天交互页面')
+  router.push('/chat-interaction')
+}
+
 const handleOpenChatDialog = async () => {
   console.log('💬 打开聊天对话框')
   showChatDialog.value = true
@@ -1431,19 +1441,8 @@ const handleSendMessage = async () => {
   } catch (error) {
     console.error('❌ 发送消息失败:', error)
 
-    // 只有在真正失败时才添加错误消息
-    const errorMsg = {
-      id: Date.now(),
-      text: `抱歉，发送消息失败：${error.message}`,
-      type: 'robot',
-      created_at: new Date().toISOString()
-    }
-    chatMessages.value.push(errorMsg)
-
-    // 滚动到底部
-    setTimeout(() => {
-      scrollToBottom()
-    }, 50)
+    // 只显示错误提示，不添加虚拟的机器人回复消息
+    alert(`发送消息失败：${error.message}`)
   } finally {
     chatLoading.value = false
   }
@@ -1492,6 +1491,10 @@ const stopChatPolling = () => {
     console.log('⏹️ 聊天轮询已停止')
   }
 }
+
+
+
+
 
 // 移动控制相关方法
 const handleExecuteMovement = async (direction) => {

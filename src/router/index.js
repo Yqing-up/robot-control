@@ -79,6 +79,11 @@ const router = createRouter({
       name: 'remote-interaction',
       component: () => import('../views/RemoteInteractionView.vue'),
     },
+    {
+      path: '/chat-interaction',
+      name: 'chat-interaction',
+      component: () => import('../views/ChatInteractionView.vue'),
+    },
   ],
 })
 

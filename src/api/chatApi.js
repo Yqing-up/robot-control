@@ -71,5 +71,40 @@ export const chatApi = {
         offset: offset
       }
     });
+  },
+
+  // 获取人机聊天历史记录（新接口）
+  getHumanRobotChatHistory: (limit = 50, offset = 0) => {
+    console.log('🗨️ 获取人机聊天历史记录, limit:', limit, 'offset:', offset);
+    return chatAxiosInstance.get('/human_robot_chat/history', {
+      params: {
+        limit: limit,
+        offset: offset
+      }
+    });
+  },
+
+  // 发送机器人消息到人机聊天（新接口）
+  sendRobotMessageToHumanRobotChat: (message) => {
+    console.log('🗨️ 发送机器人消息到人机聊天:', message);
+    const payload = {
+      text: message,
+      content: message,
+      message: message
+    };
+    console.log('🗨️ 发送的payload:', payload);
+    return chatAxiosInstance.post('/human_robot_chat/robot/send', payload);
+  },
+
+  // 发送人类消息到人机聊天（新接口）
+  sendHumanMessageToHumanRobotChat: (message) => {
+    console.log('🗨️ 发送人类消息到人机聊天:', message);
+    const payload = {
+      text: message,
+      content: message,
+      message: message
+    };
+    console.log('🗨️ 发送的payload:', payload);
+    return chatAxiosInstance.post('/human_robot_chat/human/send', payload);
   }
 };
