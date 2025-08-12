@@ -64,6 +64,8 @@
         </div>
       </div>
 
+
+
       <!-- 第一层：录音控制板块 -->
       <section class="recording-control-layer">
         <div class="first-layer-container">
@@ -107,6 +109,8 @@
                 <div class="record-timer">{{ formatTime(recordTime) }}</div>
               </div>
 
+
+
               <div class="audio-level-group">
                 <div class="audio-level">
                   <div class="level-label">音量监测</div>
@@ -116,6 +120,8 @@
                   <div class="level-value">{{ audioLevel }}%</div>
                 </div>
               </div>
+
+
             </div>
           </div>
 
@@ -379,6 +385,7 @@ const recordTime = ref(0)
 const audioLevel = ref(0)
 const systemStatus = ref('online')
 const statusText = ref('系统就绪')
+const recordingStatus = ref('系统就绪') // 录音状态文本
 const selectedLanguage = ref('zh-CN')
 const speechText = ref('')
 
@@ -411,6 +418,8 @@ let mediaRecorder = null
 let audioChunks = []
 // 语音识别相关变量
 let recognition = null
+const isRecognitionRunning = ref(false) // 跟踪语音识别是否正在运行
+const recognitionPermissionDenied = ref(false) // 跟踪权限是否被拒绝
 // Canvas上下文变量
 let waveformCtx = null
 let spectrumCtx = null
@@ -542,6 +551,8 @@ const sortedTextHistory = computed(() => {
   // 对文本历史记录进行反序排列，最新的在前面
   return [...textHistory.value].sort((a, b) => b.timestamp - a.timestamp)
 })
+
+
 
 // API接口调用函数
 // 录音控制接口 - 重构优化版本
@@ -1152,20 +1163,76 @@ const fetchRecentRecords = async () => {
 
 
 
+// 检查麦克风权限状态
+const checkMicrophonePermission = async () => {
+  try {
+    // 检查浏览器是否支持权限API
+    if (!navigator.permissions) {
+      console.warn('⚠️ 此浏览器不支持权限API，将尝试直接请求麦克风权限')
+      return null // 无法确定权限状态，需要直接尝试
+    }
+
+    const permission = await navigator.permissions.query({ name: 'microphone' })
+    console.log('🎤 麦克风权限状态:', permission.state)
+
+    if (permission.state === 'denied') {
+      statusText.value = '麦克风权限被拒绝'
+      recordingStatus.value = '请在浏览器设置中允许麦克风访问'
+      return false
+    } else if (permission.state === 'granted') {
+      console.log('✅ 麦克风权限已授予')
+      return true
+    }
+
+    return null // 权限状态为 'prompt'，需要请求权限
+  } catch (error) {
+    console.warn('⚠️ 无法检查麦克风权限状态:', error)
+    return null
+  }
+}
+
 // 请求麦克风权限
 const requestMicrophonePermission = async () => {
   try {
+    // 检查浏览器是否支持 getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const errorMsg = '此浏览器不支持麦克风访问功能，但服务器端录音仍可正常使用'
+      recordingStatus.value = errorMsg
+      console.warn('⚠️', errorMsg)
+      return false // 返回 false 而不是抛出错误
+    }
+
+    console.log('🎤 正在请求麦克风权限...')
+    recordingStatus.value = '正在请求麦克风权限，请在浏览器弹窗中点击"允许"'
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     micPermissionGranted.value = true
     audioStream = stream
     setupAudioContext(stream)
     initSpeechRecognition() // 初始化语音识别
     statusText.value = '系统就绪，麦克风已连接'
+    recordingStatus.value = '麦克风权限已获取，系统就绪'
+    console.log('✅ 麦克风权限获取成功')
     return true
   } catch (error) {
-    console.error('获取麦克风权限失败:', error)
-    statusText.value = '麦克风访问被拒绝，请在浏览器设置中允许麦克风权限'
+    console.warn('⚠️ 获取麦克风权限失败:', error.message)
     micPermissionGranted.value = false
+
+    // 根据错误类型提供不同的提示信息
+    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      statusText.value = '麦克风权限被拒绝'
+      recordingStatus.value = '请点击浏览器地址栏的麦克风图标，允许麦克风访问后刷新页面'
+    } else if (error.name === 'NotFoundError') {
+      statusText.value = '未找到麦克风设备'
+      recordingStatus.value = '请检查麦克风是否正确连接'
+    } else if (error.name === 'NotReadableError') {
+      statusText.value = '麦克风被其他应用占用'
+      recordingStatus.value = '请关闭其他使用麦克风的应用后重试'
+    } else {
+      statusText.value = '麦克风初始化失败'
+      recordingStatus.value = '请检查麦克风设备和浏览器设置'
+    }
+
     return false
   }
 }
@@ -1188,18 +1255,68 @@ const setupAudioContext = (stream) => {
   audioSource.connect(audioAnalyser)
 }
 
+// 重置语音识别状态（用于权限问题解决后重新初始化）
+const resetSpeechRecognition = () => {
+  console.log('🔄 重置语音识别状态')
+  isRecognitionRunning.value = false
+  recognitionPermissionDenied.value = false
+  recognition = null
+}
+
+// 重置麦克风权限状态（用于重新请求权限）
+const resetMicrophonePermission = async () => {
+  console.log('🔄 重置麦克风权限状态')
+  micPermissionGranted.value = false
+  recognitionPermissionDenied.value = false
+
+  // 停止现有的音频流
+  if (audioStream) {
+    audioStream.getTracks().forEach(track => track.stop())
+    audioStream = null
+  }
+
+  // 重置音频上下文
+  if (audioContext) {
+    audioContext.close()
+    audioContext = null
+  }
+
+  // 重置语音识别
+  resetSpeechRecognition()
+
+  recordingStatus.value = '权限状态已重置，点击"请求麦克风权限"重新授权'
+
+  // 重新检查权限状态
+  setTimeout(async () => {
+    const permissionStatus = await checkMicrophonePermission()
+    if (permissionStatus === true) {
+      console.log('✅ 检测到权限已授予，自动初始化')
+      try {
+        await requestMicrophonePermission()
+      } catch (error) {
+        console.warn('⚠️ 自动初始化失败:', error)
+      }
+    }
+  }, 500)
+}
+
 // 初始化语音识别
 const initSpeechRecognition = () => {
+  // 重置语音识别状态
+  isRecognitionRunning.value = false
+
   // 检查浏览器支持
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
   if (!SpeechRecognition) {
     isRecognitionSupported.value = false
-    console.error('此浏览器不支持语音识别')
+    console.warn('⚠️ 此浏览器不支持语音识别API')
+    recordingStatus.value = '语音识别不支持，但录音功能仍可用'
     return
   }
 
   recognition = new SpeechRecognition()
+  console.log('✅ 语音识别对象已创建')
 
   // 配置语音识别
   recognition.continuous = true       // 持续识别
@@ -1247,12 +1364,38 @@ const initSpeechRecognition = () => {
     }
   }
 
+  recognition.onstart = () => {
+    isRecognitionRunning.value = true
+    console.log('🎤 语音识别已启动')
+  }
+
   recognition.onerror = (event) => {
-    console.error('语音识别错误:', event.error)
-    if (isRecording.value) {
-      // 尝试重启识别
+    console.warn('⚠️ 语音识别错误:', event.error)
+    isRecognitionRunning.value = false
+
+    // 如果是权限被拒绝或不允许，标记权限被拒绝状态
+    if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+      console.warn('🚫 语音识别权限被拒绝，将不再尝试启动语音识别')
+      recognitionPermissionDenied.value = true
+      recordingStatus.value = '语音识别权限被拒绝，请在浏览器设置中允许麦克风访问'
+
+      // 停止尝试重启语音识别，但不影响服务器端录音功能
+      console.log('ℹ️ 服务器端录音功能仍然可用，仅本地语音识别功能不可用')
+      return
+    }
+
+    // 如果是网络错误或服务不可用，也停止录音
+    if (event.error === 'network' || event.error === 'service-not-allowed') {
+      console.warn('⚠️ 语音识别服务不可用')
+      recordingStatus.value = '语音识别服务暂时不可用'
+      return
+    }
+
+    // 其他错误才尝试重启识别（但不影响录音状态）
+    if (isRecording.value && !recognitionPermissionDenied.value &&
+        (event.error === 'aborted' || event.error === 'audio-capture')) {
       setTimeout(() => {
-        if (isRecording.value && recognition) {
+        if (isRecording.value && recognition && !isRecognitionRunning.value && !recognitionPermissionDenied.value) {
           try {
             recognition.start()
           } catch (e) {
@@ -1264,13 +1407,21 @@ const initSpeechRecognition = () => {
   }
 
   recognition.onend = () => {
-    // 如果仍然在录音，则重启识别
-    if (isRecording.value) {
-      try {
-        recognition.start()
-      } catch (e) {
-        console.log('重启识别失败', e)
-      }
+    isRecognitionRunning.value = false
+    console.log('🎤 语音识别已结束')
+
+    // 只有在录音状态且权限未被拒绝时才重启识别
+    if (isRecording.value && !recognitionPermissionDenied.value) {
+      setTimeout(() => {
+        if (isRecording.value && recognition && !isRecognitionRunning.value && !recognitionPermissionDenied.value) {
+          try {
+            recognition.start()
+          } catch (e) {
+            console.log('重启识别失败', e)
+            // 不再强制停止录音，因为服务器端录音可以独立工作
+          }
+        }
+      }, 100) // 减少延迟时间
     }
   }
 }
@@ -1368,6 +1519,26 @@ const toggleRecording = async () => {
         console.log('✅ 服务器端录音已停止，历史记录定时获取已停止')
       }
     } else {
+      // 开始录音前先请求麦克风权限（必须在用户交互事件中触发）
+      console.log('🎤 开始录音前检查麦克风权限...')
+
+      // 如果还没有麦克风权限，先请求权限（但不阻止服务器端录音）
+      if (!micPermissionGranted.value) {
+        console.log('🔐 请求麦克风权限（用户交互触发）...')
+        try {
+          const permissionGranted = await requestMicrophonePermission()
+          if (!permissionGranted) {
+            console.warn('⚠️ 麦克风权限被拒绝，但服务器端录音仍可继续')
+            recordingStatus.value = '麦克风权限被拒绝，本地可视化不可用，但服务器端录音正常'
+            // 不要 return，继续执行服务器端录音
+          }
+        } catch (error) {
+          console.warn('⚠️ 请求麦克风权限失败，但服务器端录音仍可继续:', error.message)
+          recordingStatus.value = '本地麦克风不可用，但服务器端录音正常'
+          // 不要 return，继续执行服务器端录音
+        }
+      }
+
       // 开始录音 - 调用服务器API并启动本地计时器
       console.log('🎙️ 开始服务器端录音...')
       const success = await startRecordingAPI()
@@ -1417,7 +1588,7 @@ const startRecording = async () => {
 
   // 启用本地语音识别仅用于音频可视化（频谱分析和波形显示）
   // 注意：本地识别结果不会显示在界面上，界面只显示服务器端API返回的转录结果
-  if (recognition && isRecognitionSupported.value) {
+  if (recognition && isRecognitionSupported.value && !recognitionPermissionDenied.value && !isRecognitionRunning.value) {
     // 更新语言设置
     recognition.lang = selectedLanguage.value
 
@@ -1426,34 +1597,40 @@ const startRecording = async () => {
       recognition.start()
       console.log('✅ 本地语音识别已启动（仅用于可视化）')
     } catch (e) {
-      console.error('❌ 启动本地语音识别失败:', e)
+      console.warn('⚠️ 启动本地语音识别失败:', e.message)
+      if (e.message && e.message.includes('already started')) {
+        console.log('🎤 语音识别已在运行中')
+        isRecognitionRunning.value = true
+      }
     }
   } else {
     console.warn('⚠️ 本地语音识别不可用', {
       isSupported: isRecognitionSupported.value,
-      hasRecognitionObj: !!recognition
+      hasRecognitionObj: !!recognition,
+      permissionDenied: recognitionPermissionDenied.value,
+      isRunning: isRecognitionRunning.value
     })
 
-    // 如果识别不可用，尝试重新初始化
-    if (!recognition && isRecognitionSupported.value) {
+    // 如果识别不可用且权限未被拒绝，尝试重新初始化
+    if (!recognition && isRecognitionSupported.value && !recognitionPermissionDenied.value) {
       console.log('🔄 尝试重新初始化语音识别（仅用于可视化）...')
       initSpeechRecognition()
 
       // 如果初始化成功，延迟启动识别
-      if (recognition) {
+      if (recognition && !isRecognitionRunning.value) {
         setTimeout(() => {
           try {
             recognition.start()
             console.log('✅ 延迟启动语音识别成功（仅用于可视化）')
           } catch (e) {
-            console.error('❌ 延迟启动语音识别失败:', e)
+            console.warn('⚠️ 延迟启动语音识别失败:', e.message)
           }
         }, 500)
       }
     }
   }
 
-  // 开始录音
+  // 开始本地录音（仅用于可视化，可选功能）
   if (audioStream) {
     mediaRecorder = new MediaRecorder(audioStream)
 
@@ -1464,9 +1641,9 @@ const startRecording = async () => {
     }
 
     mediaRecorder.start()
-    console.log('MediaRecorder已启动')
+    console.log('✅ 本地MediaRecorder已启动（用于可视化）')
   } else {
-    console.error('无法启动录音，audioStream不存在')
+    console.warn('⚠️ 本地audioStream不存在，本地可视化功能不可用，但服务器端录音正常')
   }
 
   // 录音计时器
@@ -1507,14 +1684,19 @@ const stopRecording = () => {
   statusText.value = '系统就绪'
 
   // 停止本地语音识别（仅用于可视化）
-  if (recognition && isRecognitionSupported.value) {
+  if (recognition && isRecognitionSupported.value && isRecognitionRunning.value) {
     try {
       console.log('⏹️ 停止本地语音识别（仅用于可视化）')
       recognition.stop()
+      isRecognitionRunning.value = false
     } catch (e) {
-      console.error('❌ 停止语音识别失败:', e)
+      console.warn('⚠️ 停止语音识别失败:', e.message)
+      isRecognitionRunning.value = false
     }
   }
+
+  // 重置语音识别状态
+  isRecognitionRunning.value = false
 
   // 停止录音
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -1978,6 +2160,22 @@ onMounted(async () => {
   console.log('听觉系统组件已挂载')
 
   try {
+    // 检查浏览器兼容性
+    console.log('🔍 检查浏览器兼容性...')
+
+    // 检查基本的Web API支持
+    if (!navigator.mediaDevices) {
+      console.error('❌ 此浏览器不支持 MediaDevices API')
+      statusText.value = '浏览器不兼容'
+      recordingStatus.value = '请使用现代浏览器（Chrome、Firefox、Safari等）'
+    }
+
+    if (!window.AudioContext && !window.webkitAudioContext) {
+      console.error('❌ 此浏览器不支持 Web Audio API')
+    }
+
+    console.log('✅ 浏览器兼容性检查完成')
+
     loadFromLocalStorage()
     initializeAudioVisualization()
 
@@ -1990,13 +2188,26 @@ onMounted(async () => {
     // 定期保存数据
     saveInterval.value = setInterval(saveToLocalStorage, 30000)
 
-    // 请求麦克风权限用于音频可视化
-    console.log('🎤 请求麦克风权限用于音频可视化...')
-    try {
-      await requestMicrophonePermission()
-      console.log('✅ 麦克风权限已获取，音频可视化已准备就绪')
-    } catch (error) {
-      console.warn('⚠️ 麦克风权限获取失败，音频可视化将不可用:', error)
+    // 只检查权限状态，不自动请求权限（权限请求需要在用户交互中触发）
+    console.log('🎤 检查麦克风权限状态...')
+    const permissionStatus = await checkMicrophonePermission()
+
+    if (permissionStatus === false) {
+      console.warn('⚠️ 麦克风权限被拒绝，需要用户手动允许')
+      recordingStatus.value = '点击录音按钮时将请求麦克风权限'
+    } else if (permissionStatus === true) {
+      console.log('✅ 麦克风权限已授予')
+      recordingStatus.value = '系统就绪'
+      // 如果权限已授予，可以初始化音频可视化
+      try {
+        await requestMicrophonePermission()
+        console.log('✅ 音频可视化已准备就绪')
+      } catch (error) {
+        console.warn('⚠️ 音频可视化初始化失败:', error)
+      }
+    } else {
+      console.log('🎤 麦克风权限状态未知，将在用户点击录音时请求')
+      recordingStatus.value = '点击录音按钮开始使用'
     }
 
     // 初始化API连接
@@ -2056,6 +2267,47 @@ onUnmounted(() => {
 </style>
 
 <style>
+/* 状态显示样式 */
+.status-display {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.status-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.status-value {
+  color: #fff;
+  font-weight: 600;
+}
+
+.status-value.status-error {
+  color: #ff6b6b;
+}
+
+.status-value.status-warning {
+  color: #ffd93d;
+}
+
+.status-value.status-success {
+  color: #51cf66;
+}
+
+
+
 /* 强制缩小听觉系统面板高度 */
 .stats-panel {
     min-height: 180px !important;

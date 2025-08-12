@@ -80,9 +80,24 @@ const router = createRouter({
       component: () => import('../views/RemoteInteractionView.vue'),
     },
     {
+      path: '/multimodal-perception',
+      name: 'multimodal-perception',
+      component: () => import('../views/MultimodalPerceptionView.vue'),
+    },
+    {
       path: '/chat-interaction',
       name: 'chat-interaction',
       component: () => import('../views/ChatInteractionView.vue'),
+    },
+    {
+      path: '/health-wellness',
+      name: 'health-wellness',
+      component: () => import('../views/HealthWellnessView.vue'),
+    },
+    {
+      path: '/health-wellness',
+      name: 'health-wellness',
+      component: () => import('../views/HealthWellnessView.vue'),
     },
   ],
 })

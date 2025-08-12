@@ -270,19 +270,35 @@ export default defineConfig(({ command, mode }) => {
           },
         },
         '/v1': {
-          target: ROBOT_SIMULATION_HOST.replace(':5001', ''),
+          target: ROBOT_SIMULATION_HOST,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path,
           configure: (proxy, options) => {
             proxy.on('error', (err, req, res) => {
-              console.log('工作流v1代理错误:', err);
+              console.error('❌ 工作流v1代理错误:', {
+                错误信息: err.message,
+                目标服务器: options.target,
+                请求路径: req.url
+              });
             });
             proxy.on('proxyReq', (proxyReq, req, res) => {
-              console.log('工作流v1代理请求 -> 目标服务器:', req.method, req.url, '->', options.target + req.url);
+              console.log('🚀 工作流v1代理请求 -> 目标服务器:', {
+                方法: req.method,
+                原始请求: req.url,
+                目标服务器: options.target,
+                最终URL: `${options.target}${req.url}`
+              });
             });
             proxy.on('proxyRes', (proxyRes, req, res) => {
-              console.log('工作流v1代理响应 <- 目标服务器:', proxyRes.statusCode, req.url);
+              const success = proxyRes.statusCode >= 200 && proxyRes.statusCode < 300;
+              console.log(`${success ? '✅' : '❌'} 工作流v1代理响应:`, {
+                状态码: proxyRes.statusCode,
+                状态文本: proxyRes.statusMessage,
+                原始请求: req.url,
+                响应大小: proxyRes.headers['content-length'] || '未知',
+                内容类型: proxyRes.headers['content-type'] || '未知'
+              });
             });
           },
         },

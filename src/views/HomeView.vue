@@ -3,6 +3,8 @@
     <div class="main-title">机器人控制中心</div>
     <div class="top-buttons">
       <div class="remote-interaction-btn" @click="goRemoteInteraction">远程交互</div>
+      <div class="multimodal-perception-btn" @click="goMultimodalPerception">多模态感知</div>
+      <div class="health-wellness-btn" @click="goHealthWellness">智能养生</div>
       <div class="health-report-btn" @click="goHealthReport">健康报告</div>
       <div class="management-btn" @click="goManagement">综合管理</div>
     </div>
@@ -139,6 +141,12 @@ function goVoiceSystem() {
 }
 function goRemoteInteraction() {
   router.push('/remote-interaction');
+}
+function goMultimodalPerception() {
+  router.push('/multimodal-perception');
+}
+function goHealthWellness() {
+  router.push('/health-wellness');
 }
 function goHealthReport() {
   router.push('/report');
@@ -704,6 +712,8 @@ body::before {
 }
 
 .remote-interaction-btn,
+.multimodal-perception-btn,
+.health-wellness-btn,
 .health-report-btn,
 .management-btn {
   font-size: clamp(0.8rem, 2.5vw, 1.2rem);
@@ -724,9 +734,13 @@ body::before {
   color: #fff;
 }
 
+/* 智能养生按钮使用与其他按钮相同的样式 */
+
 /* 综合管理按钮使用与健康报告相同的样式 */
 
 .remote-interaction-btn:hover,
+.multimodal-perception-btn:hover,
+.health-wellness-btn:hover,
 .health-report-btn:hover,
 .management-btn:hover {
   text-shadow: 0 0 20px rgba(0, 153, 255, 0.6);
@@ -856,6 +870,8 @@ body::before {
   }
 
   .remote-interaction-btn,
+  .multimodal-perception-btn,
+  .health-wellness-btn,
   .health-report-btn,
   .management-btn {
     font-size: clamp(0.8rem, 2vw, 1.1rem);
@@ -975,6 +991,8 @@ body::before {
   }
 
   .remote-interaction-btn,
+  .multimodal-perception-btn,
+  .health-wellness-btn,
   .health-report-btn,
   .management-btn {
     font-size: clamp(0.7rem, 1.8vw, 0.9rem);
@@ -1086,6 +1104,8 @@ body::before {
   }
 
   .remote-interaction-btn,
+  .multimodal-perception-btn,
+  .health-wellness-btn,
   .health-report-btn,
   .management-btn {
     font-size: clamp(0.6rem, 2vw, 0.8rem);

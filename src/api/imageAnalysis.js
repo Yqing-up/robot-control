@@ -52,6 +52,119 @@ export const getRecentImageData = async (minutes) => {
 }
 
 /**
+ * 获取最近的N张图片数据
+ * @param {number} count - 图片数量
+ * @returns {Promise} 返回图片数据
+ */
+export const getRecentImagesByCount = async (count = 5) => {
+  try {
+    console.log(`📸 获取最近的 ${count} 张图片...`)
+
+    const response = await fetch(`${API_BASE_URL}/photos/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`获取图片列表失败: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    console.log('📥 API返回的原始图片列表:', data)
+
+    // 处理API返回的数据结构 {count: number, photos: array}
+    let photos = data.photos || data || []
+    console.log('📸 提取的photos数组:', photos)
+    console.log('📊 总图片数量:', photos.length)
+
+    // 按日期排序（最新的在前）并取前N张
+    if (Array.isArray(photos)) {
+      photos = photos
+        .sort((a, b) => new Date(b.date || b.timestamp || 0) - new Date(a.date || a.timestamp || 0))
+        .slice(0, count)
+
+      console.log(`✅ 成功获取最近的 ${photos.length} 张图片`)
+      console.log('📋 图片详情:', photos.map(p => ({
+        filename: p.filename,
+        date: p.date,
+        url: p.url
+      })))
+    }
+
+    return {
+      success: true,
+      data: photos,
+      count: photos.length,
+      message: `成功获取最近的 ${photos.length} 张图片`
+    }
+  } catch (error) {
+    console.error('获取图片数据错误:', error)
+    return {
+      success: false,
+      data: null,
+      message: error.message || '获取图片数据失败，请检查网络连接'
+    }
+  }
+}
+
+/**
+ * 获取所有图片数据（用于实时展示）
+ * @returns {Promise} 返回所有图片数据
+ */
+export const getAllImageData = async () => {
+  try {
+    console.log('📸 获取所有图片数据...')
+
+    const response = await fetch(`${API_BASE_URL}/photos/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`获取图片列表失败: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    console.log('📥 API返回的原始图片列表:', data)
+
+    // 处理API返回的数据结构 {count: number, photos: array}
+    let photos = data.photos || data || []
+    console.log('📸 提取的photos数组:', photos)
+    console.log('📊 总图片数量:', photos.length)
+
+    // 按日期排序（最新的在前）
+    if (Array.isArray(photos)) {
+      photos = photos.sort((a, b) => new Date(b.date || b.timestamp || 0) - new Date(a.date || a.timestamp || 0))
+
+      console.log(`✅ 成功获取所有 ${photos.length} 张图片`)
+      console.log('📋 图片详情:', photos.slice(0, 5).map(p => ({
+        filename: p.filename,
+        date: p.date,
+        url: p.url
+      })), photos.length > 5 ? `... 还有 ${photos.length - 5} 张图片` : '')
+    }
+
+    return {
+      success: true,
+      data: photos,
+      count: photos.length,
+      message: `成功获取所有 ${photos.length} 张图片`
+    }
+  } catch (error) {
+    console.error('获取图片数据错误:', error)
+    return {
+      success: false,
+      data: null,
+      message: error.message || '获取图片数据失败，请检查网络连接'
+    }
+  }
+}
+
+/**
  * 获取图片文件数据
  * @param {Array} imageUrls - 图片URL列表
  * @returns {Promise<Array>} 图片文件数据列表
@@ -137,7 +250,8 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
 
     // 准备符合API文档的文件列表格式
     const pictureFileList = []
-    const BASE_URL = 'https://blog.u2829437.nyat.app:25855'
+    // 使用上位机的地址作为基础URL，因为工作流服务器需要能够访问图片
+    const BASE_URL = 'http://192.168.0.119:5001'
 
     for (const imageFile of imageFiles) {
       try {
