@@ -184,6 +184,10 @@ const continuousPhotoCount = ref(0);
 
 // 连续拍照定时器
 let photoCountTimer = null;
+  // 照片列表刷新防重入锁
+  let isRefreshingPhotos = false;
+  // 连续拍照会话开始时的基准数量
+  let sessionBaselinePhotoCount = 0;
 
 // 预览相关
 const showPreview = ref(false);
@@ -408,40 +412,33 @@ async function startContinuousPhoto() {
       isContinuousPhotoActive.value = true;
       continuousPhotoCount.value = 0;
 
-      // 立即刷新一次照片列表
+      // 立即刷新一次照片列表并记录会话基准数量
       await loadPhotoList();
+      sessionBaselinePhotoCount = photos.value.length;
+      continuousPhotoCount.value = 0;
 
-      // 启动定时器，定期刷新照片列表来更新计数和显示
+      // 启动定时器，定期刷新照片列表来更新计数和显示（复用统一处理的 loadPhotoList）
       photoCountTimer = setInterval(async () => {
+        if (isRefreshingPhotos) return;
+        isRefreshingPhotos = true;
         try {
-          console.log('连续拍照定时器触发，正在获取最新照片列表...');
-          const photoListResult = await getPhotoList();
-          console.log('获取到的照片列表结果:', photoListResult);
+          console.log('连续拍照定时器触发，正在刷新照片列表...');
+          const oldCount = photos.value.length;
+          await loadPhotoList();
+          const newCount = photos.value.length;
+          continuousPhotoCount.value = Math.max(0, newCount - sessionBaselinePhotoCount);
 
-          if (photoListResult && photoListResult.photos) {
-            const oldCount = photos.value.length;
-            const newCount = photoListResult.photos.length;
-
-            // 强制更新照片列表显示
-            photos.value = [...photoListResult.photos];
-            // 更新计数
-            continuousPhotoCount.value = photoListResult.photos.length;
-
-            console.log(`连续拍照期间更新照片列表 - 旧数量: ${oldCount}, 新数量: ${newCount}`);
-            console.log('当前照片列表内容:', photos.value);
-
-            // 如果有新照片，显示提示
-            if (newCount > oldCount) {
-              console.log(`发现 ${newCount - oldCount} 张新照片`);
-              // 显示新增的照片信息
-              const newPhotos = photoListResult.photos.slice(oldCount);
-              console.log('新增的照片:', newPhotos);
-            }
-          } else {
-            console.log('照片列表结果为空或格式不正确:', photoListResult);
+          console.log(`连续拍照期间更新照片列表 - 旧数量: ${oldCount}, 新数量: ${newCount}`);
+          // 如果有新照片，显示提示
+          if (newCount > oldCount) {
+            console.log(`发现 ${newCount - oldCount} 张新照片`);
+            const newPhotos = photos.value.slice(oldCount);
+            console.log('新增的照片:', newPhotos);
           }
         } catch (error) {
           console.error('更新照片列表失败:', error);
+        } finally {
+          isRefreshingPhotos = false;
         }
       }, 1000); // 每1秒更新一次，提高响应速度
 

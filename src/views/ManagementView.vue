@@ -118,12 +118,8 @@
                   <span class="stop-icon">■</span>
                   <span class="label">停止</span>
                 </button>
-                <button class="direction-btn" @click="fetchHeadStatus">
-                  <span class="arrow">ℹ️</span>
-                  <span class="label">状态</span>
-                </button>
               </div>
-              <div class="head-status-text">{{ headStatusText }}</div>
+              <!-- <div class="head-status-text">{{ headStatusText }}</div> -->
             </div>
           </div>
         </div>
@@ -1791,6 +1787,13 @@ onMounted(async () => {
     console.log('📹 摄像头流URL:', cameraStreamUrl.value)
     await handleInitializeCamera()
 
+    // 页面显示头部操作盘时，自动获取一次头部状态
+    try {
+      await fetchHeadStatus()
+    } catch (e) {
+      // 忽略单次获取失败
+    }
+
     // 获取语音库数据
     console.log('📚 开始获取语音库数据...')
     await fetchVoiceTexts()
@@ -1906,6 +1909,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  transform: translateY(-70px);
 }
 .direction-pad {
   display: grid;

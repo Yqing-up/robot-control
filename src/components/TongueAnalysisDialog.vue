@@ -216,8 +216,9 @@ function handleVideoLoad() {
 }
 async function loadPhotoList() {
   try {
-    const result = await cameraApi.getPhotoList();
-    photos.value = result.photos || [];
+    const response = await cameraApi.getPhotoList();
+    const data = response?.data || response;
+    photos.value = Array.isArray(data?.photos) ? data.photos : [];
   } catch (error) {
     photos.value = [];
   }
@@ -245,12 +246,14 @@ async function takePhoto() {
 }
 async function executePhoto() {
   try {
-    const result = await cameraApi.takePhoto();
-    if (result.success) {
-      alert(`舌苔检测拍照成功！文件名: ${result.filename}`);
+    const response = await cameraApi.takePhoto();
+    const data = response?.data || response;
+    if (data && data.success) {
+      alert(`舌苔检测拍照成功！文件名: ${data.filename}`);
       await loadPhotoList();
     } else {
-      alert(`舌苔检测拍照失败: ${result.message}`);
+      const message = data?.message || '未知错误';
+      alert(`舌苔检测拍照失败: ${message}`);
     }
   } catch (error) {
     alert('拍照失败，请重试');
@@ -259,12 +262,9 @@ async function executePhoto() {
 async function loadPhotoData() {
   try {
     photoLoading.value = true;
-    const result = await cameraApi.getPhotoList();
-    if (result && result.data) {
-      photoData.value = Array.isArray(result.data.photos) ? result.data.photos : result.data;
-    } else {
-      photoData.value = [];
-    }
+    const response = await cameraApi.getPhotoList();
+    const data = response?.data || response;
+    photoData.value = Array.isArray(data?.photos) ? data.photos : [];
   } catch (error) {
     photoData.value = [];
   } finally {
@@ -332,17 +332,29 @@ async function analyze() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 420px;
+  height: 420px;
+  width: 100%;
   background: #0a1622;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.25);
   overflow: hidden;
+  position: relative;
 }
 .camera-preview {
   width: 100%;
-  max-width: 480px;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(74,144,226,0.15);
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 让“正在连接摄像头...”的占位层也与盒子一致 */
+.video-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .operation-controls {
   display: flex;
@@ -396,7 +408,7 @@ async function analyze() {
 }
 .detection-output {
   width: 100%;
-  min-height: 120px;
+  min-height: 230px;
   background: #101a28;
   color: #fff;
   border-radius: 8px;

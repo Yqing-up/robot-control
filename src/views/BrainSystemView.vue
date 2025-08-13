@@ -139,12 +139,8 @@
                   <span class="stop-icon">■</span>
                   <span class="label">停止</span>
                 </button>
-                <button class="direction-btn" @click="fetchHeadStatus">
-                  <span class="arrow">ℹ️</span>
-                  <span class="label">状态</span>
-                </button>
               </div>
-              <div class="head-status-text">{{ headStatusText }}</div>
+              <!-- <div class="head-status-text">{{ headStatusText }}</div> -->
             </div>
           </section>
           <!-- 决策逻辑界面 -->
@@ -506,6 +502,13 @@ let metricsInterval
 
 onMounted(() => {
   console.log('大脑系统组件已挂载')
+
+  // 页面显示头部操作盘时，自动获取一次头部状态
+  try {
+    fetchHeadStatus()
+  } catch (e) {
+    // 忽略单次状态获取失败
+  }
 
   // 定期生成决策
   decisionInterval = setInterval(generateDecision, 10000)
