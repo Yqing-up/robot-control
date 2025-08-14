@@ -251,6 +251,60 @@ export default defineConfig(({ command, mode }) => {
           },
         },
 
+        // 新增：活动场景接口代理 - 必须放在通用/api代理之前
+        '/api-activity': {
+          target: ROBOT_UPPER_HOST, // 使用上位机服务器
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => {
+            const rewrittenPath = path.replace(/^\/api-activity/, '/api');
+            console.log('🔧 活动场景代理路径重写:', {
+              原始路径: path,
+              重写后路径: rewrittenPath,
+              目标服务器: ROBOT_UPPER_HOST
+            });
+            return rewrittenPath;
+          },
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('活动场景接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('活动场景接口代理请求 -> 上位机:', req.method, req.url, '->', options.target + proxyReq.path);
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('活动场景接口代理响应 <- 上位机:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
+        // 新增：场景详细页面接口代理 - 必须放在通用/api代理之前
+        '/api-scenes': {
+          target: ROBOT_UPPER_HOST, // 使用env里的上位机服务器
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => {
+            const rewrittenPath = path.replace(/^\/api-scenes/, '/api');
+            console.log('🔧 场景详细代理路径重写:', {
+              原始路径: path,
+              重写后路径: rewrittenPath,
+              目标服务器: ROBOT_UPPER_HOST
+            });
+            return rewrittenPath;
+          },
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('场景详细接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('场景详细接口代理请求 -> 上位机:', req.method, req.url, '->', options.target + proxyReq.path);
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('场景详细接口代理响应 <- 上位机:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
         // 保留原有的通用API代理，用于其他接口
         '/api': {
           target: ROBOT_UPPER_HOST,

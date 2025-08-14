@@ -470,16 +470,10 @@ export const movementApi = {
     return labels[direction] || '未知动作'
   },
 
-  // 获取分类名称
+  // 获取分类名称（现在用于显示动作名称）
   getCategoryName: (category) => {
-    const categories = {
-      'greeting': '问候语',
-      'response': '回应语',
-      'notification': '通知语',
-      'emotion': '情感表达',
-      'system': '系统提示'
-    }
-    return categories[category] || category
+    if (!category) return '无动作'
+    return category  // 直接返回动作名称
   },
 
   // 获取动作分类名称

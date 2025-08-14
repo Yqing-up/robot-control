@@ -447,6 +447,94 @@
     color: #ff5722;
 }
 
+/* 右侧下肢控制区域样式 */
+.leg-control-section {
+    background: rgba(0, 20, 40, 0.6);
+    border: 1px solid rgba(255, 87, 34, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(255, 87, 34, 0.1);
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+}
+
+.leg-control-section .module-header h3 {
+    color: #ff5722;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.leg-control-section .module-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.leg-control-section .direction-control-panel {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 87, 34, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.leg-control-section .direction-control-panel h4 {
+    color: #ff5722;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    text-align: center;
+}
+
+.leg-control-section .single-step-panel {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 87, 34, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.leg-control-section .single-step-panel h4 {
+    color: #ff5722;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    text-align: center;
+}
+
+/* 语音库按钮样式 */
+.btn-execute {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    color: white;
+}
+
+.btn-execute:hover {
+    background: linear-gradient(135deg, #388e3c, #2e7d32);
+    transform: translateY(-1px);
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #f57c00, #ef6c00);
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    color: white;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    transform: translateY(-1px);
+}
+
 /* 摄像头显示区域 */
 .video-display {
     position: relative;
@@ -985,6 +1073,24 @@
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
+    .camera-section-row {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    .head-control-section,
+    .leg-control-section {
+        flex: none !important;
+        width: 100% !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+        min-height: 300px !important;
+    }
+
+    .camera-section {
+        max-width: none !important;
+    }
+
     .modules-grid {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -1005,6 +1111,10 @@
     .camera-layer,
     .module-section {
         padding: 12px;
+    }
+
+    .video-display {
+        height: 550px !important;  /* 在平板尺寸上保持较大的视频区域 */
     }
 
     .direction-pad-extended {
@@ -1056,7 +1166,7 @@
     }
 
     .video-display {
-        height: 250px !important;  /* 减小摄像头区域高度 */
+        height: 400px !important;  /* 在小屏幕上适当调整摄像头区域高度 */
     }
 
     .modules-grid {

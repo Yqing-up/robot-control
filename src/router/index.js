@@ -95,9 +95,15 @@ const router = createRouter({
       component: () => import('../views/HealthWellnessView.vue'),
     },
     {
-      path: '/health-wellness',
-      name: 'health-wellness',
-      component: () => import('../views/HealthWellnessView.vue'),
+      path: '/activity-scenes',
+      name: 'activity-scenes',
+      component: () => import('../views/ActivityScenesView.vue'),
+    },
+
+    {
+      path: '/scene-detail/:id',
+      name: 'scene-detail',
+      component: () => import('../views/SceneDetailView.vue'),
     },
   ],
 })

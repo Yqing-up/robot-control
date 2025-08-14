@@ -29,39 +29,13 @@
               <button class="btn btn-small btn-primary" @click="showAddDialog">+ 添加语音</button>
             </div>
 
-            <!-- 搜索和筛选 -->
-            <div class="voice-controls">
-              <div class="search-box">
-                <input
-                  type="text"
-                  v-model="searchText"
-                  placeholder="搜索语音内容..."
-                  class="search-input"
-                >
-              </div>
-              <div class="filter-controls">
-                <select v-model="selectedCategory" class="filter-select">
-                  <option value="">所有分类</option>
-                  <option value="greeting">问候语</option>
-                  <option value="response">回应语</option>
-                  <option value="notification">通知语</option>
-                  <option value="emotion">情感表达</option>
-                  <option value="system">系统提示</option>
-                </select>
-                <select v-model="selectedLanguage" class="filter-select">
-                  <option value="">所有语言</option>
-                  <option value="zh-CN">中文</option>
-                  <option value="en-US">English</option>
-                  <option value="ja-JP">日本語</option>
-                </select>
-              </div>
-            </div>
+
 
             <!-- 语音列表 -->
             <div class="voice-list">
               <div
                 class="voice-item"
-                v-for="voice in filteredVoiceLibrary"
+                v-for="voice in voiceLibrary"
                 :key="voice.id"
                 :class="{ playing: playingVoiceId === voice.id }"
               >
@@ -233,9 +207,6 @@ import { voiceApi } from '../api/voiceApi.js'
 const router = useRouter()
 
 // 响应式数据
-const searchText = ref('')
-const selectedCategory = ref('')
-const selectedLanguage = ref('')
 const playingVoiceId = ref(null)
 const playbackStatus = ref('idle')
 const playbackStatusText = ref('系统就绪')
@@ -339,28 +310,7 @@ const quickPlayVoices = computed(() => {
   ).slice(0, 6)
 })
 
-// 过滤后的语音库
-const filteredVoiceLibrary = computed(() => {
-  console.log('🔍 [filteredVoiceLibrary] 计算属性被调用')
-  console.log('🔍 [filteredVoiceLibrary] voiceLibrary.value.length:', voiceLibrary.value.length)
-  console.log('🔍 [filteredVoiceLibrary] searchText.value:', searchText.value)
-  console.log('🔍 [filteredVoiceLibrary] selectedCategory.value:', selectedCategory.value)
-  console.log('🔍 [filteredVoiceLibrary] selectedLanguage.value:', selectedLanguage.value)
 
-  const filtered = voiceLibrary.value.filter(voice => {
-    const matchesSearch = !searchText.value ||
-      voice.title.toLowerCase().includes(searchText.value.toLowerCase()) ||
-      voice.content.toLowerCase().includes(searchText.value.toLowerCase())
-
-    const matchesCategory = !selectedCategory.value || voice.category === selectedCategory.value
-    const matchesLanguage = !selectedLanguage.value || voice.language === selectedLanguage.value
-
-    return matchesSearch && matchesCategory && matchesLanguage
-  })
-
-  console.log('🔍 [filteredVoiceLibrary] 过滤后数量:', filtered.length)
-  return filtered
-})
 
 // 方法
 const goBack = () => {

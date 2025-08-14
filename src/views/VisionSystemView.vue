@@ -1255,7 +1255,7 @@ function handleImageError(event) {
 .media-size,
 .media-date,
 .list-title {
-  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
 }
 
 

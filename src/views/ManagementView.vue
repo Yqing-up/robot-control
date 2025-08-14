@@ -18,10 +18,56 @@
     <main class="management-main">
       <!-- 第一层：机器人画面区域 -->
       <section class="camera-layer">
-        <div class="camera-section-row" style="display: flex; gap: 32px; align-items: flex-start;">
-          <!-- 视频显示区域 -->
-          <div class="camera-section" style="flex: 1; min-width: 0;">
-            <div class="video-display" style="height: 500px !important; max-width: 900px !important; width: 100% !important; margin: 0 auto !important;">
+        <div class="camera-section-row" style="display: flex; gap: 20px; align-items: flex-start;">
+          <!-- 头部控制操作盘 - 移到左侧 -->
+          <div class="head-control-section" style="flex: 0 0 280px;">
+            <div class="section-header">
+              <h3>头部控制操作盘</h3>
+            </div>
+            <div class="direction-section">
+              <div class="direction-pad">
+                <div></div>
+                <button class="direction-btn" @click="moveHead('up')">
+                  <span class="arrow">▲</span>
+                  <span class="label">上</span>
+                </button>
+                <div></div>
+                <button class="direction-btn" @click="moveHead('left')">
+                  <span class="arrow">◀</span>
+                  <span class="label">左</span>
+                </button>
+                <button class="direction-btn" @click="moveHead('reset')">
+                  <span class="arrow">●</span>
+                  <span class="label">复位</span>
+                </button>
+                <button class="direction-btn" @click="moveHead('right')">
+                  <span class="arrow">▶</span>
+                  <span class="label">右</span>
+                </button>
+                <div></div>
+                <button class="direction-btn" @click="moveHead('down')">
+                  <span class="arrow">▼</span>
+                  <span class="label">下</span>
+                </button>
+                <div></div>
+              </div>
+              <div class="func-btn-row">
+                <button class="direction-btn emergency" @click="moveHead('stop')">
+                  <span class="stop-icon">■</span>
+                  <span class="label">停止</span>
+                </button>
+                <button class="direction-btn" @click="fetchHeadStatus">
+                  <span class="arrow">ℹ️</span>
+                  <span class="label">状态</span>
+                </button>
+              </div>
+              <div class="head-status-text">{{ headStatusText }}</div>
+            </div>
+          </div>
+
+          <!-- 视频显示区域 - 居中 -->
+          <div class="camera-section" style="flex: 1; min-width: 0; max-width: 1000px;">
+            <div class="video-display" style="height: 630px !important; width: 100% !important; margin: 0 auto !important;">
               <!-- 视频模式 -->
               <video
                 v-if="!useFallbackImage"
@@ -81,213 +127,9 @@
               </button>
             </div>
           </div>
-          <!-- 头部控制操作盘 -->
-          <div class="head-control-section">
-            <div class="section-header">
-              <h3>头部控制操作盘</h3>
-            </div>
-            <div class="direction-section">
-              <div class="direction-pad">
-                <div></div>
-                <button class="direction-btn" @click="moveHead('up')">
-                  <span class="arrow">▲</span>
-                  <span class="label">上</span>
-                </button>
-                <div></div>
-                <button class="direction-btn" @click="moveHead('left')">
-                  <span class="arrow">◀</span>
-                  <span class="label">左</span>
-                </button>
-                <button class="direction-btn" @click="moveHead('reset')">
-                  <span class="arrow">●</span>
-                  <span class="label">复位</span>
-                </button>
-                <button class="direction-btn" @click="moveHead('right')">
-                  <span class="arrow">▶</span>
-                  <span class="label">右</span>
-                </button>
-                <div></div>
-                <button class="direction-btn" @click="moveHead('down')">
-                  <span class="arrow">▼</span>
-                  <span class="label">下</span>
-                </button>
-                <div></div>
-              </div>
-              <div class="func-btn-row">
-                <button class="direction-btn emergency" @click="moveHead('stop')">
-                  <span class="stop-icon">■</span>
-                  <span class="label">停止</span>
-                </button>
-              </div>
-              <!-- <div class="head-status-text">{{ headStatusText }}</div> -->
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- 第二层：三个功能模块水平排列 -->
-      <section class="modules-layer">
-        <div class="modules-grid">
-
-          <!-- 左侧模块：语音库管理 -->
-          <div class="module-section voice-module">
-            <div class="module-header">
-              <h3>🎤 语音库管理</h3>
-              <div class="module-status" :class="voiceStatus">{{ voiceStatusText }}</div>
-            </div>
-
-            <div class="module-content">
-              <!-- 语音库统计 -->
-              <div class="library-stats">
-                <span>共 {{ voiceLibrary.length }} 条语音</span>
-                <button class="btn btn-small btn-secondary" @click="handleNavigateToChatPage">💬 交互</button>
-                <button class="btn btn-small btn-primary" @click="handleShowAddDialog">+ 添加语音</button>
-              </div>
-
-              <!-- 搜索和筛选 -->
-              <div class="voice-controls">
-                <div class="search-box">
-                  <input
-                    type="text"
-                    v-model="searchText"
-                    placeholder="搜索语音内容..."
-                    class="search-input"
-                  >
-                </div>
-                <div class="filter-controls">
-                  <select v-model="selectedCategory" class="filter-select">
-                    <option value="">所有分类</option>
-                    <option value="greeting">问候语</option>
-                    <option value="response">回应语</option>
-                    <option value="notification">通知语</option>
-                    <option value="emotion">情感表达</option>
-                    <option value="system">系统提示</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- 语音列表 -->
-              <div class="voice-list scrollable-list">
-                <div
-                  class="voice-item"
-                  v-for="voice in filteredVoiceLibrary"
-                  :key="voice.id"
-                  :class="{ playing: playingVoiceId === voice.id }"
-                >
-                  <div class="voice-header">
-                    <div class="voice-info">
-                      <span class="voice-title">{{ voice.title }}</span>
-                      <div class="voice-meta">
-                        <span class="voice-category">{{ getCategoryName(voice.category) }}</span>
-                        <span class="voice-language">{{ voice.language }}</span>
-                      </div>
-                    </div>
-                    <div class="voice-actions">
-                      <button
-                        class="btn btn-mini btn-play"
-                        @click="handlePlayVoiceText(voice)"
-                        :disabled="isSpeaking"
-                      >
-                        {{ playingVoiceId === voice.id ? '暂停' : '播放' }}
-                      </button>
-                      <button
-                        class="btn btn-mini btn-edit"
-                        @click="handleEditVoiceText(voice)"
-                      >
-                        编辑
-                      </button>
-                    </div>
-                  </div>
-                  <div class="voice-content">{{ voice.content }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-
-          <!-- 中间模块：上肢动作库管理 -->
-          <div class="module-section arm-module">
-            <div class="module-header">
-              <h3>🦾 上肢动作库</h3>
-              <div class="module-status" :class="armStatus">{{ armStatusText }}</div>
-            </div>
-
-            <div class="module-content">
-              <!-- 动作库统计 -->
-              <div class="library-stats">
-                <span>共 {{ actionLibrary.length }} 个动作</span>
-                <div class="library-actions">
-                  <button class="btn btn-small btn-primary" @click="handleExecuteTaiji" :disabled="isExecutingTaiji">
-                    {{ isExecutingTaiji ? '太极中...' : '太极' }}
-                  </button>
-                  <button class="btn btn-small btn-secondary" @click="handleLoadActionLibrary" :disabled="isLoadingActions">
-                    {{ isLoadingActions ? '刷新中...' : '刷新' }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- 搜索和筛选 -->
-              <div class="action-controls">
-                <div class="search-box">
-                  <input
-                    type="text"
-                    v-model="actionSearchText"
-                    placeholder="搜索动作名称..."
-                    class="search-input"
-                  >
-                </div>
-                <div class="filter-controls">
-                  <select v-model="selectedActionCategory" class="filter-select">
-                    <option value="">所有分类</option>
-                    <option value="basic">基础动作</option>
-                    <option value="gesture">手势动作</option>
-                    <option value="manipulation">操作动作</option>
-                    <option value="expression">表达动作</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- 动作列表 -->
-              <div class="action-list scrollable-list">
-                <div
-                  class="action-item"
-                  v-for="action in filteredActionLibrary"
-                  :key="action.id"
-                  :class="{ executing: executingActionId === action.id }"
-                >
-                  <div class="action-header">
-                    <div class="action-info">
-                      <span class="action-name">{{ action.name }}</span>
-                      <div class="action-meta">
-                        <span class="action-category">{{ getActionCategoryName(action.category) }}</span>
-                        <span class="action-duration">{{ action.duration }}s</span>
-                      </div>
-                    </div>
-                    <div class="action-actions">
-                      <button
-                        class="btn btn-mini btn-execute"
-                        @click="handleExecuteAction(action)"
-                        :disabled="isExecutingArmAction"
-                      >
-                        {{ executingActionId === action.id ? '执行中' : '执行' }}
-                      </button>
-                    </div>
-                  </div>
-                  <div class="action-description">{{ action.description }}</div>
-                  <div v-if="executingActionId === action.id" class="action-progress">
-                    <div class="progress-bar">
-                      <div class="progress-fill" :style="{ width: armProgress + '%' }"></div>
-                    </div>
-                    <span class="progress-text">{{ armProgress }}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 右侧模块：下肢移动控制 -->
-          <div class="module-section leg-module">
+          <!-- 下肢移动控制 - 移到右侧 -->
+          <div class="leg-control-section" style="flex: 0 0 320px;">
             <div class="module-header">
               <h3>🦵 下肢移动控制</h3>
               <div class="module-status" :class="legStatus">{{ legStatusText }}</div>
@@ -441,6 +283,152 @@
           </div>
         </div>
       </section>
+
+      <!-- 第二层：两个功能模块水平排列 -->
+      <section class="modules-layer">
+        <div class="modules-grid" style="grid-template-columns: 1fr 1fr; gap: 32px;">
+
+          <!-- 左侧模块：语音库管理 -->
+          <div class="module-section voice-module">
+            <div class="module-header">
+              <h3>🎤 语音库管理</h3>
+              <div class="module-status" :class="voiceStatus">{{ voiceStatusText }}</div>
+            </div>
+
+            <div class="module-content">
+              <!-- 语音库统计 -->
+              <div class="library-stats">
+                <span>共 {{ voiceLibrary.length }} 条语音</span>
+                <button class="btn btn-small btn-secondary" @click="handleOpenChatDialog">💬 交互</button>
+                <button class="btn btn-small btn-primary" @click="handleShowAddDialog">+ 添加语音</button>
+              </div>
+
+
+
+              <!-- 语音列表 -->
+              <div class="voice-list scrollable-list">
+                <div
+                  class="voice-item"
+                  v-for="voice in voiceLibrary"
+                  :key="voice.id"
+                  :class="{ playing: playingVoiceId === voice.id }"
+                >
+                  <div class="voice-header">
+                    <div class="voice-info">
+                      <span class="voice-title">{{ voice.title }}</span>
+                      <div class="voice-meta">
+                        <span class="voice-category">{{ getCategoryName(voice.category) }}</span>
+                      </div>
+                    </div>
+                    <div class="voice-actions">
+                      <button
+                        class="btn btn-mini btn-execute"
+                        @click="handleExecuteVoiceAction(voice)"
+                        :disabled="isSpeaking"
+                      >
+                        执行
+                      </button>
+                      <button
+                        class="btn btn-mini btn-edit"
+                        @click="handleEditVoiceText(voice)"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        class="btn btn-mini btn-delete"
+                        @click="handleDeleteVoiceText(voice)"
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                  <div class="voice-content">{{ voice.content }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧模块：上肢动作库管理 -->
+          <div class="module-section arm-module">
+            <div class="module-header">
+              <h3>🦾 上肢动作库</h3>
+              <div class="module-status" :class="armStatus">{{ armStatusText }}</div>
+            </div>
+
+            <div class="module-content">
+              <!-- 动作库统计 -->
+              <div class="library-stats">
+                <span>共 {{ actionLibrary.length }} 个动作</span>
+                <div class="library-actions">
+                  <button class="btn btn-small btn-primary" @click="handleExecuteTaiji" :disabled="isExecutingTaiji">
+                    {{ isExecutingTaiji ? '太极中...' : '太极' }}
+                  </button>
+                  <button class="btn btn-small btn-secondary" @click="handleLoadActionLibrary" :disabled="isLoadingActions">
+                    {{ isLoadingActions ? '刷新中...' : '刷新' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 搜索和筛选 -->
+              <div class="action-controls">
+                <div class="search-box">
+                  <input
+                    type="text"
+                    v-model="actionSearchText"
+                    placeholder="搜索动作名称..."
+                    class="search-input"
+                  >
+                </div>
+                <div class="filter-controls">
+                  <select v-model="selectedActionCategory" class="filter-select">
+                    <option value="">所有分类</option>
+                    <option value="basic">基础动作</option>
+                    <option value="gesture">手势动作</option>
+                    <option value="manipulation">操作动作</option>
+                    <option value="expression">表达动作</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 动作列表 -->
+              <div class="action-list scrollable-list">
+                <div
+                  class="action-item"
+                  v-for="action in filteredActionLibrary"
+                  :key="action.id"
+                  :class="{ executing: executingActionId === action.id }"
+                >
+                  <div class="action-header">
+                    <div class="action-info">
+                      <span class="action-name">{{ action.name }}</span>
+                      <div class="action-meta">
+                        <span class="action-category">{{ getActionCategoryName(action.category) }}</span>
+                        <span class="action-duration">{{ action.duration }}s</span>
+                      </div>
+                    </div>
+                    <div class="action-actions">
+                      <button
+                        class="btn btn-mini btn-execute"
+                        @click="handleExecuteAction(action)"
+                        :disabled="isExecutingArmAction"
+                      >
+                        {{ executingActionId === action.id ? '执行中' : '执行' }}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="action-description">{{ action.description }}</div>
+                  <div v-if="executingActionId === action.id" class="action-progress">
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: armProgress + '%' }"></div>
+                    </div>
+                    <span class="progress-text">{{ armProgress }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <!-- 调试信息面板 -->
       <section class="debug-panel" style="background: rgba(0, 20, 40, 0.6); border: 1px solid rgba(255, 255, 0, 0.3); border-radius: 8px; padding: 15px; margin-top: 20px;">
         <h4 style="color: #ffeb3b; margin: 0 0 10px 0;">🔧 系统状态监控</h4>
@@ -493,21 +481,12 @@
             <textarea v-model="dialogData.content" placeholder="输入语音内容" rows="3"></textarea>
           </div>
           <div class="form-group">
-            <label>分类</label>
+            <label>动作</label>
             <select v-model="dialogData.category">
-              <option value="greeting">问候语</option>
-              <option value="response">回应语</option>
-              <option value="notification">通知语</option>
-              <option value="emotion">情感表达</option>
-              <option value="system">系统提示</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>语言</label>
-            <select v-model="dialogData.language">
-              <option value="zh-CN">中文</option>
-              <option value="en-US">English</option>
-              <option value="ja-JP">日本語</option>
+              <option value="">请选择动作</option>
+              <option v-for="action in actionLibrary" :key="action.id" :value="action.name">
+                {{ action.name }}
+              </option>
             </select>
           </div>
         </div>
@@ -575,8 +554,6 @@
         </div>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -588,7 +565,6 @@ import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
 import { realRobotApi } from '../api/realRobotApi.js'
 import { chatApi } from '../api/chatApi.js'
-
 import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopHead, getHeadStatus } from '../api/simulationHeadApi'
 // 其它API如有需要可继续补充
 
@@ -616,8 +592,7 @@ const voiceLibrary = ref([
     id: 1,
     title: '欢迎问候',
     content: '您好，欢迎使用机器人系统！',
-    category: 'greeting',
-    language: 'zh-CN',
+    category: '',
     duration: 3.5,
     volume: 80,
     speed: 1.0,
@@ -628,8 +603,7 @@ const voiceLibrary = ref([
     id: 2,
     title: '任务完成',
     content: '任务已成功完成，请查看结果。',
-    category: 'notification',
-    language: 'zh-CN',
+    category: '',
     duration: 2.8,
     volume: 85,
     speed: 1.0,
@@ -640,8 +614,7 @@ const voiceLibrary = ref([
     id: 3,
     title: '系统错误',
     content: '系统检测到错误，正在尝试修复。',
-    category: 'system',
-    language: 'zh-CN',
+    category: '',
     duration: 3.2,
     volume: 90,
     speed: 0.9,
@@ -652,8 +625,7 @@ const voiceLibrary = ref([
     id: 4,
     title: '感谢回应',
     content: '谢谢您的配合，祝您生活愉快！',
-    category: 'response',
-    language: 'zh-CN',
+    category: '',
     duration: 3.0,
     volume: 75,
     speed: 1.1,
@@ -664,8 +636,7 @@ const voiceLibrary = ref([
     id: 5,
     title: 'Hello Greeting',
     content: 'Hello! Welcome to the robot control system!',
-    category: 'greeting',
-    language: 'en-US',
+    category: '',
     duration: 4.2,
     volume: 80,
     speed: 1.0,
@@ -676,8 +647,7 @@ const voiceLibrary = ref([
     id: 6,
     title: '情感表达-开心',
     content: '太好了！我感到非常开心！',
-    category: 'emotion',
-    language: 'zh-CN',
+    category: '',
     duration: 2.5,
     volume: 85,
     speed: 1.2,
@@ -688,8 +658,7 @@ const voiceLibrary = ref([
     id: 7,
     title: '情感表达-关心',
     content: '您还好吗？需要我为您做些什么吗？',
-    category: 'emotion',
-    language: 'zh-CN',
+    category: '',
     duration: 3.8,
     volume: 80,
     speed: 0.9,
@@ -700,8 +669,7 @@ const voiceLibrary = ref([
     id: 8,
     title: '系统提示-连接',
     content: '系统连接正常，所有功能已就绪。',
-    category: 'system',
-    language: 'zh-CN',
+    category: '',
     duration: 3.0,
     volume: 75,
     speed: 1.0,
@@ -709,8 +677,7 @@ const voiceLibrary = ref([
     showSettings: false
   }
 ])
-const searchText = ref('')
-const selectedCategory = ref('')
+
 
 // 聊天相关数据
 const showChatDialog = ref(false)
@@ -724,17 +691,6 @@ const lastMessageId = ref(null)
 
 
 
-
-// 语音库过滤
-const filteredVoiceLibrary = computed(() => {
-  return voiceLibrary.value.filter(voice => {
-    const matchesSearch = !searchText.value ||
-      voice.title.toLowerCase().includes(searchText.value.toLowerCase()) ||
-      voice.content.toLowerCase().includes(searchText.value.toLowerCase())
-    const matchesCategory = !selectedCategory.value || voice.category === selectedCategory.value
-    return matchesSearch && matchesCategory
-  })
-})
 
 // 语音相关方法
 const fetchVoiceTexts = async () => {
@@ -808,48 +764,76 @@ const fetchVoiceTexts = async () => {
 
 
 
-const handlePlayVoiceText = async (voice) => {
+// 执行语音和动作
+const handleExecuteVoiceAction = async (voice) => {
   if (isSpeaking.value) {
-    console.log('🎵 语音正在播放中，忽略新的播放请求')
+    console.log('🎵 语音正在播放中，忽略新的执行请求')
     return
   }
 
   try {
-    console.log('🎵 开始播放语音:', voice.content)
+    console.log('🎵 开始执行语音和动作:', voice.content, '动作:', voice.category)
     playingVoiceId.value = voice.id
     isSpeaking.value = true
-    voiceStatusText.value = '正在合成语音...'
+    voiceStatusText.value = '正在执行语音和动作...'
 
-    const result = await voiceApi.synthesizeText(voice.content)
-    console.log('🎵 语音合成API响应:', result)
+    // 同时执行语音和动作
+    const promises = []
 
-    if (result && result.success) {
-      console.log('✅ 语音合成成功，机器人开始说话')
-      voiceStatusText.value = `正在播放: ${voice.title || voice.content.substring(0, 10)}...`
+    // 1. 执行语音
+    const voicePromise = voiceApi.synthesizeText(voice.content, {
+      voice_id: 'zh-CN',
+      speed: voice.speed || 1.0,
+      pitch: voice.pitch || 1.0,
+      volume: voice.volume || 80
+    })
+    promises.push(voicePromise)
 
-      // 模拟播放时间（根据文本长度估算）
-      const estimatedDuration = Math.max(2000, voice.content.length * 200)
+    // 2. 执行对应的动作（如果有选择动作）
+    if (voice.category) {
+      const actionPromise = movementApi.executeRobotAction(voice.category, {
+        duration: voice.duration || 3.0
+      })
+      promises.push(actionPromise)
+    }
+
+    await Promise.all(promises)
+    console.log('✅ 语音和动作执行成功')
+
+    // 模拟执行时间
+    setTimeout(() => {
+      isSpeaking.value = false
+      playingVoiceId.value = null
+      voiceStatusText.value = '执行完成'
+      console.log('✅ 语音和动作执行完成')
 
       setTimeout(() => {
-        isSpeaking.value = false
-        playingVoiceId.value = null
-        voiceStatusText.value = '语音播放完成'
-        console.log('✅ 语音播放完成')
+        voiceStatusText.value = `语音库已加载，共 ${voiceLibrary.value.length} 条`
+      }, 2000)
+    }, (voice.duration || 3) * 1000)
 
-        setTimeout(() => {
-          voiceStatusText.value = `语音库已加载，共 ${voiceLibrary.value.length} 条`
-        }, 2000)
-      }, estimatedDuration)
-
-    } else {
-      throw new Error(result?.message || '语音合成失败')
-    }
   } catch (error) {
-    console.error('❌ 语音播放失败:', error)
+    console.error('❌ 语音和动作执行失败:', error)
     isSpeaking.value = false
     playingVoiceId.value = null
-    voiceStatusText.value = `播放失败: ${error.message}`
-    alert(`语音播放失败: ${error.message}`)
+    voiceStatusText.value = `执行失败: ${error.message}`
+    alert(`执行失败: ${error.message}`)
+  }
+}
+
+// 删除语音条目
+const handleDeleteVoiceText = async (voice) => {
+  if (confirm(`确定要删除语音"${voice.title}"吗？`)) {
+    try {
+      const index = voiceLibrary.value.findIndex(v => v.id === voice.id)
+      if (index > -1) {
+        voiceLibrary.value.splice(index, 1)
+        console.log('✅ 语音删除成功:', voice.title)
+      }
+    } catch (error) {
+      console.error('❌ 语音删除失败:', error)
+      alert(`删除失败: ${error.message}`)
+    }
   }
 }
 
@@ -860,8 +844,7 @@ const dialogData = reactive({
   id: null,
   title: '',
   content: '',
-  category: 'greeting',
-  language: 'zh-CN'
+  category: ''
 })
 
 // 上肢控制相关
@@ -1276,8 +1259,7 @@ const handleShowAddDialog = () => {
   dialogData.id = null
   dialogData.title = ''
   dialogData.content = ''
-  dialogData.category = 'greeting'
-  dialogData.language = 'zh-CN'
+  dialogData.category = ''
   showDialog.value = true
 }
 
@@ -1287,7 +1269,6 @@ const handleEditVoiceText = (voice) => {
   dialogData.title = voice.title
   dialogData.content = voice.content
   dialogData.category = voice.category
-  dialogData.language = voice.language
   showDialog.value = true
 }
 
@@ -1309,11 +1290,6 @@ const handleSaveVoiceData = async () => {
 }
 
 // 聊天相关方法
-const handleNavigateToChatPage = () => {
-  console.log('💬 导航到聊天交互页面')
-  router.push('/chat-interaction')
-}
-
 const handleOpenChatDialog = async () => {
   console.log('💬 打开聊天对话框')
   showChatDialog.value = true
@@ -1437,8 +1413,19 @@ const handleSendMessage = async () => {
   } catch (error) {
     console.error('❌ 发送消息失败:', error)
 
-    // 只显示错误提示，不添加虚拟的机器人回复消息
-    alert(`发送消息失败：${error.message}`)
+    // 只有在真正失败时才添加错误消息
+    const errorMsg = {
+      id: Date.now(),
+      text: `抱歉，发送消息失败：${error.message}`,
+      type: 'robot',
+      created_at: new Date().toISOString()
+    }
+    chatMessages.value.push(errorMsg)
+
+    // 滚动到底部
+    setTimeout(() => {
+      scrollToBottom()
+    }, 50)
   } finally {
     chatLoading.value = false
   }
@@ -1487,10 +1474,6 @@ const stopChatPolling = () => {
     console.log('⏹️ 聊天轮询已停止')
   }
 }
-
-
-
-
 
 // 移动控制相关方法
 const handleExecuteMovement = async (direction) => {
@@ -1766,7 +1749,8 @@ const onImageError = () => {
 
 // 工具方法
 const getCategoryName = (category) => {
-  return movementApi.getCategoryName(category)
+  if (!category) return '无动作'
+  return category  // 直接显示动作名称
 }
 
 const getActionCategoryName = (category) => {
@@ -1786,13 +1770,6 @@ onMounted(async () => {
     cameraStreamUrl.value = cameraApi.getStreamUrl()
     console.log('📹 摄像头流URL:', cameraStreamUrl.value)
     await handleInitializeCamera()
-
-    // 页面显示头部操作盘时，自动获取一次头部状态
-    try {
-      await fetchHeadStatus()
-    } catch (e) {
-      // 忽略单次获取失败
-    }
 
     // 获取语音库数据
     console.log('📚 开始获取语音库数据...')
@@ -1833,6 +1810,14 @@ onUnmounted(() => {
 
 <style scoped>
 @import '../assets/management.css';
+
+/* 覆盖全局CSS中的video-display规则，确保我们的高度设置生效 */
+.camera-section .video-display {
+  aspect-ratio: unset !important;
+  height: 630px !important;
+  min-height: 630px !important;
+  max-height: 630px !important;
+}
 .direction-btn {
   background: linear-gradient(145deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%);
   border: 2px solid rgba(0, 102, 255, 0.4);
@@ -1877,24 +1862,23 @@ onUnmounted(() => {
 .head-control-section {
   width: 340px;
   min-width: 260px;
-  height: 500px;
   background: linear-gradient(135deg, #232b3a 60%, #1a2233 100%);
   border-radius: 14px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1.5px 0 #1976d2 inset;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   border: 1.5px solid #1976d2;
   margin: 0;
-  padding: 0 10px;
+  padding: 20px 10px;
   transition: box-shadow 0.3s;
 }
 .head-control-section:hover {
   box-shadow: 0 8px 32px rgba(0,102,255,0.22), 0 2px 0 #1976d2 inset;
 }
 .section-header {
-  margin-bottom: 12px;
+  margin-bottom: 30px;
 }
 .section-header h3 {
   color: #4da6ff;
@@ -1909,7 +1893,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translateY(-70px);
+  gap: 15px;
 }
 .direction-pad {
   display: grid;
@@ -1918,19 +1902,17 @@ onUnmounted(() => {
   gap: 10px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
 }
 .func-btn-row {
   display: flex;
   justify-content: center;
   gap: 24px;
-  margin-top: 10px;
 }
 .head-status-text {
-  margin-top: 8px;
   color: #ffeb3b;
   font-size: 14px;
   min-height: 20px;
+  text-align: center;
 }
 @media (max-width: 900px) {
   .camera-section-row {
@@ -1950,6 +1932,13 @@ onUnmounted(() => {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     gap: 6px;
+  }
+  /* 在中等屏幕上也覆盖aspect-ratio */
+  .camera-section .video-display {
+    aspect-ratio: unset !important;
+    height: 480px !important;
+    min-height: 480px !important;
+    max-height: 480px !important;
   }
 }
 @media (max-width: 600px) {
@@ -1994,6 +1983,13 @@ onUnmounted(() => {
     font-size: 12px;
     min-height: 14px;
     margin-top: 2px;
+  }
+  /* 在小屏幕上也覆盖aspect-ratio */
+  .camera-section .video-display {
+    aspect-ratio: unset !important;
+    height: 380px !important;
+    min-height: 380px !important;
+    max-height: 380px !important;
   }
 }
 </style>

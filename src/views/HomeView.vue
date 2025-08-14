@@ -152,7 +152,7 @@ function goHealthReport() {
   router.push('/report');
 }
 function goManagement() {
-  router.push('/management');
+  router.push('/activity-scenes');
 }
 
 // 更新连接状态
