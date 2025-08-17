@@ -27,8 +27,16 @@ export const getRecentImageData = async (minutes) => {
       throw new Error(`获取图片数据失败: ${response.status} ${response.statusText}`)
     }
 
-    const data = await response.json()
-    console.log('📥 API返回的原始图片数据:', data)
+    let data
+    try {
+      data = await response.json()
+      console.log('📥 API返回的原始图片数据:', data)
+    } catch (jsonError) {
+      console.error('❌ 解析响应JSON失败:', jsonError.message)
+      const text = await response.text()
+      console.error('❌ 原始响应内容:', text.substring(0, 500) + '...')
+      throw new Error(`响应格式错误: ${jsonError.message}`)
+    }
 
     // 处理API返回的数据结构 {count: number, photos: array}
     const photos = data.photos || []
@@ -71,8 +79,16 @@ export const getRecentImagesByCount = async (count = 5) => {
       throw new Error(`获取图片列表失败: ${response.status} ${response.statusText}`)
     }
 
-    const data = await response.json()
-    console.log('📥 API返回的原始图片列表:', data)
+    let data
+    try {
+      data = await response.json()
+      console.log('📥 API返回的原始图片列表:', data)
+    } catch (jsonError) {
+      console.error('❌ 解析响应JSON失败:', jsonError.message)
+      const text = await response.text()
+      console.error('❌ 原始响应内容:', text.substring(0, 500) + '...')
+      throw new Error(`响应格式错误: ${jsonError.message}`)
+    }
 
     // 处理API返回的数据结构 {count: number, photos: array}
     let photos = data.photos || data || []
@@ -128,8 +144,16 @@ export const getAllImageData = async () => {
       throw new Error(`获取图片列表失败: ${response.status} ${response.statusText}`)
     }
 
-    const data = await response.json()
-    console.log('📥 API返回的原始图片列表:', data)
+    let data
+    try {
+      data = await response.json()
+      console.log('📥 API返回的原始图片列表:', data)
+    } catch (jsonError) {
+      console.error('❌ 解析响应JSON失败:', jsonError.message)
+      const text = await response.text()
+      console.error('❌ 原始响应内容:', text.substring(0, 500) + '...')
+      throw new Error(`响应格式错误: ${jsonError.message}`)
+    }
 
     // 处理API返回的数据结构 {count: number, photos: array}
     let photos = data.photos || data || []
@@ -364,6 +388,12 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
                 continue
               }
 
+              // 检查JSON字符串是否完整
+              if (!jsonStr.startsWith('{') || !jsonStr.endsWith('}')) {
+                console.warn('⚠️ JSON字符串格式异常，跳过:', jsonStr.substring(0, 100) + '...')
+                continue
+              }
+
               const data = JSON.parse(jsonStr)
               console.log('📦 解析成功的流式数据块:', {
                 event: data.event,
@@ -454,7 +484,16 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
             } catch (parseError) {
               console.error('❌ 解析流式数据失败:', parseError.message)
               console.error('❌ 原始数据:', line)
-              console.error('❌ JSON字符串:', line.substring(6).trim())
+              const jsonStr = line.substring(6).trim()
+              console.error('❌ JSON字符串长度:', jsonStr.length)
+              console.error('❌ JSON字符串开头:', jsonStr.substring(0, 100))
+              console.error('❌ JSON字符串结尾:', jsonStr.substring(Math.max(0, jsonStr.length - 100)))
+
+              // 如果是未终止的字符串错误，记录详细信息
+              if (parseError.message.includes('Unterminated string')) {
+                console.warn('⚠️ 检测到未终止的字符串，可能是数据传输不完整')
+                console.warn('⚠️ 这通常是由于网络传输中断或服务器响应被截断导致的')
+              }
             }
           } else {
             console.log('⚠️ 非data:行:', line.substring(0, 50))

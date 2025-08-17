@@ -221,6 +221,7 @@ import {
   formatAnalysisResult,
   extractImageUrls
 } from '../api/imageAnalysis.js'
+import { voiceApi } from '../api/voiceApi'
 
 const router = useRouter()
 
@@ -528,12 +529,76 @@ const submitAnalysis = async () => {
     inputError.value = ''
     currentStep.value = 1
 
-    // 第一步：获取图片数据
-    console.log('第一步：获取最近5张图片数据...')
+    // ===== 开发测试阶段：使用固定回复 =====
+    // TODO: 后续可以通过配置开关来启用真实的AI分析功能
+    console.log('🎭 使用固定回复模式进行多模态感知分析')
+
+    // 模拟加载过程
     isLoadingImageData.value = true
     progress.value = 10
 
-    const imageDataResult = await getRecentImagesByCount(5) // 获取最近5张图片
+    // 模拟获取图片数据的延迟
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    isLoadingImageData.value = false
+    progress.value = 30
+    currentStep.value = 2
+
+    // 模拟分析过程
+    isSubmitting.value = true
+    progress.value = 40
+
+    await new Promise(resolve => setTimeout(resolve, 1200))
+
+    progress.value = 80
+
+    // 第三步：展示固定分析结果
+    console.log('第三步：展示固定分析结果...')
+    currentStep.value = 3
+    progress.value = 100
+
+    // 固定回复内容
+    const fixedReply = "这是去年您生日照的，我还存着那天的很多照片呢。我记得当时给您带生日帽的时候，您吵着要给我唱一段京剧！"
+
+    // 立即展示文本结果
+    resultText.value = fixedReply
+
+    resultMetadata.value = {
+      timestamp: new Date().toISOString(),
+      processingTime: 2000, // 模拟处理时间
+      imageCount: 1,
+      timeRange: 1,
+      mode: 'fixed_reply' // 标记为固定回复模式
+    }
+
+    console.log('✨ 固定回复展示完成:', fixedReply)
+    console.log('🎭 多模态感知固定回复完成！')
+
+    // 异步调用语音合成，不阻塞UI显示
+    voiceApi.synthesizeText(fixedReply, {
+      voice_id: 'zh-CN',
+      speed: 1.0,
+      pitch: 1.0,
+      volume: 1.0,
+      play_immediately: true
+    }).then(ttsResult => {
+      if (ttsResult && ttsResult.success) {
+        console.log('✅ 固定回复语音合成成功')
+      } else {
+        console.warn('⚠️ 固定回复语音合成失败:', ttsResult?.message)
+      }
+    }).catch(ttsError => {
+      console.error('❌ 固定回复语音合成错误:', ttsError.message)
+      // TTS失败不影响主流程
+    })
+
+    /* ===== 真实AI分析代码（已保留，暂时注释） =====
+    // 第一步：获取图片数据
+    console.log('第一步：获取最近1张图片数据...')
+    isLoadingImageData.value = true
+    progress.value = 10
+
+    const imageDataResult = await getRecentImagesByCount(1) // 获取最近1张图片
 
     if (!imageDataResult.success) {
       throw new Error(imageDataResult.message || '获取图片数据失败')
@@ -580,13 +645,14 @@ const submitAnalysis = async () => {
       timestamp: new Date().toISOString(),
       processingTime: Date.now() - Date.now(),
       imageCount: imageDataResult.data?.length || 0,
-      timeRange: 5
+      timeRange: 1
     }
 
     console.log('智能图片分析完成！')
+    ===== 真实AI分析代码结束 ===== */
 
   } catch (error) {
-    console.error('智能图片分析失败:', error)
+    console.error('多模态感知分析失败:', error)
     inputError.value = error.message || '分析过程中发生错误，请重试'
 
     // 重置步骤状态

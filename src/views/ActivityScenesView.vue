@@ -324,7 +324,7 @@ onMounted(async () => {
     await loadCategories()
   } else {
     console.warn('❌ API服务器不可用，显示提示信息')
-    error.value = 'API接口尚未实现，请联系后端开发人员添加以下接口：\n\nGET /categories - 获取分类列表\nPOST /categories - 创建新分类\nPUT /categories/{category_id} - 更新分类\nDELETE /categories/{category_id} - 删除分类'
+    error.value = '后端服务暂时不可用，请稍后重试或联系管理员'
     scenes.value = []
   }
 })

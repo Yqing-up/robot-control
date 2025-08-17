@@ -50,6 +50,11 @@ const router = createRouter({
       component: () => import('../views/ManagementView.vue'),
     },
     {
+      path: '/management/:id',
+      name: 'management-detail',
+      component: () => import('../views/ManagementView.vue'),
+    },
+    {
       path: '/image-analysis',
       name: 'image-analysis',
       component: () => import('../views/ImageAnalysisView.vue'),

@@ -170,17 +170,17 @@
     box-shadow: 0 4px 20px rgba(0, 102, 255, 0.1);
     display: flex;
     flex-direction: column;
-    min-height: 600px;
+    min-height: 550px !important;
 }
 
 .module-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 10px;
+    margin-bottom: 12px; /* 减少底部间距 */
+    padding-bottom: 8px; /* 减少内边距 */
     border-bottom: 1px solid rgba(0, 102, 255, 0.2);
-    flex: 0 0 auto;
+    flex: 0 0 auto; /* 防止被压缩 */
 }
 
 .module-header h3 {
@@ -225,6 +225,14 @@
 /* 语音库管理模块 */
 .voice-module {
     border-color: rgba(76, 175, 80, 0.3);
+    min-height: 550px !important;
+}
+
+/* 响应式语音模块高度 */
+@media (max-width: 1024px) {
+    .voice-module {
+        min-height: 370px !important;
+    }
 }
 
 .voice-module .module-header h3 {
@@ -235,12 +243,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    padding: 12px;
+    margin-bottom: 12px; /* 减少底部间距 */
+    padding: 8px 12px; /* 减少内边距 */
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     color: #ffffff;
     font-size: 14px;
+    flex-shrink: 0; /* 防止被压缩 */
 }
 
 .library-actions {
@@ -290,7 +299,7 @@
 .scrollable-list {
     flex: 1;
     overflow-y: auto;
-    max-height: 400px;
+    max-height: 650px;
     padding-right: 8px;
 }
 
@@ -373,6 +382,8 @@
     border-radius: 12px;
     border: 1px solid rgba(0, 102, 255, 0.3);
 }
+
+
 
 .voice-language {
     color: #cccccc;
@@ -510,9 +521,16 @@
     color: white;
 }
 
-.btn-execute:hover {
+.btn-execute:hover:not(:disabled) {
     background: linear-gradient(135deg, #388e3c, #2e7d32);
     transform: translateY(-1px);
+}
+
+.btn-execute:disabled {
+    background: linear-gradient(135deg, #666666, #555555);
+    color: #999999;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .btn-edit {
@@ -1061,6 +1079,18 @@
     border-color: rgba(108, 117, 125, 0.5);
 }
 
+.btn-warning {
+    background: rgba(255, 193, 7, 0.3);
+    border-color: rgba(255, 193, 7, 0.5);
+    color: #ffc107;
+}
+
+.btn-info {
+    background: rgba(23, 162, 184, 0.3);
+    border-color: rgba(23, 162, 184, 0.5);
+    color: #17a2b8;
+}
+
 .btn-small {
     padding: 6px 12px;
     font-size: 12px;
@@ -1097,7 +1127,7 @@
     }
 
     .module-section {
-        min-height: 400px;
+        min-height: 370px !important;
     }
 }
 
@@ -1207,12 +1237,44 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex: 1; /* 确保内容区域充分利用可用空间 */
+    min-height: 0; /* 允许flex子元素收缩 */
+}
+
+/* 空状态样式 */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-text {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-hint {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .voice-module .voice-list {
     flex: 1;
-    min-height: 400px; /* 再次增加高度，确保可以舒适地显示3条完整的语音记录 */
-    max-height: 400px; /* 设置最大高度，超过3条时显示滚动条 */
+    min-height: 400px; /* 调整最小高度，更好地适应容器 */
+    max-height: 740px; /* 设置最大高度为740px */
+    overflow-y: auto; /* 确保内容超出时显示滚动条 */
 }
 
 .history-header {

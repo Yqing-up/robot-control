@@ -1,8 +1,8 @@
 import axios from 'axios'
 
-// 使用代理路径避免CORS问题
+// 使用代理路径避免CORS问题，代理到机器人综合管理中心
 const API_BASE_URL = '/api-activity'
-// 场景详细页面的代理路径
+// 场景详细页面使用相同的代理路径
 const SCENES_API_BASE_URL = '/api-scenes'
 
 // 创建axios实例

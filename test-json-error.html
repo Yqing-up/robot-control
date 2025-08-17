@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON错误测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #console {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JSON解析错误测试</h1>
+    
+    <div class="test-section">
+        <h3>测试场景</h3>
+        <button onclick="testValidJson()">测试正常JSON</button>
+        <button onclick="testInvalidJson()">测试无效JSON</button>
+        <button onclick="testUnterminatedString()">测试未终止字符串</button>
+        <button onclick="testImageAnalysis()">测试图片分析API</button>
+        <button onclick="clearConsole()">清空控制台</button>
+    </div>
+
+    <div class="test-section">
+        <h3>控制台输出</h3>
+        <div id="console"></div>
+    </div>
+
+    <script type="module">
+        import { analyzeImages } from './src/api/imageAnalysis.js'
+
+        // 重定向console.log到页面
+        const originalLog = console.log
+        const originalError = console.error
+        const originalWarn = console.warn
+        const consoleDiv = document.getElementById('console')
+
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString()
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ')
+            
+            const div = document.createElement('div')
+            div.style.color = type === 'error' ? 'red' : type === 'warn' ? 'orange' : 'black'
+            div.textContent = `[${timestamp}] ${type.toUpperCase()}: ${message}`
+            consoleDiv.appendChild(div)
+            consoleDiv.scrollTop = consoleDiv.scrollHeight
+        }
+
+        console.log = (...args) => {
+            originalLog(...args)
+            addToConsole('log', ...args)
+        }
+
+        console.error = (...args) => {
+            originalError(...args)
+            addToConsole('error', ...args)
+        }
+
+        console.warn = (...args) => {
+            originalWarn(...args)
+            addToConsole('warn', ...args)
+        }
+
+        // 测试函数
+        window.testValidJson = function() {
+            console.log('=== 测试正常JSON ===')
+            try {
+                const validJson = '{"name": "test", "value": 123}'
+                const result = JSON.parse(validJson)
+                console.log('✅ 解析成功:', result)
+            } catch (error) {
+                console.error('❌ 解析失败:', error.message)
+            }
+        }
+
+        window.testInvalidJson = function() {
+            console.log('=== 测试无效JSON ===')
+            try {
+                const invalidJson = '{"name": "test", "value": 123'  // 缺少结束括号
+                const result = JSON.parse(invalidJson)
+                console.log('✅ 解析成功:', result)
+            } catch (error) {
+                console.error('❌ 解析失败:', error.message)
+            }
+        }
+
+        window.testUnterminatedString = function() {
+            console.log('=== 测试未终止字符串 ===')
+            try {
+                const unterminatedJson = '{"name": "test", "description": "这是一个很长的描述'  // 缺少引号和括号
+                const result = JSON.parse(unterminatedJson)
+                console.log('✅ 解析成功:', result)
+            } catch (error) {
+                console.error('❌ 解析失败:', error.message)
+                if (error.message.includes('Unterminated string')) {
+                    console.warn('⚠️ 检测到未终止的字符串错误')
+                }
+            }
+        }
+
+        window.testImageAnalysis = async function() {
+            console.log('=== 测试图片分析API ===')
+            try {
+                // 创建一个测试图片文件
+                const canvas = document.createElement('canvas')
+                canvas.width = 100
+                canvas.height = 100
+                const ctx = canvas.getContext('2d')
+                ctx.fillStyle = '#ff0000'
+                ctx.fillRect(0, 0, 100, 100)
+                
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'test.png', { type: 'image/png' })
+                    console.log('📸 创建测试图片文件:', file.name, file.size, 'bytes')
+                    
+                    try {
+                        const result = await analyzeImages([file], '这是什么颜色？')
+                        console.log('✅ 分析成功:', result)
+                    } catch (error) {
+                        console.error('❌ 分析失败:', error.message)
+                    }
+                })
+            } catch (error) {
+                console.error('❌ 测试失败:', error.message)
+            }
+        }
+
+        window.clearConsole = function() {
+            consoleDiv.innerHTML = ''
+        }
+
+        // 页面加载时显示欢迎信息
+        console.log('🚀 JSON错误测试页面已加载')
+        console.log('💡 点击上方按钮测试不同的JSON解析场景')
+    </script>
+</body>
+</html>

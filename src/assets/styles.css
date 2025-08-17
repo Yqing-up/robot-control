@@ -332,17 +332,19 @@ body::before {
 
 .action-hint {
     color: #00ffff;
-    font-size: 12px;
+    font-size: clamp(0.7rem, 1.2vw, 0.85rem);
     font-weight: 500;
     opacity: 0.8;
     transition: opacity 0.3s ease;
+    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
 .ears-panel,
 .brain-panel,
 .arms-panel,
 .mouth-panel,
-.legs-panel {
+.legs-panel,
+.eyes-panel {
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -351,7 +353,8 @@ body::before {
 .brain-panel:hover,
 .arms-panel:hover,
 .mouth-panel:hover,
-.legs-panel:hover {
+.legs-panel:hover,
+.eyes-panel:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 255, 255, 0.3);
 }
@@ -360,7 +363,8 @@ body::before {
 .brain-panel:hover .action-hint,
 .arms-panel:hover .action-hint,
 .mouth-panel:hover .action-hint,
-.legs-panel:hover .action-hint {
+.legs-panel:hover .action-hint,
+.eyes-panel:hover .action-hint {
     opacity: 1;
     color: #ffffff;
 }
@@ -578,6 +582,10 @@ body::before {
 
     .title {
         font-size: 1.6rem;
+    }
+
+    .action-hint {
+        font-size: clamp(0.55rem, 1.8vw, 0.7rem);
     }
 }
 
@@ -857,6 +865,8 @@ body::before {
         font-size: 1.4rem;
     }
 
+
+
     /* 移动端按钮优化 */
     .btn {
         min-height: 44px;
@@ -927,6 +937,10 @@ body::before {
     .slider {
         width: 100%;
     }
+
+    .action-hint {
+        font-size: clamp(0.45rem, 2vw, 0.65rem) !important;
+    }
 }
 
 /* 手机端专门优化 */
@@ -940,6 +954,8 @@ body::before {
         flex-wrap: nowrap !important;
         gap: 4px !important;
     }
+
+
 
     .nav-section {
         gap: 4px !important;
@@ -1003,5 +1019,9 @@ body::before {
     /* 确保按钮文字不换行 */
     .btn * {
         white-space: nowrap !important;
+    }
+
+    .action-hint {
+        font-size: clamp(0.4rem, 1.8vw, 0.55rem) !important;
     }
 }

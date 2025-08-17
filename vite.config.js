@@ -12,6 +12,7 @@ export default defineConfig(({ command, mode }) => {
   const ROBOT_LOWER_HOST = env.VITE_ROBOT_LOWER_HOST
   const ROBOT_SIMULATION_HOST = env.VITE_ROBOT_SIMULATION_HOST
   const ROBOT_UPPER_HOST = env.VITE_ROBOT_UPPER_HOST
+  const IMAGE_ANALYSIS_WORKFLOW_HOST = env.VITE_IMAGE_ANALYSIS_WORKFLOW_HOST
 
   // TTS语音系统服务器选择
   const TTS_USE_SERVER = env.VITE_TTS_USE_SERVER
@@ -33,6 +34,43 @@ export default defineConfig(({ command, mode }) => {
       port: 5173,      // 指定端口
       strictPort: true, // 如果端口被占用则失败而不是尝试下一个端口
       proxy: {
+        // 智能图片分析工作流接口代理 - 专门用于图片分析功能
+        '/v1/workflows': {
+          target: IMAGE_ANALYSIS_WORKFLOW_HOST,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path, // 保持原路径不变
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('❌ 智能图片分析工作流代理错误:', {
+                错误信息: err.message,
+                目标服务器: options.target,
+                请求路径: req.url
+              });
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('🧠 智能图片分析工作流代理请求:', {
+                方法: req.method,
+                原始请求: req.url,
+                目标服务器: options.target,
+                最终URL: `${options.target}${req.url}`,
+                内容类型: proxyReq.getHeader('content-type'),
+                授权头: proxyReq.getHeader('authorization') ? '已设置' : '未设置'
+              });
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              const success = proxyRes.statusCode >= 200 && proxyRes.statusCode < 300;
+              console.log(`${success ? '✅' : '❌'} 智能图片分析工作流代理响应:`, {
+                状态码: proxyRes.statusCode,
+                状态文本: proxyRes.statusMessage,
+                原始请求: req.url,
+                响应大小: proxyRes.headers['content-length'] || '未知',
+                内容类型: proxyRes.headers['content-type'] || '未知'
+              });
+            });
+          },
+        },
+
         // 临时修复：捕获错误的 /api-sim 请求并重定向到仿真服务器
         '/api-sim': {
           target: ROBOT_SIMULATION_HOST,
@@ -320,39 +358,6 @@ export default defineConfig(({ command, mode }) => {
             });
             proxy.on('proxyRes', (proxyRes, req, res) => {
               console.log('通用接口代理响应 <- 目标服务器:', proxyRes.statusCode, req.url);
-            });
-          },
-        },
-        '/v1': {
-          target: ROBOT_SIMULATION_HOST,
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path,
-          configure: (proxy, options) => {
-            proxy.on('error', (err, req, res) => {
-              console.error('❌ 工作流v1代理错误:', {
-                错误信息: err.message,
-                目标服务器: options.target,
-                请求路径: req.url
-              });
-            });
-            proxy.on('proxyReq', (proxyReq, req, res) => {
-              console.log('🚀 工作流v1代理请求 -> 目标服务器:', {
-                方法: req.method,
-                原始请求: req.url,
-                目标服务器: options.target,
-                最终URL: `${options.target}${req.url}`
-              });
-            });
-            proxy.on('proxyRes', (proxyRes, req, res) => {
-              const success = proxyRes.statusCode >= 200 && proxyRes.statusCode < 300;
-              console.log(`${success ? '✅' : '❌'} 工作流v1代理响应:`, {
-                状态码: proxyRes.statusCode,
-                状态文本: proxyRes.statusMessage,
-                原始请求: req.url,
-                响应大小: proxyRes.headers['content-length'] || '未知',
-                内容类型: proxyRes.headers['content-type'] || '未知'
-              });
             });
           },
         },

@@ -1,10 +1,18 @@
 <template>
   <div class="container">
+    <!-- 成功提示 -->
+    <div v-if="showSuccessToast" class="success-toast">
+      <div class="success-content">
+        <span class="success-icon">✅</span>
+        <span class="success-text">{{ successMessage }}</span>
+      </div>
+    </div>
+
     <!-- 顶部导航 -->
     <header class="header">
       <div class="nav-section">
-        <button class="btn btn-back" @click="goBack">← 返回主页</button>
-        <h1 class="title">机器人综合管理中心</h1>
+        <button class="btn btn-back" @click="goBack">← 返回</button>
+        <h1 class="title">机器人综合管理中心 - {{ currentSceneInfo.title }}</h1>
       </div>
       <div class="header-controls">
         <div class="header-buttons">
@@ -299,6 +307,7 @@
               <!-- 语音库统计 -->
               <div class="library-stats">
                 <span>共 {{ voiceLibrary.length }} 条语音</span>
+                <button class="btn btn-small btn-info" @click="fetchVoiceTexts">🔄 刷新</button>
                 <button class="btn btn-small btn-secondary" @click="handleOpenChatDialog">💬 交互</button>
                 <button class="btn btn-small btn-primary" @click="handleShowAddDialog">+ 添加语音</button>
               </div>
@@ -307,6 +316,14 @@
 
               <!-- 语音列表 -->
               <div class="voice-list scrollable-list">
+                <!-- 空状态提示 -->
+                <div v-if="voiceLibrary.length === 0" class="empty-state">
+                  <div class="empty-icon">🎤</div>
+                  <div class="empty-text">暂无语音数据</div>
+                  <div class="empty-hint">点击"+ 添加语音"按钮创建第一条语音</div>
+                </div>
+
+                <!-- 语音条目列表 -->
                 <div
                   class="voice-item"
                   v-for="voice in voiceLibrary"
@@ -482,7 +499,7 @@
           </div>
           <div class="form-group">
             <label>动作</label>
-            <select v-model="dialogData.category">
+            <select v-model="dialogData.action">
               <option value="">请选择动作</option>
               <option v-for="action in actionLibrary" :key="action.id" :value="action.name">
                 {{ action.name }}
@@ -559,16 +576,18 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { voiceApi } from '../api/voiceApi.js'
 import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
 import { realRobotApi } from '../api/realRobotApi.js'
 import { chatApi } from '../api/chatApi.js'
+import { activityScenesApi } from '../api/activityScenesApi.js'
 import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopHead, getHeadStatus } from '../api/simulationHeadApi'
 // 其它API如有需要可继续补充
 
 const router = useRouter()
+const route = useRoute()
 
 // 摄像头相关数据
 const cameraConnected = ref(false)
@@ -586,97 +605,15 @@ const voiceStatusText = ref('语音系统就绪')
 const isSpeaking = ref(false)
 const playingVoiceId = ref(null)
 
-// 语音库数据和搜索筛选
-const voiceLibrary = ref([
-  {
-    id: 1,
-    title: '欢迎问候',
-    content: '您好，欢迎使用机器人系统！',
-    category: '',
-    duration: 3.5,
-    volume: 80,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 2,
-    title: '任务完成',
-    content: '任务已成功完成，请查看结果。',
-    category: '',
-    duration: 2.8,
-    volume: 85,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 3,
-    title: '系统错误',
-    content: '系统检测到错误，正在尝试修复。',
-    category: '',
-    duration: 3.2,
-    volume: 90,
-    speed: 0.9,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 4,
-    title: '感谢回应',
-    content: '谢谢您的配合，祝您生活愉快！',
-    category: '',
-    duration: 3.0,
-    volume: 75,
-    speed: 1.1,
-    pitch: 1.1,
-    showSettings: false
-  },
-  {
-    id: 5,
-    title: 'Hello Greeting',
-    content: 'Hello! Welcome to the robot control system!',
-    category: '',
-    duration: 4.2,
-    volume: 80,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 6,
-    title: '情感表达-开心',
-    content: '太好了！我感到非常开心！',
-    category: '',
-    duration: 2.5,
-    volume: 85,
-    speed: 1.2,
-    pitch: 1.2,
-    showSettings: false
-  },
-  {
-    id: 7,
-    title: '情感表达-关心',
-    content: '您还好吗？需要我为您做些什么吗？',
-    category: '',
-    duration: 3.8,
-    volume: 80,
-    speed: 0.9,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 8,
-    title: '系统提示-连接',
-    content: '系统连接正常，所有功能已就绪。',
-    category: '',
-    duration: 3.0,
-    volume: 75,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  }
-])
+// 语音库数据和搜索筛选 - 只使用接口返回的数据
+const voiceLibrary = ref([])
+
+// 当前板块信息
+const currentSceneInfo = ref({
+  id: null,
+  title: '未知板块',
+  description: ''
+})
 
 
 // 聊天相关数据
@@ -692,37 +629,114 @@ const lastMessageId = ref(null)
 
 
 
+// 获取板块信息
+const fetchSceneInfo = async (sceneId) => {
+  try {
+    console.log('🔍 获取板块信息，ID:', sceneId)
+
+    // 先设置备用标题（从query参数获取或默认）
+    const backupTitle = route.query.sceneTitle || `条目${sceneId}`
+    currentSceneInfo.value.title = backupTitle
+
+    const response = await activityScenesApi.getSceneDetail(sceneId)
+
+    if (response && response.data) {
+      const sceneData = response.data
+      console.log('📋 获取到板块信息:', sceneData)
+
+      currentSceneInfo.value = {
+        id: sceneData.id || sceneId,
+        title: sceneData.title || sceneData.name || backupTitle,
+        description: sceneData.description || ''
+      }
+
+      console.log('✅ 板块信息更新完成:', currentSceneInfo.value)
+    } else {
+      console.warn('⚠️ 未获取到板块信息，使用备用标题:', backupTitle)
+      currentSceneInfo.value.title = backupTitle
+    }
+  } catch (error) {
+    console.error('❌ 获取板块信息失败:', error)
+    const backupTitle = route.query.sceneTitle || `条目${sceneId}`
+    currentSceneInfo.value.title = backupTitle
+    console.log('🔄 使用备用标题:', backupTitle)
+  }
+}
+
 // 语音相关方法
 const fetchVoiceTexts = async () => {
   try {
-    console.log('🔄 开始获取语音文本...')
-    console.log('🌐 API端点:', '/api/tts/text')
+    // 获取路由参数中的条目ID，如果没有则从query参数中获取
+    const sceneId = route.params.id || route.query.fromItem
+    console.log('🔄 ===== 开始获取语音文本 =====')
+    console.log('🔄 当前路由:', route.path)
+    console.log('🔄 路由参数:', route.params)
+    console.log('🔄 查询参数:', route.query)
+    console.log('🔄 条目ID:', sceneId, '类型:', typeof sceneId)
+    console.log('🌐 API端点:', sceneId ? `/scene_actions?scene_id=${sceneId}` : '/scene_actions')
     voiceStatusText.value = '正在加载语音库...'
 
-    const result = await voiceApi.getVoiceTexts()
+    const result = await voiceApi.getVoiceTexts(sceneId)
+    console.log('📥 API响应完整数据:', JSON.stringify(result, null, 2))
     console.log('📚 API返回的原始数据:', result)
     console.log('📊 返回数据类型:', typeof result, '是否为对象:', typeof result === 'object')
 
-    // 正确处理嵌套的数据结构
-    if (result && result.success && result.data && result.data.texts) {
+    // 检查不同可能的数据结构
+    console.log('🔍 检查数据结构:')
+    console.log('- result.success:', result?.success)
+    console.log('- result.data:', result?.data)
+    console.log('- result.data.scene_actions:', result?.data?.scene_actions)
+    console.log('- result直接是数组:', Array.isArray(result))
+    console.log('- result.data直接是数组:', Array.isArray(result?.data))
+
+    // 尝试多种数据结构处理方式
+    let sceneActions = null
+
+    if (result && result.success && result.data && result.data.scene_actions) {
+      // 原有的数据结构：result.data.scene_actions
+      sceneActions = result.data.scene_actions
+      console.log('✅ 使用原有数据结构: result.data.scene_actions')
+    } else if (result && Array.isArray(result.data)) {
+      // 新的数据结构：result.data直接是数组
+      sceneActions = result.data
+      console.log('✅ 使用新数据结构: result.data')
+    } else if (Array.isArray(result)) {
+      // 最简单的数据结构：result直接是数组
+      sceneActions = result
+      console.log('✅ 使用最简数据结构: result')
+    }
+
+    if (sceneActions && Array.isArray(sceneActions)) {
       console.log('📝 开始转换服务器数据格式...')
-      const texts = result.data.texts
-      console.log('📝 提取的texts数组:', texts)
-      console.log('📊 texts数组长度:', texts.length)
+      console.log('📝 提取的scene_actions数组:', sceneActions)
+      console.log('📊 scene_actions数组长度:', sceneActions.length)
+
+      // 验证数据是否按scene_id正确筛选
+      const currentSceneId = parseInt(sceneId)
+      console.log('🔍 当前请求的scene_id:', currentSceneId)
+      console.log('🔍 返回数据中的scene_id分布:', sceneActions.map(item => item.scene_id))
 
       // 将服务器数据转换为前端格式
-      const serverTexts = texts.map((item, index) => {
+      const serverTexts = sceneActions.map((item, index) => {
+        console.log(`📝 处理语音数据${index + 1}:`, {
+          id: item.id,
+          scene_id: item.scene_id,
+          title: item.title,
+          voice_text: item.voice_text?.substring(0, 30) + '...'
+        })
+
         const converted = {
-          // 使用正确的字段映射
-          id: item.id || item.text_id,  // 优先使用 id，然后是 text_id
-          text_id: item.text_id,        // 保留原始 text_id
-          title: item.title || `语音文本${item.id || item.text_id}`,
-          content: item.content || item.text || '',
-          category: item.category || 'custom',
-          language: item.language || 'zh-CN',
+          // 根据API文档调整字段映射
+          id: item.id,
+          scene_id: item.scene_id,  // 添加scene_id字段
+          title: item.title || `语音文本${item.id}`,
+          content: item.voice_text || '',  // voice_text -> content
+          category: item.action_text || 'custom',  // action_text -> category (临时映射)
+          action: item.action_text || '',  // 新增action字段
+          language: 'zh-CN',
           created_at: item.created_at,
           updated_at: item.updated_at,
-          duration: Math.round(((item.content || item.text || '')?.length || 0) * 0.1 * 10) / 10,
+          duration: Math.round(((item.voice_text || '')?.length || 0) * 0.1 * 10) / 10,
           volume: 80,
           speed: 1.0,
           pitch: 1.0,
@@ -764,7 +778,7 @@ const fetchVoiceTexts = async () => {
 
 
 
-// 执行语音和动作
+// 执行语音和动作 - 双接口调用实现
 const handleExecuteVoiceAction = async (voice) => {
   if (isSpeaking.value) {
     console.log('🎵 语音正在播放中，忽略新的执行请求')
@@ -772,63 +786,158 @@ const handleExecuteVoiceAction = async (voice) => {
   }
 
   try {
-    console.log('🎵 开始执行语音和动作:', voice.content, '动作:', voice.category)
+    console.log('🎵 ===== 开始执行语音和动作 =====')
+    console.log('🎵 语音内容:', voice.content)
+    console.log('🎵 动作信息:', voice.action)
+    console.log('🎵 语音参数:', {
+      speed: voice.speed,
+      pitch: voice.pitch,
+      volume: voice.volume,
+      duration: voice.duration
+    })
+
+    // 设置执行状态
     playingVoiceId.value = voice.id
     isSpeaking.value = true
     voiceStatusText.value = '正在执行语音和动作...'
 
-    // 同时执行语音和动作
+    // 准备并发执行的Promise数组
     const promises = []
+    const results = {}
 
-    // 1. 执行语音
-    const voicePromise = voiceApi.synthesizeText(voice.content, {
-      voice_id: 'zh-CN',
-      speed: voice.speed || 1.0,
-      pitch: voice.pitch || 1.0,
-      volume: voice.volume || 80
-    })
-    promises.push(voicePromise)
-
-    // 2. 执行对应的动作（如果有选择动作）
-    if (voice.category) {
-      const actionPromise = movementApi.executeRobotAction(voice.category, {
-        duration: voice.duration || 3.0
+    // 1. 语音合成接口调用 - 使用/api-voice代理到TTS服务
+    if (voice.content && voice.content.trim()) {
+      console.log('🎤 准备调用TTS接口...')
+      const ttsPromise = voiceApi.synthesizeText(voice.content.trim(), {
+        voice_id: 'zh-CN',
+        speed: voice.speed || 1.0,
+        pitch: voice.pitch || 1.0,
+        volume: (voice.volume || 80) / 100, // 转换为0-1范围
+        play_immediately: true // 让后端直接播放
+      }).then(result => {
+        console.log('✅ TTS接口调用成功:', result)
+        results.tts = result
+        return result
+      }).catch(error => {
+        console.error('❌ TTS接口调用失败:', error)
+        results.ttsError = error
+        throw new Error(`语音合成失败: ${error.message}`)
       })
-      promises.push(actionPromise)
+      promises.push(ttsPromise)
+    } else {
+      console.log('⚠️ 语音内容为空，跳过TTS调用')
     }
 
-    await Promise.all(promises)
-    console.log('✅ 语音和动作执行成功')
+    // 2. 机器人动作执行接口调用 - 使用/api-robot-real代理到真实机器人服务
+    if (voice.action && voice.action.trim()) {
+      console.log('🤖 准备调用机器人执行接口...')
+      console.log('🤖 动作名称:', voice.action.trim())
+      console.log('🤖 执行参数:', { duration: voice.duration || 3.0 })
 
-    // 模拟执行时间
+      const robotPromise = realRobotApi.executeAction(voice.action.trim(), {
+        duration: voice.duration || 3.0
+      }).then(result => {
+        console.log('✅ 机器人执行接口调用成功:', result)
+        results.robot = result
+        return result
+      }).catch(error => {
+        console.error('❌ 机器人执行接口调用失败:', error)
+        console.error('❌ 错误详情:', {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url
+        })
+        results.robotError = error
+        throw new Error(`动作执行失败: ${error.message}`)
+      })
+      promises.push(robotPromise)
+    } else {
+      console.log('⚠️ 动作信息为空，跳过机器人执行调用')
+    }
+
+    // 检查是否有有效的执行内容
+    if (promises.length === 0) {
+      throw new Error('语音内容和动作信息都为空，无法执行')
+    }
+
+    // 并发执行所有接口调用
+    console.log(`🚀 开始并发执行 ${promises.length} 个接口...`)
+    voiceStatusText.value = `正在执行${promises.length === 2 ? '语音合成和动作' : promises.length === 1 ? (voice.content ? '语音合成' : '动作执行') : ''}...`
+
+    await Promise.allSettled(promises)
+
+    // 检查执行结果
+    const hasErrors = results.ttsError || results.robotError
+    if (hasErrors) {
+      const errorMessages = []
+      if (results.ttsError) errorMessages.push(`语音: ${results.ttsError.message}`)
+      if (results.robotError) errorMessages.push(`动作: ${results.robotError.message}`)
+      throw new Error(errorMessages.join('; '))
+    }
+
+    console.log('✅ 所有接口调用成功')
+    console.log('📊 执行结果汇总:', results)
+
+    // 计算总执行时间（取语音和动作的最大时间）
+    const estimatedDuration = Math.max(
+      voice.content ? (voice.content.length * 0.15) : 0, // 语音时长估算
+      voice.duration || 3.0 // 动作时长
+    )
+
+    voiceStatusText.value = '执行中...'
+
+    // 设置执行完成的定时器
     setTimeout(() => {
       isSpeaking.value = false
       playingVoiceId.value = null
       voiceStatusText.value = '执行完成'
       console.log('✅ 语音和动作执行完成')
 
+      // 2秒后恢复状态显示
       setTimeout(() => {
         voiceStatusText.value = `语音库已加载，共 ${voiceLibrary.value.length} 条`
       }, 2000)
-    }, (voice.duration || 3) * 1000)
+    }, estimatedDuration * 1000)
 
   } catch (error) {
     console.error('❌ 语音和动作执行失败:', error)
+
+    // 重置状态
     isSpeaking.value = false
     playingVoiceId.value = null
     voiceStatusText.value = `执行失败: ${error.message}`
+
+    // 显示错误提示
     alert(`执行失败: ${error.message}`)
+
+    // 3秒后恢复状态显示
+    setTimeout(() => {
+      voiceStatusText.value = `语音库已加载，共 ${voiceLibrary.value.length} 条`
+    }, 3000)
   }
 }
+
 
 // 删除语音条目
 const handleDeleteVoiceText = async (voice) => {
   if (confirm(`确定要删除语音"${voice.title}"吗？`)) {
     try {
-      const index = voiceLibrary.value.findIndex(v => v.id === voice.id)
-      if (index > -1) {
-        voiceLibrary.value.splice(index, 1)
-        console.log('✅ 语音删除成功:', voice.title)
+      console.log('🗑️ 准备删除语音文本，ID:', voice.id)
+
+      // 调用API删除后端数据 - 机器人综合管理中心使用 scene_actions 接口
+      const result = await voiceApi.deleteVoiceText(voice.id, true)
+
+      if (result.success) {
+        console.log('✅ 后端删除成功，刷新语音库列表')
+
+        // 重新获取语音库数据，确保前后端同步
+        await fetchVoiceTexts()
+
+        // 显示成功提示
+        showSuccess(`语音"${voice.title}"删除成功`)
+      } else {
+        throw new Error(result.message || '删除失败')
       }
     } catch (error) {
       console.error('❌ 语音删除失败:', error)
@@ -837,6 +946,8 @@ const handleDeleteVoiceText = async (voice) => {
   }
 }
 
+
+
 // 对话框相关
 const showDialog = ref(false)
 const dialogMode = ref('add') // 'add' 或 'edit'
@@ -844,8 +955,24 @@ const dialogData = reactive({
   id: null,
   title: '',
   content: '',
-  category: ''
+  category: '',
+  action: ''
 })
+
+// 成功提示相关
+const showSuccessToast = ref(false)
+const successMessage = ref('')
+
+// 显示成功提示的函数
+const showSuccess = (message) => {
+  successMessage.value = message
+  showSuccessToast.value = true
+
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    showSuccessToast.value = false
+  }, 3000)
+}
 
 // 上肢控制相关
 const armStatus = ref('online')
@@ -1186,7 +1313,7 @@ const fetchHeadStatus = async () => {
 
 // 基础方法
 const goBack = () => {
-  router.push('/')
+  router.go(-1) // 返回上一页
 }
 
 // 系统控制方法
@@ -1260,15 +1387,30 @@ const handleShowAddDialog = () => {
   dialogData.title = ''
   dialogData.content = ''
   dialogData.category = ''
+  dialogData.action = ''
   showDialog.value = true
 }
 
 const handleEditVoiceText = (voice) => {
+  console.log('✏️ ===== 开始编辑语音 =====')
+  console.log('✏️ 编辑的语音数据:', voice)
+  console.log('✏️ 语音ID:', voice.id, '类型:', typeof voice.id)
+
   dialogMode.value = 'edit'
   dialogData.id = voice.id
   dialogData.title = voice.title
   dialogData.content = voice.content
   dialogData.category = voice.category
+  dialogData.action = voice.action || voice.category  // 使用action字段，如果没有则使用category
+
+  console.log('✏️ 设置的dialogData:', {
+    mode: dialogMode.value,
+    id: dialogData.id,
+    title: dialogData.title,
+    content: dialogData.content,
+    action: dialogData.action
+  })
+
   showDialog.value = true
 }
 
@@ -1278,11 +1420,46 @@ const handleCloseDialog = () => {
 
 const handleSaveVoiceData = async () => {
   try {
-    await voiceApi.saveVoiceText(dialogData)
-    console.log('✅ 语音文本保存成功')
+    console.log('💾 ===== 保存语音数据 =====')
+    console.log('💾 当前模式:', dialogMode.value)
+    console.log('💾 dialogData:', {
+      id: dialogData.id,
+      title: dialogData.title,
+      content: dialogData.content,
+      action: dialogData.action
+    })
+
+    // 转换为后端期望的数据格式
+    const sceneId = route.params.id || route.query.fromItem || 1  // 使用当前条目ID，如果没有则默认为1
+    console.log('💾 当前路由:', route.path)
+    console.log('💾 条目ID:', sceneId, '类型:', typeof sceneId)
+
+    const voiceData = {
+      title: dialogData.title,
+      voice_text: dialogData.content,  // content -> voice_text
+      action_text: dialogData.action,  // 直接使用中文动作名称
+      scene_id: parseInt(sceneId)      // 使用当前条目的ID
+    }
+
+    console.log('💾 准备保存的数据:', voiceData)
+    console.log('💾 当前模式:', dialogMode.value)
+
+    // 根据模式选择API调用
+    if (dialogMode.value === 'edit') {
+      console.log('📤 更新语音文本，ID:', dialogData.id)
+      await voiceApi.updateVoiceText(dialogData.id, voiceData)
+      console.log('✅ 语音文本更新成功')
+    } else {
+      console.log('📤 创建新语音文本')
+      await voiceApi.saveVoiceText(voiceData)
+      console.log('✅ 语音文本创建成功')
+    }
     await fetchVoiceTexts()
     handleCloseDialog()
-    alert(dialogMode.value === 'add' ? '语音文本添加成功' : '语音文本更新成功')
+
+    // 显示成功提示（不阻塞用户操作）
+    const message = dialogMode.value === 'add' ? '语音文本添加成功' : '语音文本更新成功'
+    showSuccess(message)
   } catch (error) {
     console.error('❌ 保存语音文本失败:', error)
     alert(`保存失败: ${error.message}`)
@@ -1765,6 +1942,13 @@ onMounted(async () => {
   console.log('- cameraStreamUrl:', cameraStreamUrl.value)
 
   try {
+    // 获取板块信息
+    const sceneId = route.params.id || route.query.fromItem
+    if (sceneId) {
+      console.log('📋 开始获取板块信息...')
+      await fetchSceneInfo(sceneId)
+    }
+
     // 初始化摄像头
     console.log('📹 开始初始化摄像头...')
     cameraStreamUrl.value = cameraApi.getStreamUrl()
@@ -1810,6 +1994,46 @@ onUnmounted(() => {
 
 <style scoped>
 @import '../assets/management.css';
+
+/* 成功提示样式 */
+.success-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease-out;
+}
+
+.success-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.success-icon {
+  font-size: 16px;
+}
+
+.success-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 
 /* 覆盖全局CSS中的video-display规则，确保我们的高度设置生效 */
 .camera-section .video-display {

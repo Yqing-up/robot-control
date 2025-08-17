@@ -236,69 +236,8 @@ const dialogForm = reactive({
   language: 'zh-CN'
 })
 
-// 语音库数据
-const voiceLibrary = ref([
-  {
-    id: 1,
-    title: '欢迎问候',
-    content: '您好，欢迎使用机器人系统！',
-    category: 'greeting',
-    language: 'zh-CN',
-    duration: 3.5,
-    volume: 80,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 2,
-    title: '任务完成',
-    content: '任务已成功完成，请查看结果。',
-    category: 'notification',
-    language: 'zh-CN',
-    duration: 2.8,
-    volume: 85,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 3,
-    title: '系统错误',
-    content: '系统检测到错误，正在尝试修复。',
-    category: 'system',
-    language: 'zh-CN',
-    duration: 3.2,
-    volume: 90,
-    speed: 0.9,
-    pitch: 1.0,
-    showSettings: false
-  },
-  {
-    id: 4,
-    title: '感谢回应',
-    content: '谢谢您的配合，祝您生活愉快！',
-    category: 'response',
-    language: 'zh-CN',
-    duration: 3.0,
-    volume: 75,
-    speed: 1.1,
-    pitch: 1.1,
-    showSettings: false
-  },
-  {
-    id: 5,
-    title: 'Hello Greeting',
-    content: 'Hello! Welcome to the robot control system!',
-    category: 'greeting',
-    language: 'en-US',
-    duration: 4.2,
-    volume: 80,
-    speed: 1.0,
-    pitch: 1.0,
-    showSettings: false
-  }
-])
+// 语音库数据 - 清空默认数据，只从API获取
+const voiceLibrary = ref([])
 
 // 播放历史 - 从API获取真实数据
 const playHistory = ref([])
@@ -415,23 +354,37 @@ const fetchAvailableVoices = async () => {
 const fetchVoiceTexts = async () => {
   try {
     console.log('🔄 [VoiceSystemView] 开始获取语音文本...')
-    console.log('🌐 [VoiceSystemView] API端点:', '/api/tts/text')
+    console.log('🌐 [VoiceSystemView] API端点:', '/tts/text')
 
     const result = await voiceApi.getVoiceTexts()
     console.log('📚 [VoiceSystemView] API返回的原始数据:', result)
 
-    // 正确处理嵌套的数据结构
-    if (result && result.success && result.data && result.data.texts) {
-      const texts = result.data.texts
-      console.log('📝 [VoiceSystemView] 提取的texts数组:', texts)
-      console.log('📊 [VoiceSystemView] texts数组长度:', texts.length)
+    // 处理 /tts/text 接口的数据结构
+    let texts = []
+
+    // 处理TTS文本接口的响应格式
+    if (result && result.success && result.data && result.data.texts && Array.isArray(result.data.texts)) {
+      texts = result.data.texts
+      console.log('📝 [VoiceSystemView] 使用 result.data.texts 数组，长度:', texts.length)
+    } else if (result && result.data && Array.isArray(result.data)) {
+      texts = result.data
+      console.log('📝 [VoiceSystemView] 使用 result.data 数组，长度:', texts.length)
+    } else if (result && Array.isArray(result)) {
+      texts = result
+      console.log('📝 [VoiceSystemView] 使用 result 数组，长度:', texts.length)
+    } else {
+      console.log('ℹ️ [VoiceSystemView] 未找到有效的数据数组')
+      console.log('📊 [VoiceSystemView] 完整响应结构:', JSON.stringify(result, null, 2))
+    }
+
+    if (texts && texts.length > 0) {
 
       // 将服务器数据转换为前端格式
       const serverTexts = texts.map((item, index) => {
         const converted = {
-          // 使用正确的字段映射
-          id: item.id || item.text_id,  // 优先使用 id，然后是 text_id
-          text_id: item.text_id,        // 保留原始 text_id
+          // 使用正确的字段映射 - 适配 /tts/text 接口
+          id: item.id || item.text_id,   // 优先使用 id，然后是 text_id
+          text_id: item.text_id,         // 保留原始 text_id
           title: item.title || `语音文本${item.id || item.text_id}`,
           content: item.content || item.text || '',
           category: item.category || 'custom',
@@ -450,7 +403,7 @@ const fetchVoiceTexts = async () => {
             id: item.id,
             text_id: item.text_id,
             title: item.title,
-            content: (item.content || '').substring(0, 30) + '...'
+            content: (item.content || item.text || '').substring(0, 30) + '...'
           },
           转换后: {
             id: converted.id,
@@ -471,9 +424,15 @@ const fetchVoiceTexts = async () => {
       console.log('🔄 [VoiceSystemView] 触发响应式更新...')
       return serverTexts
     } else {
-      console.log('ℹ️ [VoiceSystemView] 服务器返回空的语音文本列表或数据结构不正确')
-      console.log('ℹ️ [VoiceSystemView] 返回的数据结构:', result)
-      console.log('📊 [VoiceSystemView] 保持现有数据，当前 voiceLibrary.value 长度:', voiceLibrary.value.length)
+      console.log('ℹ️ [VoiceSystemView] 服务器返回空的语音文本列表')
+      console.log('ℹ️ [VoiceSystemView] 这可能是因为：')
+      console.log('  1. 数据库中确实没有语音数据')
+      console.log('  2. API接口返回的数据结构不符合预期')
+      console.log('  3. 网络连接问题')
+      console.log('📊 [VoiceSystemView] 当前 voiceLibrary.value 长度:', voiceLibrary.value.length)
+
+      // 如果是空数据，清空现有数据
+      voiceLibrary.value.splice(0, voiceLibrary.value.length)
       return []
     }
   } catch (error) {

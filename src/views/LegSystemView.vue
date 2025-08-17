@@ -228,30 +228,33 @@
                   <h3>步态模式</h3>
                   <div class="leg-status-indicator online"></div>
                 </div>
-                <div class="gait-selector">
+                <div class="gait-selector" style="display: flex !important; flex-direction: column !important; gap: 8px !important; visibility: visible !important; opacity: 1 !important;">
                   <button class="gait-btn"
                           :class="{ active: currentGait === 'normal' }"
                           @click="setGait('normal')"
-                          data-gait="normal">
-                    <span class="gait-icon">👣</span>
-                    <span class="gait-name">正常行走</span>
-                    <span class="gait-desc">稳定平衡</span>
+                          data-gait="normal"
+                          style="display: flex !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; min-height: 40px !important; padding: 8px 12px !important; background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%) !important; border: 1px solid rgba(0, 102, 255, 0.3) !important; border-radius: 8px !important; color: rgba(255, 255, 255, 0.9) !important; cursor: pointer !important; align-items: center !important; gap: 8px !important; font-size: 14px !important; font-weight: 500 !important;">
+                    <span class="gait-icon" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; font-size: 16px !important; margin-right: 6px !important; flex-shrink: 0 !important;">👣</span>
+                    <span class="gait-name" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; font-size: 13px !important; font-weight: 600 !important; margin-right: 6px !important; flex: 1 !important;">正常行走</span>
+                    <span class="gait-desc" style="display: inline-block !important; visibility: visible !important; opacity: 0.8 !important; font-size: 11px !important; font-weight: 400 !important; flex-shrink: 0 !important;">稳定平衡</span>
                   </button>
                   <button class="gait-btn"
                           :class="{ active: currentGait === 'fast' }"
                           @click="setGait('fast')"
-                          data-gait="fast">
-                    <span class="gait-icon">⚡</span>
-                    <span class="gait-name">快速移动</span>
-                    <span class="gait-desc">高效率</span>
+                          data-gait="fast"
+                          style="display: flex !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; min-height: 40px !important; padding: 8px 12px !important; background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%) !important; border: 1px solid rgba(0, 102, 255, 0.3) !important; border-radius: 8px !important; color: rgba(255, 255, 255, 0.9) !important; cursor: pointer !important; align-items: center !important; gap: 8px !important; font-size: 14px !important; font-weight: 500 !important;">
+                    <span class="gait-icon" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; font-size: 16px !important; margin-right: 6px !important; flex-shrink: 0 !important;">⚡</span>
+                    <span class="gait-name" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; font-size: 13px !important; font-weight: 600 !important; margin-right: 6px !important; flex: 1 !important;">快速移动</span>
+                    <span class="gait-desc" style="display: inline-block !important; visibility: visible !important; opacity: 0.8 !important; font-size: 11px !important; font-weight: 400 !important; flex-shrink: 0 !important;">高效率</span>
                   </button>
                   <button class="gait-btn"
                           :class="{ active: currentGait === 'precise' }"
                           @click="setGait('precise')"
-                          data-gait="precise">
-                    <span class="gait-icon">🎯</span>
-                    <span class="gait-name">精确定位</span>
-                    <span class="gait-desc">高精度</span>
+                          data-gait="precise"
+                          style="display: flex !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; min-height: 40px !important; padding: 8px 12px !important; background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%) !important; border: 1px solid rgba(0, 102, 255, 0.3) !important; border-radius: 8px !important; color: rgba(255, 255, 255, 0.9) !important; cursor: pointer !important; align-items: center !important; gap: 8px !important; font-size: 14px !important; font-weight: 500 !important;">
+                    <span class="gait-icon" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; font-size: 16px !important; margin-right: 6px !important; flex-shrink: 0 !important;">🎯</span>
+                    <span class="gait-name" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; font-size: 13px !important; font-weight: 600 !important; margin-right: 6px !important; flex: 1 !important;">精确定位</span>
+                    <span class="gait-desc" style="display: inline-block !important; visibility: visible !important; opacity: 0.8 !important; font-size: 11px !important; font-weight: 400 !important; flex-shrink: 0 !important;">高精度</span>
                   </button>
                 </div>
               </div>
@@ -988,4 +991,94 @@ onMounted(() => {
 
 <style>
 @import '../assets/leg-system-new.css';
+
+/* 紧急修复：强制显示步态按钮 - 解决缓存问题 */
+.gait-panel .gait-selector,
+.monitor-panel .gait-selector {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.gait-panel .gait-selector .gait-btn,
+.monitor-panel .gait-selector .gait-btn,
+button[data-gait] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%) !important;
+    border: 1px solid rgba(0, 102, 255, 0.3) !important;
+    border-radius: 8px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    cursor: pointer !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    outline: none !important;
+    position: relative !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    font-family: inherit !important;
+    line-height: normal !important;
+    margin-bottom: 6px !important;
+}
+
+.gait-btn .gait-icon,
+button[data-gait] .gait-icon {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 16px !important;
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+    color: inherit !important;
+}
+
+.gait-btn .gait-name,
+button[data-gait] .gait-name {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    margin-right: 6px !important;
+    flex: 1 !important;
+    color: inherit !important;
+}
+
+.gait-btn .gait-desc,
+button[data-gait] .gait-desc {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 0.8 !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    flex-shrink: 0 !important;
+    color: inherit !important;
+}
+
+/* 激活状态 */
+.gait-btn.active,
+button[data-gait].active {
+    border-color: rgba(0, 102, 255, 0.8) !important;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 102, 255, 0.15) 100%) !important;
+    color: #4da6ff !important;
+}
+
+/* 悬停状态 */
+.gait-btn:hover,
+button[data-gait]:hover {
+    border-color: rgba(0, 102, 255, 0.6) !important;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    transform: translateY(-1px) !important;
+}
 </style>

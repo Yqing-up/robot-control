@@ -1,0 +1,94 @@
+/* 紧急修复：强制显示步态按钮 - 添加到HTML头部 */
+<style>
+/* 超高优先级步态按钮显示修复 */
+.gait-panel .gait-selector,
+.monitor-panel .gait-selector {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.gait-panel .gait-selector .gait-btn,
+.monitor-panel .gait-selector .gait-btn,
+button[data-gait="normal"],
+button[data-gait="fast"], 
+button[data-gait="precise"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 20, 40, 0.2) 100%) !important;
+    border: 1px solid rgba(0, 102, 255, 0.3) !important;
+    border-radius: 8px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    cursor: pointer !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    outline: none !important;
+    position: relative !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    font-family: inherit !important;
+    line-height: normal !important;
+    margin-bottom: 6px !important;
+}
+
+.gait-btn .gait-icon,
+button[data-gait] .gait-icon {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 16px !important;
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+    color: inherit !important;
+}
+
+.gait-btn .gait-name,
+button[data-gait] .gait-name {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    margin-right: 6px !important;
+    flex: 1 !important;
+    color: inherit !important;
+}
+
+.gait-btn .gait-desc,
+button[data-gait] .gait-desc {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 0.8 !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    flex-shrink: 0 !important;
+    color: inherit !important;
+}
+
+/* 激活状态 */
+.gait-btn.active,
+button[data-gait].active {
+    border-color: rgba(0, 102, 255, 0.8) !important;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.25) 0%, rgba(0, 102, 255, 0.15) 100%) !important;
+    color: #4da6ff !important;
+}
+
+/* 悬停状态 */
+.gait-btn:hover,
+button[data-gait]:hover {
+    border-color: rgba(0, 102, 255, 0.6) !important;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
+    color: rgba(255, 255, 255, 1) !important;
+    transform: translateY(-1px) !important;
+}
+</style>

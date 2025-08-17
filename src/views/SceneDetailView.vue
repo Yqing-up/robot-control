@@ -136,12 +136,13 @@ const goBack = () => {
 
 const handleItemClick = (item) => {
   if (!isManageMode.value) {
-    // 传递场景ID和条目ID作为查询参数，方便返回时定位
+    // 使用条目ID作为路径参数跳转到管理页面
+    console.log('🔗 跳转到管理页面，条目ID:', item.id, '条目标题:', item.title)
     router.push({
-      path: '/management',
+      path: `/management/${item.id}`,
       query: {
-        fromScene: route.params.id,
-        fromItem: item.id
+        fromScene: route.params.id,  // 保留场景ID用于返回定位
+        sceneTitle: item.title       // 传递条目标题作为备用显示
       }
     })
   }

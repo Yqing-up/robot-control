@@ -169,7 +169,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 700px; /* 增加最小高度，确保语音库管理区域有足够空间 */
+    min-height: 640px; /* 再减少30px高度，确保语音库管理区域有足够空间 */
     flex: 1; /* 让容器充分利用可用空间 */
 }
 

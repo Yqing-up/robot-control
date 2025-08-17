@@ -495,9 +495,7 @@ body::before {
     box-shadow: 0 8px 25px rgba(0, 255, 255, 0.3);
 }
 
-.ears-panel:hover .action-hint {
-    opacity: 1;
-}
+
 
 /* 按钮样式 */
 .btn {
@@ -621,14 +619,7 @@ body::before {
     font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
 }
 
-.action-hint {
-    color: #00ffff;
-    font-size: clamp(0.7rem, 1.2vw, 0.85rem);
-    font-weight: 500;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-    font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
-}
+
 
 /* 动画效果 */
 @keyframes pulse {
@@ -954,9 +945,7 @@ body::before {
     line-height: 1.2 !important;
   }
 
-  .action-hint {
-    font-size: clamp(0.45rem, 2vw, 0.65rem) !important;
-  }
+
 
   .panel-header h3 {
     font-size: clamp(0.9rem, 2.8vw, 1.1rem);
@@ -969,9 +958,7 @@ body::before {
     padding: clamp(1px, 0.3vw, 3px) clamp(2px, 0.5vw, 4px);
   }
 
-  .action-hint {
-    font-size: clamp(0.55rem, 1.8vw, 0.7rem);
-  }
+
 
   .connection-status {
     width: clamp(5px, 1vw, 8px);
@@ -1075,9 +1062,7 @@ body::before {
     line-height: 1.1 !important;
   }
 
-  .action-hint {
-    font-size: clamp(0.4rem, 1.8vw, 0.55rem) !important;
-  }
+
 
   .panel-header h3 {
     font-size: clamp(0.8rem, 3.2vw, 1rem);
@@ -1090,9 +1075,7 @@ body::before {
     padding: clamp(1px, 0.2vw, 2px) clamp(1px, 0.3vw, 3px);
   }
 
-  .action-hint {
-    font-size: clamp(0.5rem, 2vw, 0.65rem);
-  }
+
 
   .connection-status {
     width: clamp(4px, 0.8vw, 6px);

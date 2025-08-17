@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下肢系统响应式布局测试</title>
+    <link rel="stylesheet" href="src/assets/leg-system.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 20, 40, 0.98) 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid rgba(0, 102, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .screen-size-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 102, 255, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .resize-instructions {
+            background: rgba(255, 165, 0, 0.2);
+            border: 1px solid rgba(255, 165, 0, 0.5);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        /* 模拟下肢系统的布局 */
+        .mock-leg-layout {
+            display: flex;
+            gap: 15px;
+            min-height: 500px;
+        }
+        
+        .mock-left-section {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(0, 102, 255, 0.3);
+        }
+        
+        .mock-right-section {
+            flex: 1.2;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(0, 102, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .mock-leg-layout {
+                flex-direction: column;
+            }
+            
+            .mock-left-section,
+            .mock-right-section {
+                flex: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-size-indicator" id="screenSize">
+        屏幕尺寸: <span id="sizeText"></span>
+    </div>
+    
+    <div class="test-container">
+        <h1>下肢系统响应式布局测试</h1>
+        
+        <div class="resize-instructions">
+            <h3>📱 测试说明</h3>
+            <p>请调整浏览器窗口大小来测试不同屏幕尺寸下的响应式效果：</p>
+            <ul>
+                <li><strong>桌面端</strong>: > 1024px</li>
+                <li><strong>平板端</strong>: 768px - 1024px</li>
+                <li><strong>手机端</strong>: 480px - 768px</li>
+                <li><strong>小手机</strong>: < 480px</li>
+                <li><strong>极小屏幕</strong>: < 320px</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h2>三个主要控制模块测试</h2>
+            
+            <div class="mock-leg-layout">
+                <div class="mock-left-section">
+                    <h3>左侧控制区</h3>
+                    <p>机器人控制面板区域</p>
+                </div>
+                
+                <div class="mock-right-section">
+                    <div class="monitoring-section">
+                        <div class="monitor-grid">
+                            <!-- 平衡系统模块 -->
+                            <div class="monitor-panel balance-panel">
+                                <div class="panel-header">
+                                    <h3>平衡系统 (Balance System)</h3>
+                                    <div class="leg-status-indicator online"></div>
+                                </div>
+                                <div class="balance-display">
+                                    <div class="balance-meter">
+                                        <div class="balance-indicator"></div>
+                                        <div class="balance-scale">
+                                            <span>-30°</span>
+                                            <span>0°</span>
+                                            <span>+30°</span>
+                                        </div>
+                                    </div>
+                                    <div class="balance-values">
+                                        <div class="balance-item">
+                                            <span class="label">倾斜角度</span>
+                                            <span class="value">0.0°</span>
+                                        </div>
+                                        <div class="balance-item">
+                                            <span class="label">稳定性</span>
+                                            <span class="value">98.5%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 移动状态模块 -->
+                            <div class="monitor-panel movement-panel">
+                                <div class="panel-header">
+                                    <h3>移动状态 (Movement Status)</h3>
+                                    <div class="leg-status-indicator online"></div>
+                                </div>
+                                <div class="position-info">
+                                    <div class="position-item">
+                                        <span class="label">X坐标</span>
+                                        <span class="value">0.0m</span>
+                                    </div>
+                                    <div class="position-item">
+                                        <span class="label">Y坐标</span>
+                                        <span class="value">0.0m</span>
+                                    </div>
+                                    <div class="position-item">
+                                        <span class="label">朝向</span>
+                                        <span class="value">0°</span>
+                                    </div>
+                                    <div class="position-item">
+                                        <span class="label">距离</span>
+                                        <span class="value">0.0m</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 步态模式模块 -->
+                            <div class="monitor-panel gait-panel">
+                                <div class="panel-header">
+                                    <h3>步态模式 (Gait Pattern)</h3>
+                                    <div class="leg-status-indicator online"></div>
+                                </div>
+                                <div class="gait-selector">
+                                    <button class="gait-btn active">
+                                        <span class="gait-icon">👣</span>
+                                        <span class="gait-name">正常行走</span>
+                                        <span class="gait-desc">稳定平衡</span>
+                                    </button>
+                                    <button class="gait-btn">
+                                        <span class="gait-icon">⚡</span>
+                                        <span class="gait-name">快速移动</span>
+                                        <span class="gait-desc">高效率</span>
+                                    </button>
+                                    <button class="gait-btn">
+                                        <span class="gait-icon">🎯</span>
+                                        <span class="gait-name">精确控制</span>
+                                        <span class="gait-desc">高精度</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>修复内容总结</h2>
+            <div style="background: rgba(0, 255, 0, 0.1); border: 1px solid rgba(0, 255, 0, 0.3); border-radius: 5px; padding: 15px;">
+                <h3>✅ 已修复的问题：</h3>
+                <ul>
+                    <li><strong>固定高度问题</strong>：将 balance-display 的固定高度改为最小高度，允许内容自适应</li>
+                    <li><strong>监控面板响应式</strong>：添加了 min-height: auto 和 height: auto，确保内容不会被截断</li>
+                    <li><strong>小屏幕优化</strong>：为 768px 以下设备添加了专门的样式优化</li>
+                    <li><strong>手机端优化</strong>：为 480px 以下设备进一步减少了组件尺寸</li>
+                    <li><strong>极小屏幕支持</strong>：为 320px 以下设备添加了特殊的布局优化</li>
+                    <li><strong>内容溢出修复</strong>：确保所有模块内容在小屏幕上完整显示</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 显示当前屏幕尺寸
+        function updateScreenSize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            let category = '';
+            
+            if (width > 1024) {
+                category = '桌面端';
+            } else if (width > 768) {
+                category = '平板端';
+            } else if (width > 480) {
+                category = '手机端';
+            } else if (width > 320) {
+                category = '小手机';
+            } else {
+                category = '极小屏幕';
+            }
+            
+            document.getElementById('sizeText').textContent = `${width}×${height} (${category})`;
+        }
+        
+        // 初始化和监听窗口大小变化
+        updateScreenSize();
+        window.addEventListener('resize', updateScreenSize);
+        
+        // 模拟平衡指示器动画
+        const balanceIndicator = document.querySelector('.balance-indicator');
+        if (balanceIndicator) {
+            let tilt = 0;
+            setInterval(() => {
+                tilt = (Math.random() - 0.5) * 10; // -5 到 5 度
+                balanceIndicator.style.transform = `translate3d(calc(-50% + ${tilt * 3}px), -50%, 0)`;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
