@@ -558,7 +558,7 @@ const submitAnalysis = async () => {
     progress.value = 100
 
     // 固定回复内容
-    const fixedReply = "这是去年您生日照的，我还存着那天的很多照片呢。我记得当时给您带生日帽的时候，您吵着要给我唱一段京剧！"
+    const fixedReply = "这是去年您过生日照的，我特别记得给您戴生日帽的时候，您像个老小孩似的笑着吵着，说要给我唱段拿手的京剧，那股子认真又可爱的劲儿，现在想起来还觉得特别温暖，一点都没忘。"
 
     // 立即展示文本结果
     resultText.value = fixedReply
