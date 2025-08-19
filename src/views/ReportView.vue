@@ -94,7 +94,7 @@
               <div class="advice-block">
                 <h4 class="advice-block-title advice-block-title-blue">运动建议</h4>
                 <ul class="advice-list">
-                  <li>• 每天进行20-30分钟的拉伸运动</li>
+                  <li>• 每天进行10-20分钟的拉伸运动</li>
                   <li>• 注意肩部和颈部的活动</li>
                   <li>• 适当进行有氧运动</li>
                 </ul>
@@ -186,7 +186,7 @@
                   </div>
                   <div class="detail-list-row">
                     <span>苔质</span>
-                    <span class="detail-bold">薄白苔</span>
+                    <span class="detail-bold">浅白苔</span>
                   </div>
                   <div class="detail-list-row">
                     <span>舌形</span>
@@ -203,14 +203,14 @@
                 <div class="detail-list">
                   <div class="detail-list-row">
                     <span>主要体质</span>
-                    <span class="detail-bold">平和质</span>
+                    <span class="detail-bold">阳虚质</span>
                   </div>
                   <div class="detail-list-row">
                     <span>次要体质</span>
-                    <span class="detail-bold">湿热质</span>
+                    <span class="detail-bold">体寒</span>
                   </div>
                   <p class="detail-desc-blue">
-                    您的体质以平和质为主，但有轻微湿热倾向，需要注意饮食调理。
+                    您的体质以阳虚质为主，且有轻微的体寒，需要注意运动和饮食。
                   </p>
                 </div>
               </div>

@@ -231,6 +231,7 @@ import {
   extractImageUrls
 } from '../api/imageAnalysis.js'
 import { voiceApi } from '../api/voiceApi'
+import { robotApi } from '../api/robotApi'
 
 const router = useRouter()
 
@@ -627,7 +628,7 @@ const submitAnalysis = async () => {
     progress.value = 100
 
     // 固定回复内容
-    const fixedReply = "你的舌苔状态真的很不错，颜色是那种非常健康的淡红色，红润均匀，整个舌面干净清爽，没有明显的厚腻或者裂纹，说明你的身体状态非常棒，脾胃功能也很强健，消化吸收都没问题！舌体饱满有弹性，边缘也没有齿痕，说明你体内湿气不重，阳气充足。"
+    const fixedReply = "你的舌苔状态真的很不错，颜色是那种非常健康的淡红色，红润均匀，整个舌面干净清爽，没有明显的厚腻或者裂纹，说明你的身体状态非常棒，脾胃功能也很强健，消化吸收都没问题！"
 
     // 立即展示文本结果
     resultText.value = fixedReply
@@ -644,22 +645,70 @@ const submitAnalysis = async () => {
     console.log('✨ 固定养生回复展示完成:', fixedReply)
     console.log('🏥 智能养生固定回复完成！')
 
-    // 异步调用语音合成，不阻塞UI显示
-    voiceApi.synthesizeText(fixedReply, {
-      voice_id: 'zh-CN',
-      speed: 1.0,
-      pitch: 1.0,
-      volume: 1.0,
-      play_immediately: true
-    }).then(ttsResult => {
-      if (ttsResult && ttsResult.success) {
-        console.log('✅ 固定养生回复语音合成成功')
-      } else {
-        console.warn('⚠️ 固定养生回复语音合成失败:', ttsResult?.message)
-      }
-    }).catch(ttsError => {
-      console.error('❌ 固定养生回复语音合成错误:', ttsError.message)
-      // TTS失败不影响主流程
+    // 并行执行语音合成和机器人动作，不阻塞UI显示
+    const promises = []
+
+    // 1. 异步调用语音合成
+    promises.push(
+      voiceApi.synthesizeText(fixedReply, {
+        voice_id: 'zh-CN',
+        speed: 1.0,
+        pitch: 1.0,
+        volume: 1.0,
+        play_immediately: true
+      }).then(ttsResult => {
+        if (ttsResult && ttsResult.success) {
+          console.log('✅ 固定养生回复语音合成成功')
+        } else {
+          console.warn('⚠️ 固定养生回复语音合成失败:', ttsResult?.message)
+        }
+      }).catch(ttsError => {
+        console.error('❌ 固定养生回复语音合成错误:', ttsError.message)
+        // TTS失败不影响主流程
+      })
+    )
+
+    // 2. 异步执行机器人动作：连续执行两次"随机摆动"
+    promises.push(
+      (async () => {
+        try {
+          console.log('🤖 智能养生开始执行第一次动作：随机摆动')
+
+          // 第一次动作执行
+          const firstActionResult = await robotApi.executeAction('随机摆动', {
+            duration: 3.0
+          })
+
+          if (firstActionResult && firstActionResult.success) {
+            console.log('✅ 智能养生第一次机器人动作执行成功')
+          } else {
+            console.warn('⚠️ 智能养生第一次机器人动作执行失败:', firstActionResult?.message)
+          }
+
+          // 等待第一次动作完成后，执行第二次动作
+          console.log('🤖 智能养生开始执行第二次动作：随机摆动')
+
+          const secondActionResult = await robotApi.executeAction('随机摆动', {
+            duration: 3.0
+          })
+
+          if (secondActionResult && secondActionResult.success) {
+            console.log('✅ 智能养生第二次机器人动作执行成功')
+            console.log('🎉 智能养生两次动作全部执行完成')
+          } else {
+            console.warn('⚠️ 智能养生第二次机器人动作执行失败:', secondActionResult?.message)
+          }
+
+        } catch (actionError) {
+          console.error('❌ 智能养生机器人动作执行错误:', actionError.message)
+          // 动作执行失败不影响主流程
+        }
+      })()
+    )
+
+    // 并行执行所有任务，不等待完成
+    Promise.allSettled(promises).then(results => {
+      console.log('🏥 智能养生语音和动作并行执行完成:', results)
     })
 
     /* ===== 真实AI分析代码（已保留，暂时注释） =====
