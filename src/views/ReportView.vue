@@ -221,7 +221,7 @@
                 <div class="detail-list">
                   <div>
                     <h4 class="detail-block-subtitle detail-block-subtitle-green">推荐食物</h4>
-                    <p class="detail-desc-green">薏米、绿豆、冬瓜、丝瓜、苦瓜、荷叶茶</p>
+                    <p class="detail-desc-green">红枣，枸杞，羊肉，韭菜，洋葱，生姜</p>
                   </div>
                   <div>
                     <h4 class="detail-block-subtitle detail-block-subtitle-green">避免食物</h4>

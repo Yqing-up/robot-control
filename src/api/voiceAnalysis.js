@@ -2,6 +2,8 @@
  * 智能语音分析相关API接口
  */
 
+import { recordingApi } from './recordingApi'
+
 // API基础配置
 const API_BASE_URL = '/api'
 const RECORDING_API_BASE_URL = '/api-rec'  // 录音相关接口使用专用代理
@@ -15,18 +17,10 @@ const WORKFLOW_API_KEY = 'app-h6jzZoq3N4iLNrS2dWbCFe74'
  */
 export const getRecentVoiceData = async (minutes) => {
   try {
-    const response = await fetch(`${RECORDING_API_BASE_URL}/asr/recent?minutes=${minutes}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    console.log(`🎤 获取最近${minutes}分钟的语音数据...`)
 
-    if (!response.ok) {
-      throw new Error(`获取语音数据失败: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
+    // 使用统一的recordingApi
+    const data = await recordingApi.getRecentRecords(minutes)
     console.log('📥 API返回的原始语音数据:', data)
 
     // 处理API返回的数据结构，提取results数组

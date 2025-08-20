@@ -13,6 +13,8 @@ export default defineConfig(({ command, mode }) => {
   const ROBOT_SIMULATION_HOST = env.VITE_ROBOT_SIMULATION_HOST
   const ROBOT_UPPER_HOST = env.VITE_ROBOT_UPPER_HOST
   const IMAGE_ANALYSIS_WORKFLOW_HOST = env.VITE_IMAGE_ANALYSIS_WORKFLOW_HOST
+  const TAIJI_AUDIO_HOST = env.VITE_TAIJI_AUDIO_HOST
+  const IMAGE_ANALYSIS_BASE_HOST = env.VITE_IMAGE_ANALYSIS_BASE_HOST
 
   // TTS语音系统服务器选择
   const TTS_USE_SERVER = env.VITE_TTS_USE_SERVER
@@ -376,6 +378,44 @@ export default defineConfig(({ command, mode }) => {
             });
             proxy.on('proxyRes', (proxyRes, req, res) => {
               console.log('头部控制接口代理响应 <- 仿真机器人:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
+        // 新增：太极音频播放接口代理
+        '/api-taiji-audio': {
+          target: TAIJI_AUDIO_HOST,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-taiji-audio/, '/api'),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('🥋 太极音频接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('🥋 太极音频接口代理请求 -> 音频服务器:', req.method, req.url, '->', options.target + req.url.replace(/^\/api-taiji-audio/, '/api'));
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('🥋 太极音频接口代理响应 <- 音频服务器:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
+        // 新增：图片分析基础服务器代理
+        '/api-img-base': {
+          target: IMAGE_ANALYSIS_BASE_HOST,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-img-base/, '/api'),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('📸 图片分析基础接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('📸 图片分析基础接口代理请求 -> 图片服务器:', req.method, req.url, '->', options.target + req.url.replace(/^\/api-img-base/, '/api'));
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('📸 图片分析基础接口代理响应 <- 图片服务器:', proxyRes.statusCode, req.url);
             });
           },
         },

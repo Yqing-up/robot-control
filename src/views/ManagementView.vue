@@ -1736,51 +1736,14 @@ const executeSingleStep = async (stepType) => {
   try {
     console.log(`🦵 执行单步移动: ${stepType}`)
 
-    // 构建API URL - 使用Vite代理
-    const baseUrl = '/api-move'  // 使用Vite代理，避免CORS问题
-    let endpoint = ''
+    // 使用统一的movementApi
+    const response = await movementApi.executeSingleStep(stepType)
 
-    switch (stepType) {
-      case 'forward':
-        endpoint = '/robot_movement/forward'
-        break
-      case 'backward':
-        endpoint = '/robot_movement/backward'
-        break
-      case 'turn_left':
-        endpoint = '/robot_movement/turn_left'
-        break
-      case 'turn_right':
-        endpoint = '/robot_movement/turn_right'
-        break
-      case 'left':
-        endpoint = '/robot_movement/left'
-        break
-      case 'right':
-        endpoint = '/robot_movement/right'
-        break
-      default:
-        throw new Error(`未知的移动类型: ${stepType}`)
+    if (!response.success) {
+      throw new Error(`单步移动失败: ${response.error || '未知错误'}`)
     }
 
-    const url = baseUrl + endpoint
-    console.log(`📡 发送单步移动请求到: ${url}`)
-
-    // 发送HTTP请求
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 5000
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const result = await response.json()
-    console.log(`✅ 单步移动 ${stepType} 执行成功:`, result)
+    console.log(`✅ 单步移动 ${stepType} 执行成功:`, response.data)
 
     // 显示成功消息
     const actionNames = {

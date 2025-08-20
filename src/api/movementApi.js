@@ -420,6 +420,22 @@ export const movementApi = {
     return movementHttp.post(endpoint, {})
   },
 
+  // 单步移动控制 - 始终使用真实机器人
+  executeSingleStep: (stepType) => {
+    let endpoint = ''
+    switch (stepType) {
+      case 'forward': endpoint = '/robot_movement/forward'; break
+      case 'backward': endpoint = '/robot_movement/backward'; break
+      case 'turn_left': endpoint = '/robot_movement/turn_left'; break
+      case 'turn_right': endpoint = '/robot_movement/turn_right'; break
+      case 'left': endpoint = '/robot_movement/left'; break
+      case 'right': endpoint = '/robot_movement/right'; break
+      default: return Promise.resolve({ success: false, error: `未知的移动类型: ${stepType}` })
+    }
+    console.log(`🦵 执行单步移动: ${stepType} -> ${endpoint}`)
+    return movementHttp.post(endpoint, {})
+  },
+
   // 刷新所有系统状态 - 始终使用真实机器人
   refreshAllStatus: () => movementHttp.get('/robot/status'),
 

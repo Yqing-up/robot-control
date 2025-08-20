@@ -2,10 +2,67 @@
  * 智能图片分析相关API接口
  */
 
+import axios from 'axios';
+import { API_CONFIG } from '../config/api'
+
 // API基础配置
 const API_BASE_URL = '/api'
 // 视觉（图片分析）API密钥
 const WORKFLOW_API_KEY = 'app-oj3AJTDYGkfU2OxyIsY7LR1o'
+
+// 为图片分析接口创建独立的axios实例
+const imageAnalysisAxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000, // 图片分析需要更长时间
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
+  },
+});
+
+// 添加请求拦截器
+imageAnalysisAxiosInstance.interceptors.request.use(
+  (config) => {
+    console.log('📸 图片分析API请求:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: config.baseURL + config.url
+    });
+    return config;
+  },
+  (error) => {
+    console.error('📸 图片分析API请求错误:', error);
+    return Promise.reject(error);
+  }
+);
+
+// 添加响应拦截器
+imageAnalysisAxiosInstance.interceptors.response.use(
+  (response) => {
+    console.log('📸 图片分析API响应成功:', {
+      url: response.config.url,
+      status: response.status
+    });
+    return response;
+  },
+  (error) => {
+    console.error('📸 图片分析API响应错误:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+);
+
+// 图片分析接口的http方法
+const imageAnalysisHttp = {
+  get: (url, params = {}, config = {}) => imageAnalysisAxiosInstance.get(url, { params, ...config }),
+  post: (url, data = {}, config = {}) => imageAnalysisAxiosInstance.post(url, data, config),
+  put: (url, data = {}, config = {}) => imageAnalysisAxiosInstance.put(url, data, config),
+  delete: (url, config = {}) => imageAnalysisAxiosInstance.delete(url, config),
+};
 
 
 
@@ -16,27 +73,12 @@ const WORKFLOW_API_KEY = 'app-oj3AJTDYGkfU2OxyIsY7LR1o'
  */
 export const getRecentImageData = async (minutes) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/photos/recent/${minutes}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    console.log(`📸 获取最近${minutes}分钟的图片数据...`)
 
-    if (!response.ok) {
-      throw new Error(`获取图片数据失败: ${response.status} ${response.statusText}`)
-    }
+    const response = await imageAnalysisHttp.get(`/photos/recent/${minutes}`)
 
-    let data
-    try {
-      data = await response.json()
-      console.log('📥 API返回的原始图片数据:', data)
-    } catch (jsonError) {
-      console.error('❌ 解析响应JSON失败:', jsonError.message)
-      const text = await response.text()
-      console.error('❌ 原始响应内容:', text.substring(0, 500) + '...')
-      throw new Error(`响应格式错误: ${jsonError.message}`)
-    }
+    const data = response.data
+    console.log('📥 API返回的原始图片数据:', data)
 
     // 处理API返回的数据结构 {count: number, photos: array}
     const photos = data.photos || []
@@ -68,27 +110,10 @@ export const getRecentImagesByCount = async (count = 5) => {
   try {
     console.log(`📸 获取最近的 ${count} 张图片...`)
 
-    const response = await fetch(`${API_BASE_URL}/photos/`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const response = await imageAnalysisHttp.get('/photos/')
 
-    if (!response.ok) {
-      throw new Error(`获取图片列表失败: ${response.status} ${response.statusText}`)
-    }
-
-    let data
-    try {
-      data = await response.json()
-      console.log('📥 API返回的原始图片列表:', data)
-    } catch (jsonError) {
-      console.error('❌ 解析响应JSON失败:', jsonError.message)
-      const text = await response.text()
-      console.error('❌ 原始响应内容:', text.substring(0, 500) + '...')
-      throw new Error(`响应格式错误: ${jsonError.message}`)
-    }
+    const data = response.data
+    console.log('📥 API返回的原始图片列表:', data)
 
     // 处理API返回的数据结构 {count: number, photos: array}
     let photos = data.photos || data || []
@@ -133,27 +158,10 @@ export const getAllImageData = async () => {
   try {
     console.log('📸 获取所有图片数据...')
 
-    const response = await fetch(`${API_BASE_URL}/photos/`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const response = await imageAnalysisHttp.get('/photos/')
 
-    if (!response.ok) {
-      throw new Error(`获取图片列表失败: ${response.status} ${response.statusText}`)
-    }
-
-    let data
-    try {
-      data = await response.json()
-      console.log('📥 API返回的原始图片列表:', data)
-    } catch (jsonError) {
-      console.error('❌ 解析响应JSON失败:', jsonError.message)
-      const text = await response.text()
-      console.error('❌ 原始响应内容:', text.substring(0, 500) + '...')
-      throw new Error(`响应格式错误: ${jsonError.message}`)
-    }
+    const data = response.data
+    console.log('📥 API返回的原始图片列表:', data)
 
     // 处理API返回的数据结构 {count: number, photos: array}
     let photos = data.photos || data || []
@@ -206,13 +214,9 @@ const fetchImageFiles = async (imageUrls) => {
     try {
       console.log(`📷 获取第${i + 1}张图片: ${url}`)
 
-      const response = await fetch(url)
-      if (!response.ok) {
-        console.warn(`⚠️ 第${i + 1}张图片获取失败: ${response.status}`)
-        continue
-      }
+      const response = await axios.get(url, { responseType: 'blob' })
 
-      const blob = await response.blob()
+      const blob = response.data
       const filename = `image_${i + 1}.${blob.type.split('/')[1] || 'jpg'}`
 
       // 创建File对象
@@ -274,8 +278,8 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
 
     // 准备符合API文档的文件列表格式
     const pictureFileList = []
-    // 使用上位机的地址作为基础URL，因为工作流服务器需要能够访问图片
-    const BASE_URL = 'http://192.168.0.119:5001'
+    // 使用环境变量配置的图片分析基础服务器地址，因为工作流服务器需要能够访问图片
+    const BASE_URL = import.meta.env.VITE_IMAGE_ANALYSIS_BASE_HOST
 
     for (const imageFile of imageFiles) {
       try {
@@ -320,16 +324,14 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
     console.log('🔑 API密钥:', WORKFLOW_API_KEY ? '已设置' : '未设置')
 
     // 使用新的工作流接口URL，发送JSON数据
-    const response = await fetch('/v1/workflows/run', {
-      method: 'POST',
+    const response = await axios.post('/v1/workflows/run', requestData, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${WORKFLOW_API_KEY}`,
         'Accept': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify(requestData)
+      }
     })
 
     if (!response.ok) {
@@ -818,8 +820,8 @@ export const extractImageUrls = (imageData) => {
  */
 export const validateImageUrl = async (url) => {
   try {
-    const response = await fetch(url, { method: 'HEAD' })
-    return response.ok && response.headers.get('content-type')?.startsWith('image/')
+    const response = await axios.head(url)
+    return response.status === 200 && response.headers['content-type']?.startsWith('image/')
   } catch (error) {
     return false
   }

@@ -2,10 +2,67 @@
  * 舌苔检测相关API接口
  */
 
+import axios from 'axios';
+import { API_CONFIG } from '../config/api'
+
 // API基础配置
 const API_BASE_URL = '/api'
 // 舌苔检测API密钥
 const TONGUE_ANALYSIS_API_KEY = 'app-iG8gN13CiOL7F8GcT7TMqQpq'
+
+// 为舌苔分析接口创建独立的axios实例
+const tongueAnalysisAxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000, // 舌苔分析需要更长时间
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
+  },
+});
+
+// 添加请求拦截器
+tongueAnalysisAxiosInstance.interceptors.request.use(
+  (config) => {
+    console.log('👅 舌苔分析API请求:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: config.baseURL + config.url
+    });
+    return config;
+  },
+  (error) => {
+    console.error('👅 舌苔分析API请求错误:', error);
+    return Promise.reject(error);
+  }
+);
+
+// 添加响应拦截器
+tongueAnalysisAxiosInstance.interceptors.response.use(
+  (response) => {
+    console.log('👅 舌苔分析API响应成功:', {
+      url: response.config.url,
+      status: response.status
+    });
+    return response;
+  },
+  (error) => {
+    console.error('👅 舌苔分析API响应错误:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+);
+
+// 舌苔分析接口的http方法
+const tongueAnalysisHttp = {
+  get: (url, params = {}, config = {}) => tongueAnalysisAxiosInstance.get(url, { params, ...config }),
+  post: (url, data = {}, config = {}) => tongueAnalysisAxiosInstance.post(url, data, config),
+  put: (url, data = {}, config = {}) => tongueAnalysisAxiosInstance.put(url, data, config),
+  delete: (url, config = {}) => tongueAnalysisAxiosInstance.delete(url, config),
+};
 
 /**
  * 获取指定时间范围内的照片数据
@@ -14,18 +71,11 @@ const TONGUE_ANALYSIS_API_KEY = 'app-iG8gN13CiOL7F8GcT7TMqQpq'
  */
 export const getRecentPhotoData = async (minutes) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/photos/recent/${minutes}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    console.log(`👅 获取最近${minutes}分钟的照片数据...`)
 
-    if (!response.ok) {
-      throw new Error(`获取照片数据失败: ${response.status} ${response.statusText}`)
-    }
+    const response = await tongueAnalysisHttp.get(`/photos/recent/${minutes}`)
 
-    const data = await response.json()
+    const data = response.data
     console.log('📥 API返回的原始照片数据:', data)
 
     // 处理API返回的数据结构 {count: number, photos: array}
@@ -67,13 +117,9 @@ const fetchPhotoFiles = async (photoUrls) => {
     try {
       console.log(`📷 获取第${i + 1}张照片: ${url}`)
 
-      const response = await fetch(url)
-      if (!response.ok) {
-        console.warn(`⚠️ 第${i + 1}张照片获取失败: ${response.status}`)
-        continue
-      }
+      const response = await axios.get(url, { responseType: 'blob' })
 
-      const blob = await response.blob()
+      const blob = response.data
       const filename = `tongue_photo_${i + 1}.${blob.type.split('/')[1] || 'jpg'}`
 
       // 创建File对象
@@ -128,7 +174,7 @@ export const analyzeTongueData = async (photoUrls, userPrompt) => {
       try {
         // 构建完整的图片URL
         let photoUrl = photoFile.url
-        
+
         // 如果URL是相对路径，构建完整URL
         if (photoUrl.startsWith('/api/')) {
           // 使用摄像头API的目标服务器地址
@@ -180,16 +226,14 @@ export const analyzeTongueData = async (photoUrls, userPrompt) => {
     console.log('🔑 API密钥:', TONGUE_ANALYSIS_API_KEY ? '已设置' : '未设置')
 
     // 使用舌苔检测工作流接口URL，发送JSON数据
-    const response = await fetch('/v1/workflows/run', {
-      method: 'POST',
+    const response = await axios.post('/v1/workflows/run', requestData, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${TONGUE_ANALYSIS_API_KEY}`,
         'Accept': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify(requestData)
+      }
     })
 
     if (!response.ok) {
@@ -663,8 +707,8 @@ export const extractPhotoUrls = (photoData) => {
  */
 export const validatePhotoUrl = async (url) => {
   try {
-    const response = await fetch(url, { method: 'HEAD' })
-    return response.ok && response.headers.get('content-type')?.startsWith('image/')
+    const response = await axios.head(url)
+    return response.status === 200 && response.headers['content-type']?.startsWith('image/')
   } catch (error) {
     return false
   }
@@ -684,4 +728,4 @@ export const validatePhotoUrls = async (urls) => {
     url: urls[index],
     isValid: result.status === 'fulfilled' && result.value
   }))
-} 
+}

@@ -49,7 +49,11 @@ export const API_CONFIG = {
     SIMULATION_ROBOT_TARGET: import.meta.env.VITE_ROBOT_SIMULATION_HOST,
     UPPER_ROBOT_TARGET: import.meta.env.VITE_ROBOT_UPPER_HOST,
     // TTS语音系统目标服务器（动态选择）
-    TTS_TARGET: getTTSTargetHost()
+    TTS_TARGET: getTTSTargetHost(),
+    // 太极音频服务器
+    TAIJI_AUDIO_TARGET: import.meta.env.VITE_TAIJI_AUDIO_HOST,
+    // 图片分析基础服务器
+    IMAGE_ANALYSIS_BASE_TARGET: import.meta.env.VITE_IMAGE_ANALYSIS_BASE_HOST
   },
 
   // 仿真模式配置（保留向后兼容）
@@ -64,3 +68,67 @@ export const API_CONFIG = {
     TARGET_HOST: getTTSTargetHost()
   }
 };
+
+// 配置验证函数
+export const validateAPIConfig = () => {
+  const errors = [];
+  const warnings = [];
+
+  // 检查必需的环境变量
+  const requiredEnvVars = [
+    'VITE_ROBOT_LOWER_HOST',
+    'VITE_ROBOT_UPPER_HOST',
+    'VITE_ROBOT_SIMULATION_HOST',
+    'VITE_TTS_USE_SERVER'
+  ];
+
+  const optionalEnvVars = [
+    'VITE_TAIJI_AUDIO_HOST',
+    'VITE_IMAGE_ANALYSIS_BASE_HOST',
+    'VITE_IMAGE_ANALYSIS_WORKFLOW_HOST'
+  ];
+
+  // 检查必需变量
+  requiredEnvVars.forEach(varName => {
+    if (!import.meta.env[varName]) {
+      errors.push(`缺少必需的环境变量: ${varName}`);
+    }
+  });
+
+  // 检查可选变量
+  optionalEnvVars.forEach(varName => {
+    if (!import.meta.env[varName]) {
+      warnings.push(`缺少可选的环境变量: ${varName}`);
+    }
+  });
+
+  // 检查TTS配置
+  const ttsUseServer = import.meta.env.VITE_TTS_USE_SERVER;
+  if (ttsUseServer && !['upper', 'lower'].includes(ttsUseServer)) {
+    errors.push(`VITE_TTS_USE_SERVER 必须是 'upper' 或 'lower'，当前值: ${ttsUseServer}`);
+  }
+
+  // 输出验证结果
+  if (errors.length > 0) {
+    console.error('🚨 API配置错误:', errors);
+  }
+
+  if (warnings.length > 0) {
+    console.warn('⚠️ API配置警告:', warnings);
+  }
+
+  if (errors.length === 0 && warnings.length === 0) {
+    console.log('✅ API配置验证通过');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+// 开发环境下自动验证配置
+if (import.meta.env.DEV) {
+  validateAPIConfig();
+}

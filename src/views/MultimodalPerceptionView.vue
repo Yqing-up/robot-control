@@ -223,6 +223,7 @@ import {
 } from '../api/imageAnalysis.js'
 import { voiceApi } from '../api/voiceApi'
 import { robotApi } from '../api/robotApi'
+import { recordingApi } from '../api/recordingApi'
 
 const router = useRouter()
 
@@ -401,21 +402,7 @@ const loadTextData = async (minutes, isInitial = false) => {
   try {
     console.log(`🎤 加载最近${minutes}分钟的语音文本数据...`)
 
-    // 构建API URL - 使用录音代理
-    const apiUrl = `/api-rec/asr/recent?minutes=${minutes}`
-
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`语音文本数据获取失败: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
+    const data = await recordingApi.getRecentRecords(minutes)
     console.log('📥 语音文本API返回数据:', data)
 
     // 处理返回的数据
