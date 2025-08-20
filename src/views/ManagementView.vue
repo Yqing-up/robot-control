@@ -307,7 +307,6 @@
               <!-- 语音库统计 -->
               <div class="library-stats">
                 <span>共 {{ voiceLibrary.length }} 条语音</span>
-                <button class="btn btn-small btn-info" @click="fetchVoiceTexts">🔄 刷新</button>
                 <button class="btn btn-small btn-secondary" @click="handleOpenChatDialog">💬 交互</button>
                 <button class="btn btn-small btn-primary" @click="handleShowAddDialog">+ 添加语音</button>
               </div>

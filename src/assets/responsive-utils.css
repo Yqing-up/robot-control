@@ -26,7 +26,7 @@
   .mobile-hidden {
     display: none;
   }
-  
+
   .mobile-only {
     display: block;
   }
@@ -78,7 +78,7 @@
   .grid-responsive {
     grid-template-columns: 1fr;
   }
-  
+
   .grid-responsive-small {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -140,7 +140,7 @@
   .button-group-responsive {
     flex-direction: column;
   }
-  
+
   .button-group-responsive .btn {
     width: 100%;
   }
@@ -207,7 +207,7 @@
   .btn {
     border-width: 2px;
   }
-  
+
   .card-responsive {
     border-width: 2px;
   }

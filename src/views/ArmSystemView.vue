@@ -485,6 +485,7 @@
 import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { robotApi } from '../api/robotApi.js'
+import { realRobotApi } from '../api/realRobotApi.js'
 // 注意：此页面使用独立的robotApi，不影响其他页面的movementApi
 
 const router = useRouter()
@@ -1025,7 +1026,8 @@ const executeTaijiAction = async () => {
   executionHistory.value.unshift(historyItem)
 
   try {
-    const result = await robotApi.executeTaijiAction({
+    // 太极动作始终使用真实机器人（包含音频播放）
+    const result = await realRobotApi.executeTaijiAction({
       duration: 30.0 // 太极动作通常需要较长时间
     })
 
