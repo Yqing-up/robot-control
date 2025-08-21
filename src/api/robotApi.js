@@ -66,7 +66,7 @@ export const robotApi = {
 
   // 执行太极动作
   executeTaijiAction: (params = {}) => {
-    console.log(`🥋 ${robotApi.getCurrentModeLabel()}执行太极动作`);
+    console.log(`🥋 执行${robotApi.getCurrentModeLabel()}太极动作`);
     return getCurrentRobotApi().executeTaijiAction(params);
   },
 

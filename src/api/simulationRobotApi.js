@@ -59,6 +59,22 @@ const simulationRobotHttp = {
   delete: (url, config = {}) => simulationRobotAxiosInstance.delete(url, config),
 };
 
+// 为仿真模式太极音频创建独立的axios实例
+const simulationTaijiAudioAxiosInstance = axios.create({
+  baseURL: '/api-taiji-audio-sim',
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
+  },
+});
+
+// 仿真模式太极音频接口的http方法
+const simulationTaijiAudioHttp = {
+  get: (url, params = {}, config = {}) => simulationTaijiAudioAxiosInstance.get(url, { params, ...config }),
+  post: (url, data = {}, config = {}) => simulationTaijiAudioAxiosInstance.post(url, data, config),
+};
+
 export const simulationRobotApi = {
   // 获取动作列表
   getActions: () => {
@@ -110,21 +126,47 @@ export const simulationRobotApi = {
         payload: payload
       });
 
-      // 为太极动作设置更长的超时时间（60秒）
-      const config = {
+      // 并行执行太极动作和音频播放
+      const promises = []
+
+      // 1. 执行太极动作
+      const taijiPromise = simulationRobotHttp.post('/robot/taiji/execute', payload, {
         timeout: 60000 // 60秒超时，给仿真机器人更多时间
-      };
+      }).then(response => {
+        console.log('✅ 仿真机器人太极动作API响应成功:', response);
+        return response;
+      }).catch(error => {
+        console.error('❌ 仿真机器人太极动作API调用失败:', error);
+        throw error;
+      });
 
-      const response = await simulationRobotHttp.post('/robot/taiji/execute', payload, config);
+      promises.push(taijiPromise);
 
-      console.log('✅ 仿真机器人太极动作API响应成功:', response);
+      // 2. 同时播放仿真模式太极音频
+      const audioPromise = simulationTaijiAudioHttp.get('/robot/taiji/play-audio')
+        .then(audioResponse => {
+          console.log('✅ 仿真模式太极音频播放请求成功:', audioResponse.data);
+          return audioResponse;
+        }).catch(audioError => {
+          console.error('❌ 仿真模式太极音频播放请求错误:', audioError.message);
+          // 音频播放失败不影响太极动作执行
+        });
 
-      // 返回成功状态
-      return {
-        success: true,
-        message: '仿真机器人太极动作执行中...',
-        data: response
-      };
+      promises.push(audioPromise);
+
+      // 等待太极动作执行完成（音频播放异步进行）
+      const [taijiResponse] = await Promise.allSettled(promises);
+
+      if (taijiResponse.status === 'fulfilled') {
+        console.log('🎉 仿真机器人太极动作和音频播放已启动');
+        return {
+          success: true,
+          message: '仿真机器人太极动作执行中...',
+          data: taijiResponse.value
+        };
+      } else {
+        throw taijiResponse.reason;
+      }
 
     } catch (error) {
       console.error('❌ 仿真机器人太极动作API调用失败:', error);

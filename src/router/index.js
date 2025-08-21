@@ -25,6 +25,11 @@ const router = createRouter({
       component: () => import('../views/BrainSystemView.vue'),
     },
     {
+      path: '/robot-simulation',
+      name: 'robot-simulation',
+      component: () => import('../views/RobotSimulationView.vue'),
+    },
+    {
       path: '/voice-system',
       name: 'voice-system',
       component: () => import('../views/VoiceSystemView.vue'),

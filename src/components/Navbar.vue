@@ -2,7 +2,7 @@
   <header class="header">
     <div class="nav-section">
       <button class="btn btn-back" @click="goHome">← 返回主页</button>
-      <h1 class="title">视觉系统控制中心</h1>
+      <h1 class="title">{{ getPageTitle() }}</h1>
     </div>
     <div class="header-controls">
       <div class="header-buttons">
@@ -170,33 +170,54 @@
 </style>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
+const route = useRoute();
+
 function goHome() {
   router.push('/');
 }
+
 function openImageAnalysis() {
   console.log('跳转到智能图片分析页面');
   router.push('/image-analysis');
 }
+
 function openMotionDialog() {
   router.push('/motion-analysis');
 }
+
 function openTongueDialog() {
   router.push('/tongue-analysis');
+}
+
+// 根据当前路由获取页面标题
+const getPageTitle = () => {
+  const routeTitleMap = {
+    '/vision-system': '视觉系统控制中心',
+    '/brain-system': '头部系统控制中心',
+    '/robot-simulation': '机器人仿真画面',
+    '/audio-system': '听觉系统控制中心',
+    '/arm-system': '上肢系统控制中心',
+    '/leg-system': '下肢系统控制中心',
+    '/voice-system': '语音系统控制中心',
+    '/management': '机器人综合管理中心',
+    '/remote-interaction': '远程交互控制中心',
+    '/multimodal-perception': '多模态感知中心',
+    '/image-analysis': '智能图片分析中心',
+    '/voice-recognition': '语音识别控制中心',
+    '/activity-scenes': '活动场景管理中心',
+    '/health-wellness': '健康养生管理中心',
+    '/chat-interaction': '智能对话交互中心'
+  }
+
+  return routeTitleMap[route.path] || '机器人控制中心'
 }
 </script>
 
 <style scoped>
 /* 继承全局header样式，无需重复定义 .header、.btn、.btn-back、.btn-small、.title 等 */
-.title {
-  color: #fff !important;
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  -webkit-text-fill-color: unset !important;
-  background-clip: unset !important;
-  text-shadow: 0 0 15px rgba(0, 153, 255, 0.2);
-}
+/* 移除title样式覆盖，让全局渐变样式生效 */
 .image-analysis-btn,
 .motion-detect-btn,
 .tongue-detect-btn {

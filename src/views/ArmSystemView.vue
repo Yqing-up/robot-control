@@ -546,6 +546,16 @@ const getVisionStreamUrl = () => {
   const baseUrl = simulationHost.replace(':5001', ':8080')
   return `${baseUrl}/live/demo.m3u8`
 }
+
+// 备用视频流地址列表
+const getAlternativeStreamUrls = () => {
+  return [
+    'http://192.168.0.112:8080/live/demo.m3u8',  // 默认地址
+    'http://192.168.0.103:8080/live/demo.m3u8',  // 备用地址1
+    'http://192.168.196.106:8080/live/demo.m3u8', // 备用地址2
+    'http://192.168.196.52:8080/live/demo.m3u8',  // 备用地址3
+  ]
+}
 const visionStreamUrl = ref(getVisionStreamUrl())
 const visionVideo = ref(null)
 let hls = null
@@ -560,33 +570,180 @@ const connectVision = async () => {
   await nextTick()
   if (!visionVideo.value) return
 
+  console.log('🎥 尝试连接视频流:', visionStreamUrl.value)
+
   if (window.Hls && window.Hls.isSupported()) {
     hls = new window.Hls({
-      lowLatencyMode: true,
-      liveSyncDuration: 0.1, // 极限低延迟
-      maxBufferLength: 2,
-      maxMaxBufferLength: 4,
-      liveBackBufferLength: 0,
+      // 基础配置
+      debug: false,
+      enableWorker: true,
+
+      // 激进的缓冲区配置 - 防止停滞
+      maxBufferLength: 30,           // 大幅增加最大缓冲长度到30秒
+      maxMaxBufferLength: 60,        // 大幅增加最大缓冲长度到60秒
+      maxBufferSize: 120 * 1000 * 1000, // 120MB缓冲区大小
+      maxBufferHole: 2,              // 允许2秒的缓冲区空洞
+
+      // 保守的直播配置
+      lowLatencyMode: false,         // 关闭低延迟模式
+      liveSyncDuration: 5,           // 进一步增加同步持续时间
+      liveMaxLatencyDuration: 20,    // 增加最大延迟持续时间
       liveDurationInfinity: true,
-      maxLiveSyncPlaybackRate: 1.5, // 自动加速追帧
+      liveBackBufferLength: 10,      // 保留10秒的后向缓冲
+
+      // 保守的播放速率控制
+      maxLiveSyncPlaybackRate: 1.05, // 非常保守的播放速率
+
+      // 宽松的错误恢复配置
+      fragLoadingTimeOut: 30000,     // 片段加载超时30秒
+      manifestLoadingTimeOut: 15000, // 清单加载超时15秒
+      fragLoadingMaxRetry: 10,       // 片段加载最大重试10次
+      manifestLoadingMaxRetry: 5,    // 清单加载最大重试5次
+
+      // 保守的自适应比特率
+      abrEwmaFastLive: 5.0,          // 更保守的快速EWMA
+      abrEwmaSlowLive: 15.0,         // 更保守的慢速EWMA
+      abrMaxWithRealBitrate: false,
+
+      // 质量控制
+      startLevel: 0,                 // 从最低质量开始
+      capLevelToPlayerSize: true,    // 限制质量到播放器大小
+
+      // 额外的稳定性配置
+      nudgeOffset: 0.1,              // 微调偏移
+      nudgeMaxRetry: 5,              // 微调最大重试
+      maxSeekHole: 2,                // 最大寻址空洞
+
+      // 片段预加载
+      maxFragLookUpTolerance: 0.25,  // 片段查找容错
+      initialLiveManifestSize: 4,    // 初始直播清单大小
     })
+    // 添加视频元素事件监听
+    visionVideo.value.addEventListener('loadstart', () => {
+      console.log('🎬 开始加载视频')
+    })
+
+    visionVideo.value.addEventListener('loadedmetadata', () => {
+      console.log('📋 视频元数据加载完成')
+    })
+
+    visionVideo.value.addEventListener('canplay', () => {
+      console.log('▶️ 视频可以开始播放')
+    })
+
+    visionVideo.value.addEventListener('waiting', () => {
+      console.log('⏳ 视频缓冲中...')
+    })
+
+    visionVideo.value.addEventListener('playing', () => {
+      console.log('🎥 视频正在播放')
+    })
+
+    visionVideo.value.addEventListener('error', (e) => {
+      console.error('❌ 视频元素错误:', e)
+      isVisionConnected.value = false
+    })
+
+    visionVideo.value.addEventListener('stalled', () => {
+      console.warn('⚠️ 视频播放停滞')
+    })
+
     hls.loadSource(visionStreamUrl.value)
     hls.attachMedia(visionVideo.value)
+
+    // 成功事件处理
     hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
-      visionVideo.value.play()
+      console.log('✅ 视频流连接成功')
+      visionVideo.value.play().catch(err => {
+        console.warn('自动播放失败，可能需要用户交互:', err)
+      })
       isVisionConnected.value = true
-      // 移除startVisionSync()
     })
+
+    // 错误事件处理
     hls.on(window.Hls.Events.ERROR, (_, data) => {
-      console.error('HLS error', data)
-      isVisionConnected.value = false
-      // 移除stopVisionSync()
+      console.error('❌ HLS视频流错误:', data)
+
+      if (data.fatal) {
+        console.error('致命错误，尝试恢复...')
+        switch (data.type) {
+          case window.Hls.ErrorTypes.NETWORK_ERROR:
+            console.log('网络错误，尝试重新加载...')
+            setTimeout(() => {
+              if (hls) {
+                hls.startLoad()
+              }
+            }, 1000)
+            break
+          case window.Hls.ErrorTypes.MEDIA_ERROR:
+            console.log('媒体错误，尝试恢复...')
+            if (hls) {
+              hls.recoverMediaError()
+            }
+            break
+          default:
+            console.log('其他致命错误，销毁并重新创建HLS实例')
+            isVisionConnected.value = false
+            if (hls) {
+              hls.destroy()
+              hls = null
+            }
+            // 显示错误通知
+            showExecutionNotification(
+              'error',
+              '视频流连接失败',
+              `无法连接到视频流服务器 ${visionStreamUrl.value}`,
+              5000
+            )
+            // 3秒后尝试重新连接
+            setTimeout(() => {
+              connectVision()
+            }, 3000)
+            break
+        }
+      } else {
+        console.warn('非致命错误，继续播放:', data.details)
+        // 对于非致命的缓冲区错误，不显示错误通知
+        if (data.details !== 'bufferStalledError') {
+          showExecutionNotification(
+            'warning',
+            '视频流警告',
+            `视频播放出现问题: ${data.details}`,
+            3000
+          )
+        }
+      }
+    })
+
+    // 缓冲区事件处理
+    hls.on(window.Hls.Events.BUFFER_APPENDING, () => {
+      console.log('📦 正在添加缓冲区数据')
+    })
+
+    hls.on(window.Hls.Events.BUFFER_APPENDED, () => {
+      console.log('✅ 缓冲区数据添加完成')
+    })
+
+    hls.on(window.Hls.Events.BUFFER_EOS, () => {
+      console.log('📺 缓冲区到达流结束')
+    })
+
+    hls.on(window.Hls.Events.BUFFER_FLUSHED, () => {
+      console.log('🗑️ 缓冲区已清空')
+    })
+
+    // 片段加载事件
+    hls.on(window.Hls.Events.FRAG_LOADED, (_, data) => {
+      console.log(`📥 片段加载完成: ${data.frag.url}`)
+    })
+
+    hls.on(window.Hls.Events.FRAG_LOAD_ERROR, (_, data) => {
+      console.warn(`⚠️ 片段加载失败: ${data.frag.url}`, data)
     })
   } else if (visionVideo.value.canPlayType('application/vnd.apple.mpegurl')) {
     visionVideo.value.src = visionStreamUrl.value
     visionVideo.value.play()
     isVisionConnected.value = true
-    // 移除startVisionSync()
   } else {
     alert('HLS.js 不支持，且浏览器不支持原生播放')
   }
@@ -605,12 +762,25 @@ const disconnectVision = () => {
 }
 
 const loadHlsLibrary = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (typeof window.Hls !== 'undefined') return resolve()
+
+    // 使用稳定的HLS.js版本而不是latest
     const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest'
-    script.onload = resolve
-    script.onerror = reject
+    script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js'
+    script.onload = () => {
+      console.log('✅ HLS.js库加载成功，版本:', window.Hls?.version || 'unknown')
+      resolve()
+    }
+    script.onerror = (error) => {
+      console.error('❌ HLS.js库加载失败:', error)
+      // 尝试备用CDN
+      const backupScript = document.createElement('script')
+      backupScript.src = 'https://unpkg.com/hls.js@1.4.12/dist/hls.min.js'
+      backupScript.onload = resolve
+      backupScript.onerror = resolve
+      document.head.appendChild(backupScript)
+    }
     document.head.appendChild(script)
   })
 }
@@ -1026,8 +1196,11 @@ const executeTaijiAction = async () => {
   executionHistory.value.unshift(historyItem)
 
   try {
-    // 太极动作始终使用真实机器人（包含音频播放）
-    const result = await realRobotApi.executeTaijiAction({
+    // 根据当前机器人模式选择对应的API
+    const currentMode = robotApi.getCurrentMode()
+    console.log('🥋 当前机器人模式:', currentMode, isSimulationMode.value ? '仿真模式' : '真实机器人')
+
+    const result = await robotApi.executeTaijiAction({
       duration: 30.0 // 太极动作通常需要较长时间
     })
 

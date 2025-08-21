@@ -52,6 +52,8 @@ export const API_CONFIG = {
     TTS_TARGET: getTTSTargetHost(),
     // 太极音频服务器
     TAIJI_AUDIO_TARGET: import.meta.env.VITE_TAIJI_AUDIO_HOST,
+    // 仿真模式太极音频服务器
+    TAIJI_AUDIO_SIMULATION_TARGET: import.meta.env.VITE_TAIJI_AUDIO_SIMULATION_HOST,
     // 图片分析基础服务器
     IMAGE_ANALYSIS_BASE_TARGET: import.meta.env.VITE_IMAGE_ANALYSIS_BASE_HOST
   },

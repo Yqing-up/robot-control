@@ -10,6 +10,7 @@
         <div class="header-buttons">
           <button class="btn btn-small header-action-btn" @click="resetSystem">重置系统</button>
           <button class="btn btn-small header-action-btn" @click="exportDecisionData">导出数据</button>
+          <button class="btn btn-small header-action-btn" @click="goToRobotSimulation">机器人仿真</button>
     </div>
       </div>
     </header>
@@ -355,6 +356,10 @@ const goBack = () => {
   router.push('/')
 }
 
+const goToRobotSimulation = () => {
+  router.push('/robot-simulation')
+}
+
 const resetSystem = () => {
   processingStatus.value = 'resetting'
   processingStatusText.value = '系统重置中...'
@@ -536,14 +541,7 @@ onUnmounted(() => {
   min-height: calc(100vh - 80px);
 }
 /* 组件特定样式将在CSS文件中添加 */
-.title {
-  color: #fff !important;
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  -webkit-text-fill-color: unset !important;
-  background-clip: unset !important;
-  text-shadow: 0 0 15px rgba(0, 153, 255, 0.2);
-}
+/* 移除title样式覆盖，让全局渐变样式生效 */
 .head-control-section {
   margin-bottom: 24px;
   background: #232b3a;
