@@ -262,12 +262,24 @@ const realtimeImages = ref([
 ])
 const realtimeTexts = ref([
   {
-    content: '最近感觉比较疲劳，睡眠质量不太好，想要调理一下身体',
-    timestamp: Date.now() - 240000
+    content: '小真，我最近口干舌燥的，吃啥啥不香，请帮我分析一下舌苔',
+    timestamp: Date.now() - 240000,
+    confidence: 0.96
   },
   {
-    content: '平时工作压力大，经常熬夜，希望能有一些养生建议',
-    timestamp: Date.now() - 120000
+    content: '我感觉最近睡眠质量不太好，经常半夜醒来，想了解一下如何改善',
+    timestamp: Date.now() - 180000,
+    confidence: 0.94
+  },
+  {
+    content: '平时工作压力大，经常熬夜加班，希望能有一些养生建议',
+    timestamp: Date.now() - 120000,
+    confidence: 0.92
+  },
+  {
+    content: '最近总是感觉疲劳乏力，想知道是不是体质问题',
+    timestamp: Date.now() - 60000,
+    confidence: 0.95
   }
 ])
 
@@ -541,6 +553,16 @@ const loadTextData = async (minutes = 30, isInitial = false) => {
           content: '小真，我最近口干舌燥的，吃啥啥不香，请帮我分析一下舌苔',
           timestamp: pageLoadTimestamp,
           confidence: 0.96
+        },
+        {
+          content: '我感觉最近睡眠质量不太好，经常半夜醒来，想了解一下如何改善',
+          timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          confidence: 0.94
+        },
+        {
+          content: '平时工作压力大，经常熬夜加班，希望能有一些养生建议',
+          timestamp: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+          confidence: 0.92
         }
       ]
       console.log('🎤 使用模拟语音文本数据')

@@ -464,9 +464,24 @@ const loadTextData = async (minutes, isInitial = false) => {
       // 提供模拟数据用于演示 - 使用页面加载时间戳避免重复
       realtimeTexts.value = [
         {
-          content: '小海，你还记得这样照片是什么时候拍的吗？',
+          content: '小海，你还记得这张照片是什么时候拍的吗？',
           timestamp: pageLoadTimestamp,
           confidence: 0.98
+        },
+        {
+          content: '这个场景让我想起了很多美好的回忆，能帮我分析一下这张图片的情感色彩吗？',
+          timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          confidence: 0.95
+        },
+        {
+          content: '我想了解一下这个环境的特点，看起来很有意思',
+          timestamp: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+          confidence: 0.93
+        },
+        {
+          content: '请帮我识别一下图片中的主要元素和物体',
+          timestamp: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+          confidence: 0.97
         }
       ]
       console.log('🎤 使用模拟语音文本数据')
