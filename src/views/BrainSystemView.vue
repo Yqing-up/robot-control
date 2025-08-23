@@ -191,9 +191,64 @@
                     </div>
                   </div>
                 </div>
-          </div>
-        </div>
-      </section>
+              </div>
+            </div>
+          </section>
+
+          <!-- 机器人模式选择器 -->
+          <section class="robot-mode-section">
+            <div class="section-header">
+              <h3>机器人模式选择</h3>
+              <div class="connection-status" :class="robotConnectionStatus">
+                <div class="status-dot"></div>
+                <span>{{ robotConnectionStatusText }}</span>
+              </div>
+            </div>
+            <div class="robot-mode-selector">
+              <div class="mode-options">
+                <div 
+                  class="mode-option" 
+                  :class="{ active: currentRobotMode === 'real' }"
+                  @click="switchRobotMode('real')"
+                >
+                  <div class="mode-icon real-robot-icon">🦾</div>
+                  <div class="mode-info">
+                    <div class="mode-name">真实机器人</div>
+                    <div class="mode-status" :class="realRobotStatus">
+                      {{ realRobotConnected ? '已连接' : '未连接' }}
+                    </div>
+                  </div>
+                </div>
+                <div 
+                  class="mode-option" 
+                  :class="{ active: currentRobotMode === 'simulation' }"
+                  @click="switchRobotMode('simulation')"
+                >
+                  <div class="mode-icon simulation-robot-icon">🤖</div>
+                  <div class="mode-info">
+                    <div class="mode-name">仿真机器人</div>
+                    <div class="mode-status" :class="simulationRobotStatus">
+                      {{ simulationRobotConnected ? '已连接' : '未连接' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mode-actions">
+                <button class="btn btn-primary" @click="checkRobotConnections">检查连接</button>
+                <button class="btn btn-secondary" @click="autoSelectRobotMode">智能选择</button>
+              </div>
+              <div class="mode-details">
+                <div class="detail-item">
+                  <span class="detail-label">当前模式:</span>
+                  <span class="detail-value">{{ robotModeName }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">服务器地址:</span>
+                  <span class="detail-value">{{ currentServerAddress }}</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
           <!-- 系统监控 -->
           <section class="monitoring-section">
@@ -232,9 +287,9 @@
                 <div class="monitor-bar">
                   <div class="bar-fill" :style="{ width: systemMetrics.temperature + '%' }"></div>
                 </div>
-          </div>
-        </div>
-      </section>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -246,6 +301,7 @@ import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { cameraApi } from '../api/cameraApi'
 import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopHead, getHeadStatus } from '../api/simulationHeadApi'
+import { robotApi } from '../api/robotApi'
 
 const router = useRouter()
 
@@ -278,6 +334,17 @@ const connectedSystems = ref([
   { id: 4, name: '下肢系统', status: 'connected', statusText: '已连接', latency: 5, dataVolume: '0.8KB/s' },
   { id: 5, name: '上肢系统', status: 'disconnected', statusText: '连接中断', latency: 999, dataVolume: '0KB/s' }
 ])
+
+// 机器人模式选择器相关数据
+const currentRobotMode = ref(robotApi.getCurrentMode())
+const robotModeName = ref(robotApi.getCurrentModeLabel())
+const currentServerAddress = ref(robotApi.getCurrentServerAddress())
+const robotConnectionStatus = ref('connected')
+const robotConnectionStatusText = ref('连接正常')
+const realRobotConnected = ref(true)
+const simulationRobotConnected = ref(true)
+const realRobotStatus = ref('connected')
+const simulationRobotStatus = ref('connected')
 
 // 当前决策
 const currentDecision = reactive({
@@ -501,6 +568,69 @@ const updateMetrics = () => {
   systemMetrics.temperature = Math.max(25, Math.min(60, systemMetrics.temperature + (Math.random() - 0.5) * 5))
 }
 
+// 切换机器人模式
+const switchRobotMode = (mode) => {
+  try {
+    robotApi.setRobotMode(mode)
+    currentRobotMode.value = mode
+    robotModeName.value = robotApi.getCurrentModeLabel()
+    currentServerAddress.value = robotApi.getCurrentServerAddress()
+    // 更新UI状态
+    updateRobotConnectionStatus()
+  } catch (error) {
+    console.error('切换机器人模式失败:', error)
+  }
+}
+
+// 检查机器人连接状态
+const checkRobotConnections = async () => {
+  try {
+    const connections = await robotApi.checkBothConnections()
+    realRobotConnected.value = connections.real.connected
+    simulationRobotConnected.value = connections.simulation.connected
+    
+    // 更新连接状态样式
+    realRobotStatus.value = connections.real.connected ? 'connected' : 'disconnected'
+    simulationRobotStatus.value = connections.simulation.connected ? 'connected' : 'disconnected'
+    
+    // 更新当前模式的连接状态
+    updateRobotConnectionStatus()
+  } catch (error) {
+    console.error('检查机器人连接状态失败:', error)
+  }
+}
+
+// 自动选择最佳机器人模式
+const autoSelectRobotMode = async () => {
+  try {
+    const result = await robotApi.autoSelectMode()
+    currentRobotMode.value = result.mode
+    robotModeName.value = robotApi.getCurrentModeLabel()
+    currentServerAddress.value = robotApi.getCurrentServerAddress()
+    
+    // 更新连接状态
+    realRobotConnected.value = result.available.real
+    simulationRobotConnected.value = result.available.simulation
+    realRobotStatus.value = result.available.real ? 'connected' : 'disconnected'
+    simulationRobotStatus.value = result.available.simulation ? 'connected' : 'disconnected'
+    
+    // 更新当前模式的连接状态
+    updateRobotConnectionStatus()
+  } catch (error) {
+    console.error('自动选择机器人模式失败:', error)
+  }
+}
+
+// 更新机器人连接状态UI
+const updateRobotConnectionStatus = () => {
+  const isCurrentModeConnected = currentRobotMode.value === 'real' 
+    ? realRobotConnected.value 
+    : simulationRobotConnected.value
+  
+  robotConnectionStatus.value = isCurrentModeConnected ? 'connected' : 'disconnected'
+  robotConnectionStatusText.value = isCurrentModeConnected ? '连接正常' : '连接中断'
+}
+
 // 生命周期
 let decisionInterval
 let metricsInterval
@@ -520,6 +650,9 @@ onMounted(() => {
 
   // 定期更新系统指标
   metricsInterval = setInterval(updateMetrics, 3000)
+
+  // 检查机器人连接状态
+  checkRobotConnections()
 })
 
 onUnmounted(() => {
@@ -684,5 +817,169 @@ onUnmounted(() => {
   justify-content: center;
   gap: 24px;
   margin-top: 10px;
+}
+
+/* 机器人模式选择器样式 */
+.robot-mode-section {
+  background: linear-gradient(180deg, #1a2035 0%, #151a2c 100%);
+  border-radius: 10px;
+  padding: 18px 20px 12px 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.robot-mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mode-options {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+}
+
+.mode-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-option:hover {
+  border-color: rgba(77, 166, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(77, 166, 255, 0.1);
+}
+
+.mode-option.active {
+  border-color: rgba(77, 166, 255, 0.8);
+  background-color: rgba(77, 166, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(77, 166, 255, 0.2);
+}
+
+.mode-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.real-robot-icon {
+  background: linear-gradient(145deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%);
+  border: 1px solid rgba(0, 102, 255, 0.4);
+  color: #4da6ff;
+  box-shadow: 0 2px 8px rgba(0, 102, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.simulation-robot-icon {
+  background: linear-gradient(145deg, rgba(0, 153, 255, 0.15) 0%, rgba(0, 153, 255, 0.08) 100%);
+  border: 1px solid rgba(0, 153, 255, 0.4);
+  color: #66ccff;
+  box-shadow: 0 2px 8px rgba(0, 153, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.mode-info {
+  flex: 1;
+}
+
+.mode-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.mode-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.mode-status.connected {
+  background-color: rgba(0, 179, 104, 0.2);
+  color: #00e676;
+}
+
+.mode-status.disconnected {
+  background-color: rgba(255, 77, 79, 0.2);
+  color: #ff7875;
+}
+
+.mode-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-details {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #fff;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.connection-status.connected {
+  background-color: rgba(0, 179, 104, 0.2);
+  color: #00e676;
+}
+
+.connection-status.disconnected {
+  background-color: rgba(255, 77, 79, 0.2);
+  color: #ff7875;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connection-status.connected .status-dot {
+  background-color: #00e676;
+  box-shadow: 0 0 8px #00e676;
+}
+
+.connection-status.disconnected .status-dot {
+  background-color: #ff7875;
+  box-shadow: 0 0 8px #ff7875;
 }
 </style>

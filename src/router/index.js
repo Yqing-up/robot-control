@@ -77,12 +77,12 @@ const router = createRouter({
     {
       path: '/motion-analysis',
       name: 'motion-analysis',
-      component: () => import('../components/MotionAnalysisDialog.vue'),
+      component: () => import('../views/MotionAnalysisView.vue'),
     },
     {
       path: '/tongue-analysis',
       name: 'tongue-analysis',
-      component: () => import('../components/TongueAnalysisDialog.vue'),
+      component: () => import('../views/TongueAnalysisView.vue'),
     },
     {
       path: '/remote-interaction',

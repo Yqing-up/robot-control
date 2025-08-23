@@ -104,7 +104,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
 import { activityScenesApi } from '../api/activityScenesApi.js'
 
 const router = useRouter()
@@ -318,6 +318,15 @@ onMounted(async () => {
   // 加载场景内容
   await loadSceneContent(sceneId)
 })
+
+// 使用导航守卫处理组件复用时的数据刷新
+onBeforeRouteUpdate(async (to, from) => {
+  // 仅当路由参数ID实际发生变化时才重新加载
+  if (to.params.id !== from.params.id) {
+    console.log(`🔄 导航守卫: 路由更新，从 ${from.params.id} 到 ${to.params.id}，重新加载内容...`);
+    await loadSceneContent(parseInt(to.params.id));
+  }
+});
 </script>
 
 <style scoped>

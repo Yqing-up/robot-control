@@ -118,12 +118,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount, nextTick, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { chatApi } from '../api/chatApi.js'
 // 移除跨页面同步导入
 
 const router = useRouter()
+const route = useRoute()
 
 // 聊天相关数据
 const chatMessages = ref([])
@@ -173,6 +174,7 @@ const toggleChatMode = async () => {
 
 // 聊天相关方法
 const loadChatHistory = async (isInitialLoad = true) => {
+  console.log(`--- loadChatHistory called. isInitialLoad: ${isInitialLoad} ---`);
   try {
     if (isInitialLoad) {
       console.log('📚 初始加载聊天历史记录...')
@@ -320,6 +322,7 @@ const formatTime = (timeString) => {
 
 // 开始聊天轮询
 const startChatPolling = () => {
+  console.log('--- startChatPolling called ---');
   if (chatPollingTimer.value) {
     clearInterval(chatPollingTimer.value)
   }
@@ -337,6 +340,7 @@ const startChatPolling = () => {
 
 // 停止聊天轮询
 const stopChatPolling = () => {
+  console.log('--- stopChatPolling called ---');
   if (chatPollingTimer.value) {
     clearInterval(chatPollingTimer.value)
     chatPollingTimer.value = null
@@ -346,15 +350,26 @@ const stopChatPolling = () => {
 
 // 生命周期
 onMounted(async () => {
-  console.log('💬 聊天交互页面已加载')
-  chatConnected.value = true
-  await loadChatHistory(true) // 初始加载
-  startChatPolling() // 启动轮询
+  console.log('--- ChatInteractionView: onMounted hook triggered ---');
+  try {
+    console.log('Setting chatConnected to true.');
+    chatConnected.value = true;
 
+    console.log('Calling loadChatHistory...');
+    await loadChatHistory(true); // 初始加载
+    console.log('loadChatHistory finished.');
+
+    console.log('Calling startChatPolling...');
+    startChatPolling(); // 启动轮询
+    console.log('startChatPolling finished.');
+  } catch (error) {
+    console.error('Error in onMounted hook:', error);
+  }
   // 移除跨页面模式监听
 })
 
 onBeforeUnmount(() => {
+  console.log('--- ChatInteractionView: onBeforeUnmount hook triggered ---');
   console.log('💬 聊天交互页面即将卸载')
   stopChatPolling() // 停止轮询
 
