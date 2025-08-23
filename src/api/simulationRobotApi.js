@@ -61,7 +61,7 @@ const simulationRobotHttp = {
 
 // 为仿真模式太极音频创建独立的axios实例
 const simulationTaijiAudioAxiosInstance = axios.create({
-  baseURL: '/api-taiji-audio-sim',
+  baseURL: '/api',
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
