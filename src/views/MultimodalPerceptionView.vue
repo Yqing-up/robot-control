@@ -245,6 +245,9 @@ const lastImageUpdate = ref('--:--:--')
 const lastTextUpdate = ref('--:--:--')
 const isAutoRefreshing = ref(false)
 
+// 页面加载时生成的固定时间戳（当前时间前一分钟）
+const pageLoadTimestamp = new Date(Date.now() - 1 * 60 * 1000).toISOString()
+
 // 图片模态框相关
 const showImageModal = ref(false)
 const selectedImage = ref({})
@@ -402,30 +405,40 @@ const loadTextData = async (minutes, isInitial = false) => {
   try {
     console.log(`🎤 加载最近${minutes}分钟的语音文本数据...`)
 
-    const data = await recordingApi.getRecentRecords(minutes)
-    console.log('📥 语音文本API返回数据:', data)
+    // 注释掉API调用，使用虚拟测试数据
+    // const data = await recordingApi.getRecentRecords(minutes)
+    // console.log('📥 语音文本API返回数据:', data)
 
-    // 处理返回的数据
-    let texts = data.texts || data.data || []
+    // // 处理返回的数据
+    // let texts = data.texts || data.data || []
 
-    // 如果data是对象且包含results数组，使用results
-    if (texts && typeof texts === 'object' && texts.results && Array.isArray(texts.results)) {
-      texts = texts.results
-    }
+    // // 如果data是对象且包含results数组，使用results
+    // if (texts && typeof texts === 'object' && texts.results && Array.isArray(texts.results)) {
+    //   texts = texts.results
+    // }
 
-    if (!Array.isArray(texts)) {
-      console.warn('⚠️ 语音文本数据不是数组格式:', texts)
-      if (isInitial) {
-        realtimeTexts.value = []
+    // if (!Array.isArray(texts)) {
+    //   console.warn('⚠️ 语音文本数据不是数组格式:', texts)
+    //   if (isInitial) {
+    //     realtimeTexts.value = []
+    //   }
+    //   return
+    // }
+
+    // const newTexts = texts.map(item => ({
+    //   content: item.text || item.content || item,
+    //   timestamp: item.timestamp || new Date().toISOString(),
+    //   confidence: item.confidence || 1.0
+    // }))
+
+    // 使用虚拟测试数据 - 使用页面加载时间戳避免重复
+    const newTexts = [
+      {
+        content: '小海，你还记得这样照片是什么时候拍的吗？',
+        timestamp: pageLoadTimestamp,
+        confidence: 0.98
       }
-      return
-    }
-
-    const newTexts = texts.map(item => ({
-      content: item.text || item.content || item,
-      timestamp: item.timestamp || new Date().toISOString(),
-      confidence: item.confidence || 1.0
-    }))
+    ]
 
     if (isInitial) {
       // 初始加载：替换所有数据
@@ -448,22 +461,11 @@ const loadTextData = async (minutes, isInitial = false) => {
     console.error('❌ 语音文本数据加载失败:', error)
 
     if (isInitial) {
-      // 提供模拟数据用于演示
-      const now = new Date()
+      // 提供模拟数据用于演示 - 使用页面加载时间戳避免重复
       realtimeTexts.value = [
         {
-          content: '请帮我分析一下这张图片中的内容，看看有什么特别的地方',
-          timestamp: new Date(now.getTime() - 8 * 60 * 1000).toISOString(), // 8分钟前
-          confidence: 0.96
-        },
-        {
-          content: '我想了解这个场景的详细信息，包括环境和物体的特征',
-          timestamp: new Date(now.getTime() - 5 * 60 * 1000).toISOString(), // 5分钟前
-          confidence: 0.94
-        },
-        {
-          content: '能否结合图像和语音信息给出综合分析结果',
-          timestamp: new Date(now.getTime() - 2 * 60 * 1000).toISOString(), // 2分钟前
+          content: '小海，你还记得这样照片是什么时候拍的吗？',
+          timestamp: pageLoadTimestamp,
           confidence: 0.98
         }
       ]
@@ -510,12 +512,14 @@ const submitAnalysis = async () => {
   }
 
   try {
-    // 重置状态
+    // 重置状态 - 确保完全清空之前的结果
     progress.value = 0
     resultText.value = ''
     resultMetadata.value = null
     inputError.value = ''
     currentStep.value = 1
+    isSubmitting.value = false
+    isLoadingImageData.value = false
 
     // ===== 开发测试阶段：使用固定回复 =====
     // TODO: 后续可以通过配置开关来启用真实的AI分析功能
@@ -548,7 +552,9 @@ const submitAnalysis = async () => {
     // 固定回复内容
     const fixedReply = "这是去年您过生日照的，我特别记得给您戴生日帽的时候，您像个老小孩似的笑着吵着，说要给我唱段拿手的京剧，那股子认真又可爱的劲儿，现在想起来还觉得特别温暖，一点都没忘。"
 
-    // 立即展示文本结果
+    // 确保清空后再设置新的结果
+    resultText.value = ''
+    await new Promise(resolve => setTimeout(resolve, 100)) // 短暂延迟确保清空生效
     resultText.value = fixedReply
 
     resultMetadata.value = {

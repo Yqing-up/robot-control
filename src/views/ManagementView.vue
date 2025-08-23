@@ -532,6 +532,57 @@ import { moveHeadUp, moveHeadDown, moveHeadLeft, moveHeadRight, resetHead, stopH
 const router = useRouter()
 const route = useRoute()
 
+// 状态持久化 - 保存页面上下文信息
+const STORAGE_KEY = 'management_page_context'
+const savePageContext = () => {
+  const context = {
+    sceneInfo: currentSceneInfo.value,
+    routeParams: route.params,
+    routeQuery: route.query,
+    timestamp: Date.now()
+  }
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(context))
+  console.log('💾 保存页面上下文:', context)
+}
+
+// 清理过期的上下文
+const clearExpiredContext = () => {
+  try {
+    const stored = sessionStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const context = JSON.parse(stored)
+      if (Date.now() - context.timestamp >= 30 * 60 * 1000) {
+        sessionStorage.removeItem(STORAGE_KEY)
+        console.log('🧹 清理过期的上下文缓存')
+      }
+    }
+  } catch (error) {
+    console.error('❗ 清理过期上下文失败:', error)
+    sessionStorage.removeItem(STORAGE_KEY)
+  }
+}
+
+const loadPageContext = () => {
+  try {
+    const stored = sessionStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const context = JSON.parse(stored)
+      // 检查是否过期（30分钟）
+      if (Date.now() - context.timestamp < 30 * 60 * 1000) {
+        console.log('📂 加载保存的页面上下文:', context)
+        return context
+      } else {
+        console.log('⏰ 保存的上下文已过期，清理缓存')
+        sessionStorage.removeItem(STORAGE_KEY)
+      }
+    }
+  } catch (error) {
+    console.error('❗ 加载页面上下文失败:', error)
+    sessionStorage.removeItem(STORAGE_KEY)
+  }
+  return null
+}
+
 // 摄像头相关数据
 const cameraConnected = ref(false)
 const cameraLoading = ref(false)
@@ -569,7 +620,15 @@ const fetchSceneInfo = async (sceneId) => {
   try {
     console.log('🔍 获取板块信息，ID:', sceneId)
 
-    // 先设置备用标题（从query参数获取或默认）
+    // 优先尝试从保存的上下文中恢复信息
+    const savedContext = loadPageContext()
+    if (savedContext && savedContext.sceneInfo && savedContext.sceneInfo.id == sceneId) {
+      console.log('📂 从保存的上下文中恢复板块信息:', savedContext.sceneInfo)
+      currentSceneInfo.value = { ...savedContext.sceneInfo }
+      return // 直接返回，不需要重新获取
+    }
+
+    // 如果没有保存的上下文，则设置备用标题
     const backupTitle = route.query.sceneTitle || `条目${sceneId}`
     currentSceneInfo.value.title = backupTitle
 
@@ -1248,9 +1307,21 @@ const fetchHeadStatus = async () => {
 
 // 基础方法
 const goBack = () => {
+  // 在返回前保存当前页面上下文
+  savePageContext()
+  
   const sceneId = route.params.id || route.query.fromItem;
   if (sceneId) {
-    router.push(`/scene-detail/${sceneId}`);
+    // 传递完整的上下文信息
+    const query = {
+      ...route.query,
+      fromManagement: 'true',
+      sceneTitle: currentSceneInfo.value.title
+    }
+    router.push({
+      path: `/scene-detail/${sceneId}`,
+      query: query
+    });
   } else {
     router.push('/activity-scenes');
   }
@@ -1258,7 +1329,34 @@ const goBack = () => {
 
 
 const goToChatInteractionPage = () => {
-  router.push('/chat-interaction');
+  // 在跳转前保存当前页面上下文
+  savePageContext()
+  
+  // 获取当前场景信息
+  const sceneId = route.params.id || route.query.fromItem
+  const sceneTitle = currentSceneInfo.value.title
+  
+  console.log('💬 跳转到聊天交互页面')
+  console.log('- sceneId:', sceneId)
+  console.log('- sceneTitle:', sceneTitle)
+  
+  if (sceneId && sceneTitle && sceneTitle !== '未知页面') {
+    // 传递完整的场景信息
+    const query = {
+      sceneId: sceneId,
+      sceneTitle: sceneTitle,
+      fromManagement: 'true'
+    }
+    
+    router.push({
+      path: '/chat-interaction',
+      query: query
+    })
+  } else {
+    // 如果没有完整信息，仍然跳转但记录警告
+    console.warn('⚠️ 跳转到聊天页面时缺少场景信息')
+    router.push('/chat-interaction')
+  }
 };
 
 // 系统控制方法
@@ -1658,9 +1756,21 @@ const getActionCategoryName = (category) => {
   return movementApi.getActionCategoryName(category)
 }
 
+// 监听场景信息变化，自动保存上下文
+watch(currentSceneInfo, (newInfo) => {
+  if (newInfo && newInfo.title && newInfo.title !== '未知页面') {
+    console.log('🔄 场景信息变化，保存上下文:', newInfo)
+    savePageContext()
+  }
+}, { deep: true })
+
 // 生命周期钩子
 onMounted(async () => {
   console.log('🚀 综合管理页面已加载，开始初始化...')
+  
+  // 首先清理过期的上下文
+  clearExpiredContext()
+  
   console.log('📊 初始数据状态:')
   console.log('- voiceLibrary length:', voiceLibrary.value.length)
   console.log('- cameraStreamUrl:', cameraStreamUrl.value)
@@ -1671,6 +1781,9 @@ onMounted(async () => {
     if (sceneId) {
       console.log('📋 开始获取板块信息...')
       await fetchSceneInfo(sceneId)
+      
+      // 在获取板块信息后保存上下文
+      savePageContext()
     }
 
     // 初始化摄像头
@@ -1704,14 +1817,19 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  console.log('📏 综合管理页面即将卸载')
+  
   // 停止所有语音播放
   if ('speechSynthesis' in window) {
     speechSynthesis.cancel()
   }
-
-  // 停止聊天轮询
-  stopChatPolling()
-
+  
+  // 在页面卸载时保存最终状态
+  if (currentSceneInfo.value && currentSceneInfo.value.title && currentSceneInfo.value.title !== '未知页面') {
+    savePageContext()
+    console.log('💾 页面卸载时保存最终上下文')
+  }
+  
   console.log('综合管理页面已卸载')
 })
 

@@ -146,7 +146,53 @@ const chatConnected = ref(false)
 
 // 基础方法
 const goBack = () => {
-  router.push('/management')
+  // 从路由参数中获取场景信息
+  const sceneId = route.query.sceneId || route.params.sceneId
+  const sceneTitle = route.query.sceneTitle
+  
+  console.log('🔙 从聊天页面返回管理页面')
+  console.log('- sceneId:', sceneId)
+  console.log('- sceneTitle:', sceneTitle)
+  
+  if (sceneId) {
+    // 如果有场景信息，传递完整的上下文
+    const query = {
+      fromChat: 'true',
+      ...(sceneTitle && { sceneTitle: sceneTitle })
+    }
+    
+    router.push({
+      path: `/management/${sceneId}`,
+      query: query
+    })
+  } else {
+    // 如果没有场景信息，尝试从 sessionStorage 中恢复
+    try {
+      const stored = sessionStorage.getItem('management_page_context')
+      if (stored) {
+        const context = JSON.parse(stored)
+        if (context.sceneInfo && context.sceneInfo.id) {
+          console.log('📂 从缓存中恢复场景信息:', context.sceneInfo)
+          const query = {
+            fromChat: 'true',
+            sceneTitle: context.sceneInfo.title
+          }
+          
+          router.push({
+            path: `/management/${context.sceneInfo.id}`,
+            query: query
+          })
+          return
+        }
+      }
+    } catch (error) {
+      console.error('❗ 恢复缓存上下文失败:', error)
+    }
+    
+    // 如果都没有，则返回默认管理页面
+    console.log('⚠️ 未找到场景信息，返回默认管理页面')
+    router.push('/management')
+  }
 }
 
 // 切换聊天模式

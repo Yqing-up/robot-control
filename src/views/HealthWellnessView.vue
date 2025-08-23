@@ -270,6 +270,9 @@ const realtimeTexts = ref([
     timestamp: Date.now() - 120000
   }
 ])
+
+// 页面加载时生成的固定时间戳（当前时间前一分钟）
+const pageLoadTimestamp = new Date(Date.now() - 1 * 60 * 1000).toISOString()
 const lastImageUpdate = ref('--:--:--')
 const lastTextUpdate = ref('--:--:--')
 const isAutoRefreshing = ref(true)
@@ -476,30 +479,40 @@ const loadTextData = async (minutes = 30, isInitial = false) => {
   try {
     console.log(`🎤 开始获取最近${minutes}分钟的语音文本数据...`)
 
-    const data = await recordingApi.getRecentRecords(minutes)
-    console.log('📥 语音文本API返回数据:', data)
+    // 注释掉API调用，使用虚拟测试数据
+    // const data = await recordingApi.getRecentRecords(minutes)
+    // console.log('📥 语音文本API返回数据:', data)
 
-    // 处理返回的数据
-    let texts = data.texts || data.data || []
+    // // 处理返回的数据
+    // let texts = data.texts || data.data || []
 
-    // 如果data是对象且包含results数组，使用results
-    if (texts && typeof texts === 'object' && texts.results && Array.isArray(texts.results)) {
-      texts = texts.results
-    }
+    // // 如果data是对象且包含results数组，使用results
+    // if (texts && typeof texts === 'object' && texts.results && Array.isArray(texts.results)) {
+    //   texts = texts.results
+    // }
 
-    if (!Array.isArray(texts)) {
-      console.warn('⚠️ 语音文本数据不是数组格式:', texts)
-      if (isInitial) {
-        realtimeTexts.value = []
+    // if (!Array.isArray(texts)) {
+    //   console.warn('⚠️ 语音文本数据不是数组格式:', texts)
+    //   if (isInitial) {
+    //     realtimeTexts.value = []
+    //   }
+    //   return
+    // }
+
+    // const newTexts = texts.map(item => ({
+    //   content: item.text || item.content || item,
+    //   timestamp: item.timestamp || new Date().toISOString(),
+    //   confidence: item.confidence || 1.0
+    // }))
+
+    // 使用虚拟测试数据 - 使用页面加载时的时间戳避免重复
+    const newTexts = [
+      {
+        content: '小真，我最近口干舌燥的，吃啥啥不香，请帮我分析一下舌苔',
+        timestamp: pageLoadTimestamp,
+        confidence: 0.96
       }
-      return
-    }
-
-    const newTexts = texts.map(item => ({
-      content: item.text || item.content || item,
-      timestamp: item.timestamp || new Date().toISOString(),
-      confidence: item.confidence || 1.0
-    }))
+    ]
 
     if (isInitial) {
       // 初始加载：替换所有数据
@@ -522,18 +535,12 @@ const loadTextData = async (minutes = 30, isInitial = false) => {
     console.error('❌ 语音文本数据加载失败:', error)
 
     if (isInitial) {
-      // 提供模拟数据用于演示
-      const now = new Date()
+      // 提供模拟数据用于演示 - 使用页面加载时的时间戳避免重复
       realtimeTexts.value = [
         {
-          content: '最近感觉比较疲劳，睡眠质量不太好，想要调理一下身体',
-          timestamp: new Date(now.getTime() - 5 * 60 * 1000).toISOString(), // 5分钟前
-          confidence: 0.95
-        },
-        {
-          content: '平时工作压力大，经常熬夜，希望能有一些养生建议',
-          timestamp: new Date(now.getTime() - 3 * 60 * 1000).toISOString(), // 3分钟前
-          confidence: 0.92
+          content: '小真，我最近口干舌燥的，吃啥啥不香，请帮我分析一下舌苔',
+          timestamp: pageLoadTimestamp,
+          confidence: 0.96
         }
       ]
       console.log('🎤 使用模拟语音文本数据')
@@ -579,12 +586,14 @@ const submitAnalysis = async () => {
   }
 
   try {
-    // 重置状态
+    // 重置状态 - 确保完全清空之前的结果
     progress.value = 0
     resultText.value = ''
     resultMetadata.value = null
     inputError.value = ''
     currentStep.value = 1
+    isSubmitting.value = false
+    isLoadingImageData.value = false
 
     // ===== 开发测试阶段：使用固定回复 =====
     // TODO: 后续可以通过配置开关来启用真实的AI分析功能
@@ -615,9 +624,11 @@ const submitAnalysis = async () => {
     progress.value = 100
 
     // 固定回复内容
-    const fixedReply = "你的舌苔状态真的很不错，颜色是那种非常健康的淡红色，红润均匀，整个舌面干净清爽，没有明显的厚腻或者裂纹，说明你的身体状态非常棒，脾胃功能也很强健，消化吸收都没问题！"
+    const fixedReply = "爸，我弄明白了，您目前的情况是肝火有些旺盛，这才连带影响到了脾胃功能。您可以试试太极拳里的白鹤亮翅 这一式，它在疏肝解郁、调理气机方面，效果是挺不错的。"
 
-    // 立即展示文本结果
+    // 确保清空后再设置新的结果
+    resultText.value = ''
+    await new Promise(resolve => setTimeout(resolve, 100)) // 短暂延迟确保清空生效
     resultText.value = fixedReply
 
     resultMetadata.value = {
