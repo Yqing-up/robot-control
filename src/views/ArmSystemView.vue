@@ -549,11 +549,17 @@ const getVisionStreamUrl = () => {
 
 // 备用视频流地址列表
 const getAlternativeStreamUrls = () => {
+  // 从环境变量读取视频流服务器配置
+  const streamHost1 = import.meta.env.VITE_VIDEO_STREAM_HOST_1
+  const streamHost2 = import.meta.env.VITE_VIDEO_STREAM_HOST_2
+  const streamHost3 = import.meta.env.VITE_VIDEO_STREAM_HOST_3
+  const streamHost4 = import.meta.env.VITE_VIDEO_STREAM_HOST_4
+  
   return [
-    'http://192.168.0.112:8080/live/demo.m3u8',  // 默认地址
-    'http://192.168.0.103:8080/live/demo.m3u8',  // 备用地址1
-    'http://192.168.196.106:8080/live/demo.m3u8', // 备用地址2
-    'http://192.168.196.52:8080/live/demo.m3u8',  // 备用地址3
+    `${streamHost1}/live/demo.m3u8`,  // 主视频流 - 仿真系统
+    `${streamHost2}/live/demo.m3u8`,  // 备用1 - 图像分析系统
+    `${streamHost3}/live/demo.m3u8`,  // 备用2 - 上位机
+    `${streamHost4}/live/demo.m3u8`,  // 备用3 - 下位机
   ]
 }
 const visionStreamUrl = ref(getVisionStreamUrl())

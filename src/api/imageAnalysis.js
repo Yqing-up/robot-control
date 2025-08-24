@@ -279,7 +279,7 @@ export const analyzeImageData = async (imageUrls, userRequirement) => {
     // 准备符合API文档的文件列表格式
     const pictureFileList = []
     // 使用环境变量配置的图片分析基础服务器地址，因为工作流服务器需要能够访问图片
-    const BASE_URL = import.meta.env.VITE_IMAGE_ANALYSIS_BASE_HOST
+    const BASE_URL = import.meta.env.VITE_ROBOT_UPPER_HOST
 
     for (const imageFile of imageFiles) {
       try {

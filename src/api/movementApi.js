@@ -472,14 +472,14 @@ export const movementApi = {
   executeMovement: (direction) => {
     let endpoint = ''
     switch (direction) {
-      case 'forward': endpoint = '/api/robot_movement/continuous_walk/forward'; break
-      case 'backward': endpoint = '/api/robot_movement/continuous_walk/backward'; break
-      case 'left-move': endpoint = '/api/robot_movement/continuous_walk/left'; break
-      case 'right-move': endpoint = '/api/robot_movement/continuous_walk/right'; break
-      case 'left': endpoint = '/api/robot_movement/continuous_walk/turn_left'; break
-      case 'right': endpoint = '/api/robot_movement/continuous_walk/turn_right'; break
+      case 'forward': endpoint = '/api/robot_movement/forward'; break
+      case 'backward': endpoint = '/api/robot_movement/backward'; break
+      case 'left-move': endpoint = '/api/robot_movement/left'; break
+      case 'right-move': endpoint = '/api/robot_movement/right'; break
+      case 'left': endpoint = '/api/robot_movement/turn_left'; break
+      case 'right': endpoint = '/api/robot_movement/turn_right'; break
       case 'march': endpoint = '/api/robot_movement/continuous_walk/march_in_place'; break
-      case 'stop': endpoint = '/api/robot_movement/cancel'; break
+      case 'stop': endpoint = '/api/robot_movement/continuous_walk/stop'; break
       default: return Promise.resolve({ success: false, error: '未知方向' })
     }
     console.log(`🦵 执行下肢系统移动: ${direction} -> /api-leg-movement${endpoint}`)
@@ -510,8 +510,8 @@ export const movementApi = {
 
   // 紧急停止单个操作 - 使用下肢系统专用接口
   emergencyStop: () => {
-    console.log(`🚨 执行下肢系统紧急停止: /api-leg-movement/api/robot_movement/cancel`)
-    return legMovementAxiosInstance.post('/api/robot_movement/cancel', {})
+    console.log(`🚨 执行下肢系统紧急停止: /api-leg-movement/api/robot_movement/continuous_walk/stop`)
+    return legMovementAxiosInstance.post('/api/robot_movement/continuous_walk/stop', {})
   },
 
   // 导出所有数据 - 始终使用真实机器人

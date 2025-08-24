@@ -93,7 +93,7 @@
                 type="text"
                 v-model="visionStreamUrl"
                 class="form-input"
-                placeholder="http://192.168.0.112:8080/live/demo.m3u8"
+                placeholder="视频流地址"
               >
             </div>
             <div class="url-display">
@@ -129,7 +129,7 @@ const router = useRouter()
 
 // 视觉流相关
 const isVisionConnected = ref(false)
-const visionStreamUrl = ref('http://192.168.0.112:8080/live/demo.m3u8')
+const visionStreamUrl = ref(getVisionStreamUrl())
 const visionVideo = ref(null)
 const videoQuality = ref('medium')
 const showConfigDialog = ref(false)
@@ -143,13 +143,15 @@ const goBack = () => {
 }
 
 // 获取视频流地址
-const getVisionStreamUrl = () => {
+function getVisionStreamUrl() {
   const simulationHost = import.meta.env.VITE_ROBOT_SIMULATION_HOST
   if (simulationHost) {
     const baseUrl = simulationHost.replace(':5001', ':8080')
     return `${baseUrl}/live/demo.m3u8`
   }
-  return 'http://192.168.0.112:8080/live/demo.m3u8'
+  // 使用环境变量中的默认视频流地址
+  const defaultStreamHost = import.meta.env.VITE_VIDEO_STREAM_HOST_1
+  return `${defaultStreamHost}/live/demo.m3u8`
 }
 
 // 简单稳定的HLS配置

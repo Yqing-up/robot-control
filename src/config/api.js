@@ -10,7 +10,7 @@ const getTTSTargetHost = () => {
 };
 
 // 仿真模式太极音频播放服务器配置
-const taijiAudioSimulationHost = import.meta.env.VITE_TAIJI_AUDIO_SIMULATION_HOST || 'http://192.168.0.112:5001'
+const taijiAudioSimulationHost = import.meta.env.VITE_ROBOT_SIMULATION_HOST
 
 export const API_CONFIG = {
   // 运动相关接口 - 使用独立的代理前缀（保留用于腿部系统）
@@ -54,11 +54,11 @@ export const API_CONFIG = {
     // TTS语音系统目标服务器（动态选择）
     TTS_TARGET: getTTSTargetHost(),
     // 太极音频服务器
-    TAIJI_AUDIO_TARGET: import.meta.env.VITE_TAIJI_AUDIO_HOST,
+    TAIJI_AUDIO_TARGET: import.meta.env.VITE_ROBOT_UPPER_HOST,
     // 仿真模式太极音频服务器
-    TAIJI_AUDIO_SIMULATION_TARGET: import.meta.env.VITE_TAIJI_AUDIO_SIMULATION_HOST,
+    TAIJI_AUDIO_SIMULATION_TARGET: import.meta.env.VITE_ROBOT_SIMULATION_HOST,
     // 图片分析基础服务器
-    IMAGE_ANALYSIS_BASE_TARGET: import.meta.env.VITE_IMAGE_ANALYSIS_BASE_HOST
+    IMAGE_ANALYSIS_BASE_TARGET: import.meta.env.VITE_ROBOT_UPPER_HOST
   },
 
   // 仿真模式配置（保留向后兼容）
@@ -88,8 +88,7 @@ export const validateAPIConfig = () => {
   ];
 
   const optionalEnvVars = [
-    'VITE_TAIJI_AUDIO_HOST',
-    'VITE_IMAGE_ANALYSIS_BASE_HOST',
+    'VITE_ROBOT_UPPER_HOST',
     'VITE_IMAGE_ANALYSIS_WORKFLOW_HOST'
   ];
 

@@ -141,7 +141,7 @@
               <div class="voice-status-indicator online"></div>
             </div>
 
-            <div class="history-list">
+            <div class="history-list" :class="{ 'loading': playHistory.length === 0 }">
               <div v-if="playHistory.length === 0" class="history-empty">
                 <p>暂无播放历史</p>
               </div>
@@ -953,9 +953,16 @@ onUnmounted(() => {
 }
 
 .history-list {
-  max-height: 600px; /* 增加高度从400px到600px，可以显示更多记录 */
+  max-height: 800px; /* 增加内容容器高度 */
   overflow-y: auto;
   padding-right: 8px;
+}
+
+/* 加载状态时的样式优化 */
+.history-list.loading {
+  height: auto; /* 让容器根据内容自适应高度 */
+  min-height: 60px; /* 保持最小高度 */
+  max-height: none; /* 移除最大高度限制 */
 }
 
 .history-list::-webkit-scrollbar {

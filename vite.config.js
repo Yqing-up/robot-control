@@ -13,13 +13,10 @@ export default defineConfig(({ command, mode }) => {
   const ROBOT_SIMULATION_HOST = env.VITE_ROBOT_SIMULATION_HOST
   const ROBOT_UPPER_HOST = env.VITE_ROBOT_UPPER_HOST
   const IMAGE_ANALYSIS_WORKFLOW_HOST = env.VITE_IMAGE_ANALYSIS_WORKFLOW_HOST
-  const TAIJI_AUDIO_HOST = env.VITE_TAIJI_AUDIO_HOST
-  const TAIJI_AUDIO_SIMULATION_HOST = env.VITE_TAIJI_AUDIO_SIMULATION_HOST
-  const IMAGE_ANALYSIS_BASE_HOST = env.VITE_IMAGE_ANALYSIS_BASE_HOST
 
   // 调试信息：打印环境变量
-  console.log('🔧 Vite配置 - 太极音频服务器地址:', TAIJI_AUDIO_HOST)
-  console.log('🔧 Vite配置 - 仿真太极音频服务器地址:', TAIJI_AUDIO_SIMULATION_HOST)
+  console.log('🔧 Vite配置 - 上位机服务器地址:', ROBOT_UPPER_HOST)
+  console.log('🔧 Vite配置 - 仿真服务器地址:', ROBOT_SIMULATION_HOST)
 
   // TTS语音系统服务器选择
   const TTS_USE_SERVER = env.VITE_TTS_USE_SERVER
@@ -352,7 +349,7 @@ export default defineConfig(({ command, mode }) => {
 
         // 新增：太极音频播放接口代理（真实机器人模式）
         '/api-taiji-audio': {
-          target: TAIJI_AUDIO_HOST,
+          target: ROBOT_UPPER_HOST,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api-taiji-audio/, '/api'),
@@ -371,7 +368,7 @@ export default defineConfig(({ command, mode }) => {
 
         // 新增：仿真模式太极音频播放接口代理
         '/api-taiji-audio-sim': {
-          target: TAIJI_AUDIO_SIMULATION_HOST,
+          target: ROBOT_SIMULATION_HOST,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api-taiji-audio-sim/, '/api'),
@@ -390,7 +387,7 @@ export default defineConfig(({ command, mode }) => {
 
         // 新增：图片分析基础服务器代理（必须在通用API代理之前）
         '/api-img-base': {
-          target: IMAGE_ANALYSIS_BASE_HOST,
+          target: ROBOT_UPPER_HOST,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api-img-base/, '/api'),
@@ -428,7 +425,7 @@ export default defineConfig(({ command, mode }) => {
 
         // 新增：下肢系统专用接口代理（必须在通用API代理之前）
         '/api-leg-movement': {
-          target: 'http://192.168.0.117:5001',
+          target: ROBOT_LOWER_HOST,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api-leg-movement/, ''),

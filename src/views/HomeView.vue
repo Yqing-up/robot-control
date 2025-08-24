@@ -19,7 +19,7 @@
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
-              <p class="system-intro">智能决策中心，负责处理信息和控制逻辑运算</p>
+              <p class="system-intro">智能决策与控制中枢，负责处理信息与逻辑。</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入头部系统 →</span>
               </div>
@@ -31,7 +31,7 @@
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
-              <p class="system-intro">高清图像采集，实现环境感知和目标识别</p>
+              <p class="system-intro">高清图像采集与分析，实现环境感知与目标识别。</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入视觉系统 →</span>
               </div>
@@ -43,7 +43,7 @@
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
-              <p class="system-intro">精密动作执行，提供灵活操作和力量控制</p>
+              <p class="system-intro">精密动作执行，管理拟人化操作与物理世界交互。</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入上肢系统 →</span>
               </div>
@@ -61,7 +61,7 @@
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
-              <p class="system-intro">音频信号处理，支持语音识别和声源定位</p>
+              <p class="system-intro">高保真音频信号处理，支持精准语音识别与定位。</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入听觉系统 →</span>
               </div>
@@ -73,7 +73,7 @@
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
-              <p class="system-intro">智能语音合成，支持多语言和情感表达</p>
+              <p class="system-intro">集成个性化语音库，实现有温度的情感语音合成。</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入语音系统 →</span>
               </div>
@@ -85,7 +85,7 @@
               <div class="connection-status online"></div>
             </div>
             <div class="panel-description">
-              <p class="system-intro">稳定运动控制，实现平衡行走和地形适应</p>
+              <p class="system-intro">稳定步态运动控制，实现复杂环境下的平衡行走。</p>
               <div class="panel-action">
                 <span class="action-hint">点击进入下肢系统 →</span>
               </div>
@@ -223,7 +223,7 @@ function checkFontLoaded() {
 onMounted(() => {
   // 字体加载检测
   checkFontLoaded();
-  
+
   // 恢复状态
   const savedStatus = localStorage.getItem('robotSystemStatus');
   if (savedStatus) {
