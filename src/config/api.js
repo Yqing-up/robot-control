@@ -9,6 +9,9 @@ const getTTSTargetHost = () => {
   return ttsUseServer === 'lower' ? lowerHost : upperHost;
 };
 
+// 仿真模式太极音频播放服务器配置
+const taijiAudioSimulationHost = import.meta.env.VITE_TAIJI_AUDIO_SIMULATION_HOST || 'http://192.168.0.112:5001'
+
 export const API_CONFIG = {
   // 运动相关接口 - 使用独立的代理前缀（保留用于腿部系统）
   MOVEMENT_BASE_URL: '/api-move',

@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { API_CONFIG } from '../config/api'
+import axios from 'axios'; // 导入API配置
+import { API_CONFIG } from '../config/api.js'
 
 // 仿真模式状态管理
 let isSimulationMode = false;
@@ -222,6 +222,16 @@ const movementAxiosInstance = axios.create({
   },
 });
 
+// 为下肢系统创建专用的axios实例（使用代理路径）
+const legMovementAxiosInstance = axios.create({
+  baseURL: '/api-leg-movement',
+  timeout: API_CONFIG.TIMEOUT,
+  headers: {
+    ...API_CONFIG.DEFAULT_HEADERS,
+    'ngrok-skip-browser-warning': 'true'
+  },
+});
+
 // 强制创建仿真运动接口的axios实例
 const createSimulationAxiosInstance = () => {
   console.log('🔧 强制创建新的仿真axios实例...');
@@ -301,6 +311,61 @@ movementAxiosInstance.interceptors.response.use(
     };
   }
 );
+
+// 添加响应拦截器 - 下肢系统专用
+legMovementAxiosInstance.interceptors.response.use(
+  (response) => {
+    console.log('下肢系统API响应:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data
+    });
+
+    // 包装响应数据为统一格式
+    return {
+      success: response.status >= 200 && response.status < 300,
+      data: response.data,
+      status: response.status,
+      statusText: response.statusText,
+      action: getActionNameFromResponse(response)
+    };
+  },
+  (error) => {
+    console.error('下肢系统API错误:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data
+    });
+
+    // 返回错误格式的响应
+    return {
+      success: false,
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      action: getActionNameFromUrl(error.config?.url)
+    };
+  }
+);
+
+// 从响应中获取动作名称的辅助函数
+const getActionNameFromResponse = (response) => {
+  const url = response.config.url;
+  return getActionNameFromUrl(url);
+};
+
+// 从URL中获取动作名称的辅助函数
+const getActionNameFromUrl = (url) => {
+  if (!url) return '未知动作';
+  if (url.includes('/forward')) return '前进';
+  if (url.includes('/backward')) return '后退';
+  if (url.includes('/turn_left')) return '左转';
+  if (url.includes('/turn_right')) return '右转';
+  if (url.includes('/left')) return '左移';
+  if (url.includes('/right')) return '右移';
+  return '未知动作';
+};
 
 // 添加响应拦截器 - 仿真机器人
 simulationAxiosInstance.interceptors.response.use(
@@ -403,21 +468,22 @@ export const movementApi = {
     })
   },
 
-  // 机器人移动控制 - 始终使用真实机器人（这个主要用于腿部系统）
+  // 机器人移动控制 - 使用下肢系统专用接口
   executeMovement: (direction) => {
     let endpoint = ''
     switch (direction) {
-      case 'forward': endpoint = '/robot_movement/continuous_walk/forward'; break
-      case 'backward': endpoint = '/robot_movement/continuous_walk/backward'; break
-      case 'left-move': endpoint = '/robot_movement/continuous_walk/left'; break
-      case 'right-move': endpoint = '/robot_movement/continuous_walk/right'; break
-      case 'left': endpoint = '/robot_movement/continuous_walk/turn_left'; break
-      case 'right': endpoint = '/robot_movement/continuous_walk/turn_right'; break
-      case 'march': endpoint = '/robot_movement/continuous_walk/march_in_place'; break
-      case 'stop': endpoint = '/robot_movement/cancel'; break
+      case 'forward': endpoint = '/api/robot_movement/continuous_walk/forward'; break
+      case 'backward': endpoint = '/api/robot_movement/continuous_walk/backward'; break
+      case 'left-move': endpoint = '/api/robot_movement/continuous_walk/left'; break
+      case 'right-move': endpoint = '/api/robot_movement/continuous_walk/right'; break
+      case 'left': endpoint = '/api/robot_movement/continuous_walk/turn_left'; break
+      case 'right': endpoint = '/api/robot_movement/continuous_walk/turn_right'; break
+      case 'march': endpoint = '/api/robot_movement/continuous_walk/march_in_place'; break
+      case 'stop': endpoint = '/api/robot_movement/cancel'; break
       default: return Promise.resolve({ success: false, error: '未知方向' })
     }
-    return movementHttp.post(endpoint, {})
+    console.log(`🦵 执行下肢系统移动: ${direction} -> /api-leg-movement${endpoint}`)
+    return legMovementAxiosInstance.post(endpoint, {})
   },
 
   // 单步移动控制 - 始终使用真实机器人
@@ -442,8 +508,11 @@ export const movementApi = {
   // 紧急停止所有系统 - 始终使用真实机器人
   emergencyStopAll: () => movementHttp.post('/robot/emergency_stop'),
 
-  // 紧急停止单个操作 - 始终使用真实机器人
-  emergencyStop: () => movementHttp.post('/robot_movement/cancel'),
+  // 紧急停止单个操作 - 使用下肢系统专用接口
+  emergencyStop: () => {
+    console.log(`🚨 执行下肢系统紧急停止: /api-leg-movement/api/robot_movement/cancel`)
+    return legMovementAxiosInstance.post('/api/robot_movement/cancel', {})
+  },
 
   // 导出所有数据 - 始终使用真实机器人
   exportAllData: () => movementHttp.get('/robot/export'),

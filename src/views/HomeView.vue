@@ -205,8 +205,25 @@ function exportSystemStatus() {
   link.click();
 }
 
+// 字体加载检测
+function checkFontLoaded() {
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+      document.body.classList.add('font-loaded');
+    });
+  } else {
+    // 降级方案：延迟添加类
+    setTimeout(() => {
+      document.body.classList.add('font-loaded');
+    }, 100);
+  }
+}
+
 // 生命周期钩子
 onMounted(() => {
+  // 字体加载检测
+  checkFontLoaded();
+  
   // 恢复状态
   const savedStatus = localStorage.getItem('robotSystemStatus');
   if (savedStatus) {
@@ -432,15 +449,10 @@ body::before {
   margin: 0;
   font-weight: 700;
   letter-spacing: 0.8px;
-  font-family: 'Microsoft YaHei', sans-serif;
+  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
   text-align: center;
   flex: 1;
-  transition: font-family 0.3s ease;
-}
-
-/* 字体加载完成后的样式 */
-.font-loaded .panel-header h3 {
-  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  transition: all 0.3s ease;
 }
 
 .connection-status {
@@ -603,6 +615,7 @@ body::before {
   font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
   text-align: center;
   flex: 1;
+  transition: all 0.3s ease;
 }
 
 .system-intro {
@@ -685,12 +698,7 @@ body::before {
   text-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
   user-select: none;
   pointer-events: none;
-  transition: font-family 0.3s ease;
-}
-
-/* 字体加载完成后的主标题样式 */
-.font-loaded .main-title {
-  font-family: 'Orbitron', 'Microsoft YaHei', sans-serif;
+  transition: all 0.3s ease;
 }
 
 .top-buttons {

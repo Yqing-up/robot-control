@@ -118,12 +118,13 @@
                             <span class="arrow">↺</span>
                             <span class="label">左转</span>
                           </button>
-                          <button class="direction-btn stop emergency"
-                                  :class="{ active: currentDirection === 'stop' }"
-                                  @click="emergencyStop"
-                                  data-direction="stop">
-                            <span class="stop-icon">■</span>
-                            <span class="label">紧急停止</span>
+                          <button class="direction-btn march"
+                                  :class="{ active: currentDirection === 'march', disabled: isExecutingAction }"
+                                  :disabled="isExecutingAction"
+                                  @click="setDirection('march')"
+                                  data-direction="march">
+                            <span class="march-icon">⇅</span>
+                            <span class="label">踏步</span>
                           </button>
                           <button class="direction-btn right"
                                   :class="{ active: currentDirection === 'right', disabled: isExecutingAction }"
@@ -396,35 +397,6 @@ const executeMovement = async (direction) => {
   }
 }
 
-// 紧急停止
-const emergencyStop = async () => {
-  currentDirection.value = 'stop'
-  isMoving.value = false
-  statusText.value = '紧急停止中...'
-  console.log('🚨 紧急停止 - 强制中断当前动作')
-
-  // 紧急停止时立即设置执行状态，防止其他操作
-  isExecutingAction.value = true
-
-  // 调用紧急停止API
-  const result = await movementApi.emergencyStop()
-
-  // 更新状态文本
-  if (result.success) {
-    statusText.value = `✅ ${result.action}完成`
-    console.log(`✅ ${result.action}执行完成`)
-  } else {
-    statusText.value = `❌ ${result.action || '紧急停止'}失败: ${result.error}`
-    console.log(`❌ ${result.action || '紧急停止'}执行失败`)
-  }
-
-  // 2秒后恢复为就绪状态并解锁按钮
-  setTimeout(() => {
-    isExecutingAction.value = false
-    statusText.value = '系统就绪'
-    console.log('🔓 紧急停止完成，控制按钮已解锁')
-  }, 2000)
-}
 
 // 测试摄像头连接
 const testCameraConnection = async () => {
@@ -989,7 +961,7 @@ onMounted(() => {
 })
 </script>
 
-<style>
+<style scoped>
 @import '../assets/leg-system-new.css';
 
 /* 紧急修复：强制显示步态按钮 - 解决缓存问题 */
@@ -1080,5 +1052,39 @@ button[data-gait]:hover {
     background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
     color: rgba(255, 255, 255, 1) !important;
     transform: translateY(-1px) !important;
+}
+
+/* 踏步按钮样式 - 深蓝色背景配黄色边框 */
+.direction-pad-extended .center-controls .middle-row .direction-btn.march {
+    background: linear-gradient(135deg, rgba(0, 20, 40, 0.8) 0%, rgba(0, 30, 60, 0.6) 100%) !important;
+    border: 2px solid #FFA500 !important;
+    color: #FFA500 !important;
+    box-shadow: 0 4px 16px rgba(255, 165, 0, 0.2) !important;
+}
+
+.direction-pad-extended .center-controls .middle-row .direction-btn.march:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(0, 30, 60, 0.9) 0%, rgba(0, 40, 80, 0.7) 100%) !important;
+    border-color: #FFB84D !important;
+    color: #FFB84D !important;
+    box-shadow: 0 4px 20px rgba(255, 165, 0, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+.direction-pad-extended .center-controls .middle-row .direction-btn.march.active {
+    background: linear-gradient(135deg, rgba(0, 40, 80, 1) 0%, rgba(0, 50, 100, 0.8) 100%) !important;
+    border-color: #FFD700 !important;
+    color: #FFD700 !important;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6) !important;
+}
+
+.direction-pad-extended .center-controls .middle-row .direction-btn.march:disabled {
+    background: linear-gradient(135deg, rgba(0, 20, 40, 0.4) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
+    border-color: rgba(255, 165, 0, 0.4) !important;
+    color: rgba(255, 165, 0, 0.5) !important;
+}
+
+.march-icon {
+    font-size: 18px;
+    display: inline-block;
 }
 </style>

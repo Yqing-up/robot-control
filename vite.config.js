@@ -426,6 +426,25 @@ export default defineConfig(({ command, mode }) => {
           },
         },
 
+        // 新增：下肢系统专用接口代理（必须在通用API代理之前）
+        '/api-leg-movement': {
+          target: 'http://192.168.0.117:5001',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-leg-movement/, ''),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('🦵 下肢系统接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('🦵 下肢系统接口代理请求 -> 下肢控制服务器:', req.method, req.url, '->', options.target + req.url.replace(/^\/api-leg-movement/, ''));
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('🦵 下肢系统接口代理响应 <- 下肢控制服务器:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
         // 保留原有的通用API代理，用于其他接口（必须放在最后）
         '/api': {
           target: ROBOT_UPPER_HOST,
