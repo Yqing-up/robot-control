@@ -226,9 +226,9 @@
     gap: 10px;
     flex: 1;
     overflow-y: auto;
-    max-height: 1400px; /* 设置最大高度为1400px */
-    height: calc(100vh - 250px); /* 减少减去的高度，让容器更高 */
-    min-height: 500px; /* 增加最小高度 */
+    max-height: 1600px; /* 增加最大高度到1600px */
+    height: calc(100vh - 200px); /* 进一步减少减去的高度，让容器更高 */
+    min-height: 600px; /* 增加最小高度到600px */
 }
 
 .action-item {
