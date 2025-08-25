@@ -9,8 +9,8 @@
       <div class="header-controls">
         <!-- 状态指示器已移除 -->
         <div class="header-buttons">
-          <button class="btn btn-small" @click="initializeCamera" :disabled="cameraLoading">
-            {{ cameraLoading ? '连接中...' : '刷新摄像头' }}
+          <button class="btn btn-small" @click="emergencyStopMarch" :disabled="isExecutingAction">
+            紧急停止
           </button>
           <button class="btn btn-small" @click="exportMovementData">导出数据</button>
         </div>
@@ -287,6 +287,8 @@ const statusText = ref('系统就绪')
 const isExecutingAction = ref(false)
 // 踏步状态管理
 const isMarchActive = ref(false)
+// 步态模式
+const currentGait = ref('normal')
 
 // 摄像头相关数据
 const cameraConnected = ref(false)
@@ -360,6 +362,9 @@ const startMarch = async () => {
   currentDirection.value = 'march'
   isMoving.value = true
 
+  // 立即保存踏步状态
+  saveToLocalStorage()
+
   // 调用踏步API
   const response = await movementApi.executeMovement('march')
   console.log('踏步API响应:', response)
@@ -370,6 +375,9 @@ const startMarch = async () => {
     isMarchActive.value = false
     currentDirection.value = 'stop'
     isMoving.value = false
+
+    // 立即保存失败状态
+    saveToLocalStorage()
 
     // 3秒后恢复状态文本
     setTimeout(() => {
@@ -382,21 +390,18 @@ const startMarch = async () => {
 const stopMarch = async () => {
   console.log('🛑 停止踏步')
   statusText.value = '正在停止踏步'
+  isExecutingAction.value = true
 
   try {
     // 调用停止踏步API
     const response = await movementApi.emergencyStop()
     console.log('停止踏步API响应:', response)
 
-    if (response.success) {
-      statusText.value = '✅ 踏步已停止'
-      console.log('✅ 踏步停止成功')
-    } else {
-      statusText.value = `❌ 停止失败: ${response.error}`
-      console.error('❌ 踏步停止失败:', response.error)
-    }
+    statusText.value = '✅ 踏步已停止'
+    console.log('✅ 踏步停止成功')
+
   } catch (error) {
-    console.error('❌ 停止踏步异常:', error)
+    console.error('❌ 停止踏步失败:', error)
     statusText.value = `❌ 停止异常: ${error.message}`
   } finally {
     // 无论成功失败都重置状态
@@ -404,10 +409,15 @@ const stopMarch = async () => {
     currentDirection.value = 'stop'
     isMoving.value = false
 
-    // 2秒后恢复状态文本
+    // 立即保存停止状态
+    saveToLocalStorage()
+
+    // 立即解锁按钮，3秒后恢复状态文本
+    isExecutingAction.value = false
     setTimeout(() => {
       statusText.value = '系统就绪'
-    }, 2000)
+    }, 3000)
+    console.log('🔓 控制按钮已解锁')
   }
 }
 
@@ -489,6 +499,58 @@ const executeMovement = async (direction) => {
   }
 }
 
+
+// 设置步态模式
+const setGait = (gait) => {
+  currentGait.value = gait
+  console.log(`🚶 切换步态模式: ${gait}`)
+  statusText.value = `步态模式: ${gait === 'normal' ? '正常行走' : gait === 'fast' ? '快速移动' : '精确定位'}`
+  
+  // 保存步态到localStorage
+  saveToLocalStorage()
+  
+  // 2秒后恢复状态文本
+  setTimeout(() => {
+    if (!isExecutingAction.value && !isMoving.value) {
+      statusText.value = '系统就绪'
+    }
+  }, 2000)
+}
+
+// 紧急停止踏步（右上角按钮）
+const emergencyStopMarch = async () => {
+  console.log('🚨 紧急停止按钮被点击')
+  statusText.value = '正在执行紧急停止...'
+  isExecutingAction.value = true
+  
+  try {
+    // 直接调用停止踏步API
+    const response = await movementApi.emergencyStop()
+    console.log('🚨 紧急停止API响应:', response)
+    
+    // 更新状态
+    isMarchActive.value = false
+    currentDirection.value = 'stop'
+    isMoving.value = false
+    
+    // 立即保存停止状态
+    saveToLocalStorage()
+    
+    statusText.value = '✅ 紧急停止执行成功'
+    console.log('✅ 紧急停止执行完成')
+    
+  } catch (error) {
+    console.error('❌ 紧急停止执行失败:', error)
+    statusText.value = `❌ 紧急停止失败: ${error.message || error}`
+  } finally {
+    isExecutingAction.value = false
+    
+    // 3秒后恢复状态文本
+    setTimeout(() => {
+      statusText.value = '系统就绪'
+    }, 3000)
+  }
+}
 
 // 测试摄像头连接
 const testCameraConnection = async () => {
@@ -753,12 +815,6 @@ const diagnoseVideoStream = async () => {
   }
 }
 
-// 设置步态模式
-const setGait = (gait) => {
-  currentGait.value = gait
-  console.log('步态模式设置为:', gait)
-}
-
 
 
 const resetSystem = () => {
@@ -937,7 +993,9 @@ const saveToLocalStorage = () => {
     stepCount: stepCount.value,
     currentGait: currentGait.value,
     runTime: runTime.value,
-    batteryLevel: batteryLevel.value
+    batteryLevel: batteryLevel.value,
+    isMarchActive: isMarchActive.value,  // 保存踏步状态
+    currentDirection: currentDirection.value  // 保存当前方向状态
   }
   localStorage.setItem('legSystemData', JSON.stringify(data))
 }
@@ -955,6 +1013,16 @@ const loadFromLocalStorage = () => {
       currentGait.value = data.currentGait || 'normal'
       runTime.value = data.runTime || 0
       batteryLevel.value = data.batteryLevel || 85
+      // 恢复踏步状态
+      isMarchActive.value = data.isMarchActive || false
+      currentDirection.value = data.currentDirection || 'stop'
+      
+      // 如果页面刷新时踏步状态为激活，更新相关状态
+      if (isMarchActive.value) {
+        isMoving.value = true
+        statusText.value = '踏步状态已恢复'
+        console.log('🔄 页面刷新后恢复踏步状态')
+      }
     } catch (error) {
       console.error('加载数据失败:', error)
     }
@@ -1144,6 +1212,28 @@ button[data-gait]:hover {
     background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
     color: rgba(255, 255, 255, 1) !important;
     transform: translateY(-1px) !important;
+}
+
+/* 紧急停止按钮样式 */
+.btn-emergency {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: 1px solid #dc3545 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.btn-emergency:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%) !important;
+    border-color: #c82333 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+.btn-emergency:disabled {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    border-color: #6c757d !important;
+    color: #ffffff80 !important;
+    cursor: not-allowed !important;
 }
 
 /* 踏步按钮样式 - 深蓝色背景配黄色边框 */

@@ -442,6 +442,25 @@ export default defineConfig(({ command, mode }) => {
           },
         },
 
+        // 新增：下位机接口代理（用于下肢系统移动控制）
+        '/api-robot-lower': {
+          target: ROBOT_LOWER_HOST,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-robot-lower/, '/api'),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('🤖 下位机接口代理错误:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('🤖 下位机接口代理请求 -> 下位机服务器:', req.method, req.url, '->', options.target + req.url.replace(/^\/api-robot-lower/, '/api'));
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('🤖 下位机接口代理响应 <- 下位机服务器:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+
         // 保留原有的通用API代理，用于其他接口（必须放在最后）
         '/api': {
           target: ROBOT_UPPER_HOST,

@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container voice-system-view">
     <!-- 顶部导航 -->
     <header class="header">
       <div class="nav-section">
@@ -135,13 +135,13 @@
           </section>
 
           <!-- 播放历史 -->
-          <section class="history-section">
+          <section class="history-section" style="overflow: visible !important; flex: none !important; height: auto !important;">
             <div class="section-header">
               <h3>播放历史</h3>
               <div class="voice-status-indicator online"></div>
             </div>
 
-            <div class="history-list" :class="{ 'loading': playHistory.length === 0 }">
+            <div id="voice-history-list" class="history-list" :class="{ 'loading': playHistory.length === 0 }" style="max-height: 1400px !important; min-height: 400px !important; overflow-y: auto !important; height: auto !important;">
               <div v-if="playHistory.length === 0" class="history-empty">
                 <p>暂无播放历史</p>
               </div>
@@ -952,10 +952,16 @@ onUnmounted(() => {
   font-family: 'Courier New', monospace;
 }
 
-.history-list {
-  max-height: 800px; /* 增加内容容器高度 */
-  overflow-y: auto;
-  padding-right: 8px;
+/* 语音系统播放历史区域专用样式 - 使用ID选择器确保最高优先级 */
+#voice-history-list {
+  max-height: 1400px !important;
+  min-height: 400px !important;
+  overflow-y: auto !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding-right: 4px !important;
 }
 
 /* 加载状态时的样式优化 */

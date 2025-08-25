@@ -1305,6 +1305,12 @@
     padding-right: 8px;
 }
 
+/* 语音系统播放历史特定高度 */
+.voice-system-view .history-list,
+.voice-main .history-list {
+    max-height: 900px !important;
+}
+
 .history-list::-webkit-scrollbar {
     width: 6px;
 }

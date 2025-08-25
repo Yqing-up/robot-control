@@ -222,9 +222,9 @@ const movementAxiosInstance = axios.create({
   },
 });
 
-// 为下肢系统创建专用的axios实例（使用代理路径）
+// 为下肢系统创建专用的axios实例（使用环境变量配置的下位机地址）
 const legMovementAxiosInstance = axios.create({
-  baseURL: '/api-leg-movement',
+  baseURL: '/api-robot-lower',  // 使用VITE_ROBOT_LOWER_HOST代理
   timeout: API_CONFIG.TIMEOUT,
   headers: {
     ...API_CONFIG.DEFAULT_HEADERS,
@@ -472,17 +472,17 @@ export const movementApi = {
   executeMovement: (direction) => {
     let endpoint = ''
     switch (direction) {
-      case 'forward': endpoint = '/api/robot_movement/continuous_walk/forward'; break
-      case 'backward': endpoint = '/api/robot_movement/continuous_walk/backward'; break
-      case 'left-move': endpoint = '/api/robot_movement/continuous_walk/left'; break
-      case 'right-move': endpoint = '/api/robot_movement/continuous_walk/right'; break
-      case 'left': endpoint = '/api/robot_movement/continuous_walk/turn_left'; break
-      case 'right': endpoint = '/api/robot_movement/continuous_walk/turn_right'; break
-      case 'march': endpoint = '/api/robot_movement/continuous_walk/march_in_place'; break
-      case 'stop': endpoint = '/api/robot_movement/cancel'; break
+      case 'forward': endpoint = '/robot_movement/forward'; break
+      case 'backward': endpoint = '/robot_movement/backward'; break
+      case 'left-move': endpoint = '/robot_movement/left'; break
+      case 'right-move': endpoint = '/robot_movement/right'; break
+      case 'left': endpoint = '/robot_movement/turn_left'; break
+      case 'right': endpoint = '/robot_movement/turn_right'; break
+      case 'march': endpoint = '/robot_movement/continuous_walk/march_in_place'; break
+      case 'stop': endpoint = '/robot_movement/continuous_walk/stop'; break
       default: return Promise.resolve({ success: false, error: '未知方向' })
     }
-    console.log(`🦵 执行下肢系统移动: ${direction} -> /api-leg-movement${endpoint}`)
+    console.log(`🦵 执行下肢系统移动: ${direction} -> /api-robot-lower${endpoint}`)
     return legMovementAxiosInstance.post(endpoint, {})
   },
 
@@ -510,8 +510,8 @@ export const movementApi = {
 
   // 紧急停止单个操作 - 使用下肢系统专用接口
   emergencyStop: () => {
-    console.log(`🚨 执行下肢系统紧急停止: /api-leg-movement/api/robot_movement/cancel`)
-    return legMovementAxiosInstance.post('/api/robot_movement/cancel', {})
+    console.log(`🚨 执行下肢系统紧急停止: /api-robot-lower/robot_movement/continuous_walk/stop`)
+    return legMovementAxiosInstance.post('/robot_movement/continuous_walk/stop', {})
   },
 
   // 导出所有数据 - 始终使用真实机器人

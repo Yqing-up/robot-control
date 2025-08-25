@@ -810,7 +810,7 @@
     flex: 1;
     overflow-y: auto;
     padding-right: 4px;
-    max-height: calc(100% - 40px);
+    max-height: 900px;
 }
 
 /* 加载状态优化 */
@@ -1485,7 +1485,7 @@
     }
 
     .history-list {
-        max-height: 300px !important;
+        max-height: 900px !important;
         overflow-y: auto !important;
     }
 }
