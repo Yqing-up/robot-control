@@ -9,8 +9,8 @@
       <div class="header-controls">
         <!-- 状态指示器已移除 -->
         <div class="header-buttons">
-          <button class="btn btn-small" @click="emergencyStopMarch" :disabled="isEmergencyStop">
-            {{ isEmergencyStop ? '停止中...' : '紧急停止' }}
+          <button class="btn btn-small" @click="initializeCamera" :disabled="cameraLoading">
+            {{ cameraLoading ? '连接中...' : '刷新摄像头' }}
           </button>
           <button class="btn btn-small" @click="exportMovementData">导出数据</button>
         </div>
@@ -119,10 +119,10 @@
                             <span class="label">左转</span>
                           </button>
                           <button class="direction-btn march"
-                                  :class="{ 
-                                    active: isMarchActive, 
+                                  :class="{
+                                    active: isMarchActive,
                                     disabled: isExecutingAction && !isMarchActive,
-                                    'march-stop': isMarchActive 
+                                    'march-stop': isMarchActive
                                   }"
                                   :disabled="isExecutingAction && !isMarchActive"
                                   @click="toggleMarch()"
@@ -276,7 +276,6 @@ import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { movementApi } from '../api/movementApi.js'
 import { cameraApi } from '../api/cameraApi.js'
-import axios from 'axios'
 // 如需用到工具函数请在本文件实现
 
 const router = useRouter()
@@ -288,10 +287,6 @@ const statusText = ref('系统就绪')
 const isExecutingAction = ref(false)
 // 踏步状态管理
 const isMarchActive = ref(false)
-// 紧急停止状态
-const isEmergencyStop = ref(false)
-// 步态模式
-const currentGait = ref('normal')
 
 // 摄像头相关数据
 const cameraConnected = ref(false)
@@ -364,26 +359,18 @@ const startMarch = async () => {
   isMarchActive.value = true
   currentDirection.value = 'march'
   isMoving.value = true
-  
-  // 保存踏步状态到localStorage
-  localStorage.setItem('robotMarchState', 'true')
-  localStorage.setItem('robotMarchTimestamp', Date.now().toString())
 
   // 调用踏步API
   const response = await movementApi.executeMovement('march')
   console.log('踏步API响应:', response)
-  
+
   if (!response.success) {
     console.error('❌ 踏步启动失败:', response.error)
     statusText.value = `❌ 踏步启动失败: ${response.error}`
     isMarchActive.value = false
     currentDirection.value = 'stop'
     isMoving.value = false
-    
-    // 清除localStorage状态
-    localStorage.removeItem('robotMarchState')
-    localStorage.removeItem('robotMarchTimestamp')
-    
+
     // 3秒后恢复状态文本
     setTimeout(() => {
       statusText.value = '系统就绪'
@@ -395,12 +382,12 @@ const startMarch = async () => {
 const stopMarch = async () => {
   console.log('🛑 停止踏步')
   statusText.value = '正在停止踏步'
-  
+
   try {
     // 调用停止踏步API
     const response = await movementApi.emergencyStop()
     console.log('停止踏步API响应:', response)
-    
+
     if (response.success) {
       statusText.value = '✅ 踏步已停止'
       console.log('✅ 踏步停止成功')
@@ -416,127 +403,11 @@ const stopMarch = async () => {
     isMarchActive.value = false
     currentDirection.value = 'stop'
     isMoving.value = false
-    
-    // 清除localStorage状态
-    localStorage.removeItem('robotMarchState')
-    localStorage.removeItem('robotMarchTimestamp')
-    
+
     // 2秒后恢复状态文本
     setTimeout(() => {
       statusText.value = '系统就绪'
     }, 2000)
-  }
-}
-
-// 紧急停止所有动作（包括踏步）
-const emergencyStopAll = async () => {
-  console.log('🚨 执行紧急停止所有动作')
-  isEmergencyStop.value = true
-  statusText.value = '🚨 紧急停止中...'
-  
-  try {
-    // 调用停止踏步API
-    const response = await movementApi.emergencyStop()
-    console.log('紧急停止API响应:', response)
-    
-    if (response.success) {
-      statusText.value = '🚨 紧急停止完成'
-      console.log('✅ 紧急停止成功')
-    } else {
-      statusText.value = `❌ 紧急停止失败: ${response.error}`
-      console.error('❌ 紧急停止失败:', response.error)
-    }
-  } catch (error) {
-    console.error('❌ 紧急停止异常:', error)
-    statusText.value = `❌ 紧急停止异常: ${error.message}`
-  } finally {
-    // 重置所有状态
-    isMarchActive.value = false
-    currentDirection.value = 'stop'
-    isMoving.value = false
-    isEmergencyStop.value = false
-    
-    // 清除localStorage状态
-    localStorage.removeItem('robotMarchState')
-    localStorage.removeItem('robotMarchTimestamp')
-    
-    // 3秒后恢复状态文本
-    setTimeout(() => {
-      statusText.value = '系统就绪'
-    }, 3000)
-  }
-}
-
-// 紧急停止踏步（使用下位机代理）
-const emergencyStopMarch = async () => {
-  console.log('🚨 执行紧急停止踏步')
-  isEmergencyStop.value = true
-  
-  try {
-    // 使用下位机代理调用停止踏步API
-    // /api-robot-real 代理到 ROBOT_LOWER_HOST (http://192.168.0.112:5001)
-    const axiosInstance = axios.create({
-      baseURL: '/api-robot-real',
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    const response = await axiosInstance.post('/robot_movement/continuous_walk/stop', {})
-    console.log('紧急停止踏步API响应:', response)
-    
-    if (response.status === 200) {
-      console.log('✅ 紧急停止踏步成功')
-    } else {
-      console.error('❌ 紧急停止踏步失败:', response.statusText)
-    }
-  } catch (error) {
-    console.error('❌ 紧急停止踏步异常:', error)
-  } finally {
-    // 重置踏步状态
-    isMarchActive.value = false
-    currentDirection.value = 'stop'
-    isMoving.value = false
-    isEmergencyStop.value = false
-    
-    // 清除localStorage状态
-    localStorage.removeItem('robotMarchState')
-    localStorage.removeItem('robotMarchTimestamp')
-    
-    console.log('✅ 紧急停止操作完成')
-  }
-}
-
-// 检查并恢复踏步状态
-const checkAndRestoreMarchState = () => {
-  const marchState = localStorage.getItem('robotMarchState')
-  const marchTimestamp = localStorage.getItem('robotMarchTimestamp')
-  
-  if (marchState === 'true' && marchTimestamp) {
-    const timestamp = parseInt(marchTimestamp)
-    const now = Date.now()
-    const timeDiff = now - timestamp
-    
-    // 如果踏步状态存在且时间差小于30分钟，认为可能还在踏步
-    if (timeDiff < 30 * 60 * 1000) {
-      console.warn('⚠️ 检测到可能的踏步状态，页面刷新前机器人可能正在踏步')
-      isMarchActive.value = true
-      currentDirection.value = 'march'
-      isMoving.value = true
-      statusText.value = '⚠️ 检测到踏步状态，请确认机器人状态'
-      
-      // 显示警告提示
-      setTimeout(() => {
-        if (isMarchActive.value) {
-          statusText.value = '⚠️ 如机器人在踏步请点击停止，否则点击踏步重新开始'
-        }
-      }, 2000)
-    } else {
-      // 超时则清除状态
-      localStorage.removeItem('robotMarchState')
-      localStorage.removeItem('robotMarchTimestamp')
-    }
   }
 }
 
@@ -547,7 +418,7 @@ const setDirection = async (direction) => {
     await toggleMarch()
     return
   }
-  
+
   // 检查是否正在执行动作
   if (isExecutingAction.value && direction !== 'stop') {
     console.warn('⚠️ 机器人正在执行动作，请等待完成后再操作')
@@ -888,7 +759,8 @@ const setGait = (gait) => {
   console.log('步态模式设置为:', gait)
 }
 
-// 系统初始化和清理
+
+
 const resetSystem = () => {
   currentDirection.value = 'stop'
   currentGait.value = 'normal'
@@ -1150,12 +1022,8 @@ const setupFullscreenListeners = () => {
 }
 
 onMounted(() => {
-  console.log('📱 下肢系统页面已加载')
-  // 检查并恢复踏步状态
-  checkAndRestoreMarchState()
-  
-  // 开始监控
-  const stopMonitoring = startMonitoring()
+  console.log('下肢系统组件已挂载')
+  loadFromLocalStorage()
 
   // 添加键盘事件监听
   document.addEventListener('keydown', handleKeyDown)
@@ -1163,6 +1031,9 @@ onMounted(() => {
 
   // 设置全屏状态监听器
   const cleanupFullscreenListeners = setupFullscreenListeners()
+
+  // 开始监控
+  const stopMonitoring = startMonitoring()
 
   // 初始化摄像头
   initializeCamera()
@@ -1301,8 +1172,7 @@ button[data-gait]:hover {
 .direction-pad-extended .center-controls .middle-row .direction-btn.march:disabled {
     background: linear-gradient(135deg, rgba(0, 20, 40, 0.4) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
     border-color: rgba(255, 165, 0, 0.4) !important;
-    cursor: not-allowed !important;
-    opacity: 0.6 !important;
+    color: rgba(255, 165, 0, 0.5) !important;
 }
 
 .march-icon {
@@ -1332,29 +1202,4 @@ button[data-gait]:hover {
     color: #FFFFFF !important;
     box-shadow: 0 0 25px rgba(220, 20, 60, 0.7) !important;
 }
-
-/* 头部紧急停止按钮样式 */
-.emergency-stop-header {
-    background: linear-gradient(135deg, #FF4444 0%, #CC0000 100%) !important;
-    border: 2px solid #FF6666 !important;
-    color: white !important;
-    font-weight: bold !important;
-    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3) !important;
-    transition: all 0.3s ease !important;
-}
-
-.emergency-stop-header:hover:not(:disabled) {
-    background: linear-gradient(135deg, #FF6666 0%, #FF0000 100%) !important;
-    border-color: #FF8888 !important;
-    box-shadow: 0 6px 16px rgba(255, 68, 68, 0.5) !important;
-    transform: translateY(-2px) !important;
-}
-
-.emergency-stop-header:disabled {
-    background: linear-gradient(135deg, #999999 0%, #666666 100%) !important;
-    border-color: #AAAAAA !important;
-    cursor: not-allowed !important;
-    opacity: 0.6 !important;
-}
-
 </style>

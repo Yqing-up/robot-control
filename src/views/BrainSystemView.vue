@@ -206,8 +206,8 @@
             </div>
             <div class="robot-mode-selector">
               <div class="mode-options">
-                <div 
-                  class="mode-option" 
+                <div
+                  class="mode-option"
                   :class="{ active: currentRobotMode === 'real' }"
                   @click="switchRobotMode('real')"
                 >
@@ -219,8 +219,8 @@
                     </div>
                   </div>
                 </div>
-                <div 
-                  class="mode-option" 
+                <div
+                  class="mode-option"
                   :class="{ active: currentRobotMode === 'simulation' }"
                   @click="switchRobotMode('simulation')"
                 >
@@ -588,11 +588,11 @@ const checkRobotConnections = async () => {
     const connections = await robotApi.checkBothConnections()
     realRobotConnected.value = connections.real.connected
     simulationRobotConnected.value = connections.simulation.connected
-    
+
     // 更新连接状态样式
     realRobotStatus.value = connections.real.connected ? 'connected' : 'disconnected'
     simulationRobotStatus.value = connections.simulation.connected ? 'connected' : 'disconnected'
-    
+
     // 更新当前模式的连接状态
     updateRobotConnectionStatus()
   } catch (error) {
@@ -607,13 +607,13 @@ const autoSelectRobotMode = async () => {
     currentRobotMode.value = result.mode
     robotModeName.value = robotApi.getCurrentModeLabel()
     currentServerAddress.value = robotApi.getCurrentServerAddress()
-    
+
     // 更新连接状态
     realRobotConnected.value = result.available.real
     simulationRobotConnected.value = result.available.simulation
     realRobotStatus.value = result.available.real ? 'connected' : 'disconnected'
     simulationRobotStatus.value = result.available.simulation ? 'connected' : 'disconnected'
-    
+
     // 更新当前模式的连接状态
     updateRobotConnectionStatus()
   } catch (error) {
@@ -623,10 +623,10 @@ const autoSelectRobotMode = async () => {
 
 // 更新机器人连接状态UI
 const updateRobotConnectionStatus = () => {
-  const isCurrentModeConnected = currentRobotMode.value === 'real' 
-    ? realRobotConnected.value 
+  const isCurrentModeConnected = currentRobotMode.value === 'real'
+    ? realRobotConnected.value
     : simulationRobotConnected.value
-  
+
   robotConnectionStatus.value = isCurrentModeConnected ? 'connected' : 'disconnected'
   robotConnectionStatusText.value = isCurrentModeConnected ? '连接正常' : '连接中断'
 }
